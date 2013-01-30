@@ -23,10 +23,19 @@ namespace pidgeon_sv
 {
     class Config
     {
+        /// <summary>
+        /// Port
+        /// </summary>
         public static int server_port = 22;
         public static string userfile = "db/users";
 
+        /// <summary>
+        /// Maximum buffer size before flush
+        /// </summary>
         public static int maxbs = 200000;
+        /// <summary>
+        /// Minimal buffer size to store
+        /// </summary>
         public static int minbs = 20000;
 
         public static readonly string version = "1.0.2.0";

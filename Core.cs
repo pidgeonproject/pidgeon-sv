@@ -51,6 +51,11 @@ namespace pidgeon_sv
             SL("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
+        public static void DebugLog(string text)
+        {
+            SL("DEBUG: " + text);
+        }
+
         public static void SaveData()
         {
             lock (_accounts)

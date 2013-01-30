@@ -309,6 +309,10 @@ namespace pidgeon_sv
                             ProtocolIrc protocol = (ProtocolIrc)network._protocol;
                             protocol.getDepth(int.Parse(node.Attributes[1].Value), this);
                         }
+                        else
+                        {
+                            Core.DebugLog("User " + this.client.IP + " requested log of unknown network");
+                        }
                     }
                     return;
                 case "CONNECT":
