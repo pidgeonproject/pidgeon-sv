@@ -57,7 +57,7 @@ namespace pidgeon_sv
             public string _Datagram;
             public Dictionary<string, string> Parameters = new Dictionary<string, string>();
         }
-
+        
         public class SelfData
         {
             public string text = null;
@@ -67,10 +67,16 @@ namespace pidgeon_sv
             public string target = null;
             public SelfData(Network _network, string _text, DateTime date, string _target)
             {
+                if (_network == null)
+                {
+                    Core.DebugLog("Constructor of SelfData failed, because of null network");
+                    throw new Exception("Constructor of SelfData failed, because of null network");
+                }
                 nick = _network.nickname;
                 text = _text;
                 target = _target;
                 time = date;
+                network = _network;
             }
         }
 
@@ -386,7 +392,7 @@ namespace pidgeon_sv
                             }
                             connection.account.MessageBack(data);
                             network4._protocol.Message(node.InnerText, target, Priority);
-                            ProtocolIrc prot = (ProtocolIrc)network4._protocol;
+                            //ProtocolIrc prot = (ProtocolIrc)network4._protocol;
                         }
                         else
                         {
@@ -444,23 +450,29 @@ namespace pidgeon_sv
 
         public void Deliver(Datagram message)
         {
-            if (!Connected)
+            try
             {
-                return;
+                if (!Connected)
+                {
+                    return;
+                }
+                XmlDocument datagram = new XmlDocument();
+                XmlNode b1 = datagram.CreateElement("S" + message._Datagram.ToUpper());
+                foreach (KeyValuePair<string, string> curr in message.Parameters)
+                {
+                    XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
+                    b2.Value = curr.Value;
+                    b1.Attributes.Append(b2);
+                }
+                b1.InnerText = message._InnerText;
+                datagram.AppendChild(b1);
+
+                Send(datagram.InnerXml);
             }
-            XmlDocument datagram = new XmlDocument();
-            XmlNode b1 = datagram.CreateElement("S" + message._Datagram.ToUpper());
-            foreach (KeyValuePair<string, string> curr in message.Parameters)
+            catch (Exception blah)
             {
-                XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
-                b2.Value = curr.Value;
-                b1.Attributes.Append(b2);
+                Core.handleException(blah);
             }
-            b1.InnerText = message._InnerText;
-            datagram.AppendChild(b1);
-
-
-            Send(datagram.InnerXml);
         }
 
         public bool Send(string text)

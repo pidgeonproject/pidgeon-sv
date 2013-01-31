@@ -45,6 +45,11 @@ namespace pidgeon_sv
         {
             try
             {
+                if (text.network == null)
+                {
+                    Core.DebugLog("network is bad");
+                    return;
+                }
                 ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);
                 data.Parameters.Add("nick", text.nick);
                 data.Parameters.Add("network", text.network.server);
@@ -56,7 +61,13 @@ namespace pidgeon_sv
                     {
                         foreach (ProtocolMain pidgeon in Clients)
                         {
-                            pidgeon.Deliver(data);
+                            if (pidgeon != null)
+                            {
+                                if (pidgeon.Connected)
+                                {
+                                    pidgeon.Deliver(data);
+                                }
+                            }
                         }
                     }
                 }

@@ -1039,11 +1039,6 @@ namespace pidgeon_sv
         public override int Message(string text, string to, Priority _priority = Priority.Normal)
         {
             Transfer("PRIVMSG " + to + " :" + text, _priority);
-            ProtocolMain.Datagram messageback = new ProtocolMain.Datagram("MESSAGE", text);
-            messageback.Parameters.Add("network", Server);
-            messageback.Parameters.Add("priority", _priority.ToString());
-            messageback.Parameters.Add("target", to);
-            buffer.DeliverMessage(messageback);
             return 0;
         }
 
