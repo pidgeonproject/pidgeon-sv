@@ -58,10 +58,26 @@ namespace pidgeon_sv
             public Dictionary<string, string> Parameters = new Dictionary<string, string>();
         }
 
+        public class SelfData
+        {
+            public string text = null;
+            public string nick = null;
+            public DateTime time;
+            public Network network = null;
+            public string target = null;
+            public SelfData(Network _network, string _text, DateTime date, string _target)
+            {
+                nick = _network.nickname;
+                text = _text;
+                target = _target;
+                time = date;
+            }
+        }
+
         /// <summary>
         /// Pointer to client
         /// </summary>
-        public Connection client;
+        public Connection connection = null;
 
         public bool Connected = false;
 
@@ -95,15 +111,15 @@ namespace pidgeon_sv
         public void Exit()
         {
             Connected = false;
-            if (client.account != null)
+            if (connection.account != null)
             {
-                lock (client.account.Clients)
+                lock (connection.account.Clients)
                 {
-                    if (!client.account.ClientsOK.Contains(this))
+                    if (!connection.account.ClientsOK.Contains(this))
                     {
-                        lock (client.account.ClientsOK)
+                        lock (connection.account.ClientsOK)
                         {
-                            client.account.ClientsOK.Add(this);
+                            connection.account.ClientsOK.Add(this);
                         }
                     }
                 }
@@ -118,7 +134,7 @@ namespace pidgeon_sv
         public void parseXml(XmlNode node)
         {
             Datagram response = null;
-            if (client.status == Connection.Status.WaitingPW)
+            if (connection.status == Connection.Status.WaitingPW)
             {
                 switch (node.Name.ToUpper())
                 {
@@ -144,12 +160,12 @@ namespace pidgeon_sv
             switch (node.Name.ToUpper())
             {
                 case "STATUS":
-                    string info = client.status.ToString();
+                    string info = connection.status.ToString();
                     response = new Datagram("STATUS", info);
                     Deliver(response);
                     break;
                 case "NETWORKINFO":
-                    Network network2 = client.account.retrieveServer(node.InnerText);
+                    Network network2 = connection.account.retrieveServer(node.InnerText);
                     if (network2 == null)
                     {
                         response = new Datagram("NETWORKINFO", "UNKNOWN");
@@ -192,9 +208,9 @@ namespace pidgeon_sv
                                     break;
                             }
                         }
-                        if (client.account.containsNetwork(server))
+                        if (connection.account.containsNetwork(server))
                         {
-                            Network network = client.account.retrieveServer(server);
+                            Network network = connection.account.retrieveServer(server);
                             if (depth > 0)
                             {
 
@@ -213,7 +229,7 @@ namespace pidgeon_sv
                 case "NICK":
                     if (node.Attributes.Count > 0)
                     {
-                        Network b008 = client.account.retrieveServer(node.Attributes[0].Value);
+                        Network b008 = connection.account.retrieveServer(node.Attributes[0].Value);
                         if (b008 != null)
                         {
                             response = new Datagram("NICK", b008.nickname);
@@ -228,7 +244,7 @@ namespace pidgeon_sv
                     }
                     break;
                 case "CHANNELINFO":
-                    Network b002 = client.account.retrieveServer(node.Attributes[0].Value);
+                    Network b002 = connection.account.retrieveServer(node.Attributes[0].Value);
                     switch (node.InnerText)
                     {
                         case "LIST":
@@ -286,9 +302,9 @@ namespace pidgeon_sv
                     return;
                 case "NETWORKLIST":
                     string networks = "";
-                    lock (client.account.ConnectedNetworks)
+                    lock (connection.account.ConnectedNetworks)
                     {
-                        foreach (Network current_net in client.account.ConnectedNetworks)
+                        foreach (Network current_net in connection.account.ConnectedNetworks)
                         {
                             networks += current_net.server + "|";
                         }
@@ -303,20 +319,27 @@ namespace pidgeon_sv
                 case "BACKLOGSV":
                     if (node.Attributes.Count > 1)
                     {
-                        Network network = client.account.retrieveServer(node.Attributes[0].Value);
+                        Network network = connection.account.retrieveServer(node.Attributes[0].Value);
                         if (network != null)
                         {
                             ProtocolIrc protocol = (ProtocolIrc)network._protocol;
                             protocol.getDepth(int.Parse(node.Attributes[1].Value), this);
+                            lock (connection.account.Messages)
+                            {
+                                foreach (SelfData xx in connection.account.Messages)
+                                {
+                                    connection.account.MessageBack(xx, this);
+                                }
+                            }
                         }
                         else
                         {
-                            Core.DebugLog("User " + this.client.IP + " requested log of unknown network");
+                            Core.DebugLog("User " + this.connection.IP + " requested log of unknown network");
                         }
                     }
                     return;
                 case "CONNECT":
-                    if (client.account.containsNetwork(node.InnerText))
+                    if (connection.account.containsNetwork(node.InnerText))
                     {
                         response = new Datagram("CONNECT", "CONNECTED");
                         response.Parameters.Add("network", node.InnerText);
@@ -328,20 +351,20 @@ namespace pidgeon_sv
                     {
                         port = int.Parse(node.Attributes[0].Value);
                     }
-                    client.account.ConnectIRC(node.InnerText, port);
-                    Core.SL(client.IP + ": Connecting to " + node.InnerText);
+                    connection.account.ConnectIRC(node.InnerText, port);
+                    Core.SL(connection.IP + ": Connecting to " + node.InnerText);
                     response = new Datagram("CONNECT", "OK");
                     response.Parameters.Add("network", node.InnerText);
                     Deliver(response);
                     break;
                 case "GLOBALIDENT":
-                    client.account.ident = node.InnerText;
+                    connection.account.ident = node.InnerText;
                     Deliver(new Datagram("GLOBALIDENT", node.InnerText));
                     break;
                 case "MESSAGE":
                     if (node.Attributes.Count > 2)
                     {
-                        Network network4 = client.account.retrieveServer(node.Attributes[0].Value);
+                        Network network4 = connection.account.retrieveServer(node.Attributes[0].Value);
                         if (network4 != null)
                         {
                             string target = node.Attributes[2].Value;
@@ -356,19 +379,29 @@ namespace pidgeon_sv
                                     Priority = ProtocolIrc.Priority.High;
                                     break;
                             }
+                            SelfData data = new SelfData(network4, node.InnerText, DateTime.Now, target);
+                            lock (connection.account.Messages)
+                            {
+                                connection.account.Messages.Add(data);
+                            }
+                            connection.account.MessageBack(data);
                             network4._protocol.Message(node.InnerText, target, Priority);
                             ProtocolIrc prot = (ProtocolIrc)network4._protocol;
+                        }
+                        else
+                        {
+                            Core.DebugLog("Network was not found for " + connection.IP);
                         }
                     }
                     break;
                 case "GLOBALNICK":
                     if (node.InnerText == "")
                     {
-                        Deliver(new Datagram("GLOBALNICK", client.account.nickname));
+                        Deliver(new Datagram("GLOBALNICK", connection.account.nickname));
                         break;
                     }
                     Deliver(new Datagram("GLOBALNICK", node.InnerText));
-                    client.account.nickname = node.InnerText;
+                    connection.account.nickname = node.InnerText;
                     Core.SaveData();
                     break;
                 case "AUTH":
@@ -382,15 +415,15 @@ namespace pidgeon_sv
                             {
                                 if (curr_user.password == pw)
                                 {
-                                    client.account = curr_user;
-                                    lock (client.account.Clients)
+                                    connection.account = curr_user;
+                                    lock (connection.account.Clients)
                                     {
-                                        client.account.Clients.Add(this);
+                                        connection.account.Clients.Add(this);
                                     }
-                                    Core.SL(client.IP + ": Logged in as " + client.account.username);
+                                    Core.SL(connection.IP + ": Logged in as " + connection.account.username);
                                     response = new Datagram("AUTH", "OK");
-                                    response.Parameters.Add("ls", "There is " + client.account.Clients.Count.ToString() + " connections logged in to this account");
-                                    client.status = Connection.Status.Connected;
+                                    response.Parameters.Add("ls", "There is " + connection.account.Clients.Count.ToString() + " connections logged in to this account");
+                                    connection.status = Connection.Status.Connected;
                                     Deliver(response);
                                     return;
                                 }
@@ -406,7 +439,7 @@ namespace pidgeon_sv
         public ProtocolMain(Connection t)
         {
             Connected = true;
-            client = t;
+            connection = t;
         }
 
         public void Deliver(Datagram message)
@@ -438,8 +471,8 @@ namespace pidgeon_sv
             }
             try
             {
-                client._w.WriteLine(text);
-                client._w.Flush();
+                connection._w.WriteLine(text);
+                connection._w.Flush();
             }
             catch (IOException)
             {

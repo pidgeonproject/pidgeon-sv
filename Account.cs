@@ -32,11 +32,43 @@ namespace pidgeon_sv
         public string ident = "pidgeon";
         public string realname = "http://pidgeonclient.org";
         public List<Network> ConnectedNetworks = new List<Network>();
-        
+        public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
+
         public Account(string user, string pw)
         {
             username = user;
             password = pw;
+        }
+
+
+        public void MessageBack(ProtocolMain.SelfData text, ProtocolMain connection = null)
+        {
+            try
+            {
+                ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);
+                data.Parameters.Add("nick", text.nick);
+                data.Parameters.Add("network", text.network.server);
+                data.Parameters.Add("time", text.time.ToBinary().ToString());
+                data.Parameters.Add("target", text.target);
+                if (connection == null)
+                {
+                    lock (Clients)
+                    {
+                        foreach (ProtocolMain pidgeon in Clients)
+                        {
+                            pidgeon.Deliver(data);
+                        }
+                    }
+                }
+                else
+                {
+                    connection.Deliver(data);
+                }
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+            }
         }
 
         public Network retrieveServer(string name)
