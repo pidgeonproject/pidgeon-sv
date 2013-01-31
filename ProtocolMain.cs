@@ -334,7 +334,10 @@ namespace pidgeon_sv
                             {
                                 foreach (SelfData xx in connection.account.Messages)
                                 {
-                                    connection.account.MessageBack(xx, this);
+                                    if (xx.network.server == protocol.Server)
+                                    {
+                                        connection.account.MessageBack(xx, this);
+                                    }
                                 }
                             }
                         }
