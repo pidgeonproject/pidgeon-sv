@@ -46,6 +46,9 @@
     <Compile Include="Config.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="DatabaseFile.cs" />
+    <Compile Include="DatabaseSQL.cs" />
+    <Compile Include="DB.cs" />
     <Compile Include="IRC.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Program.cs" />

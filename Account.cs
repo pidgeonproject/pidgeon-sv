@@ -26,18 +26,22 @@ namespace pidgeon_sv
         public List<ProtocolIrc> networks = new List<ProtocolIrc>();
         public List<ProtocolMain> ClientsOK = new List<ProtocolMain>();
         public List<ProtocolMain> Clients = new List<ProtocolMain>();
-        public string username = "";
+        public string username = null;
         public string password = "";
         public string nickname = "PidgeonUser";
         public string ident = "pidgeon";
         public string realname = "http://pidgeonclient.org";
         public List<Network> ConnectedNetworks = new List<Network>();
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
+        public DB data = null;
 
         public Account(string user, string pw)
         {
             username = user;
             password = pw;
+            data = new DatabaseFile(this);
+            Core.DebugLog("Cleaning DB for " + username);
+            data.Clear();
         }
 
 
@@ -105,20 +109,23 @@ namespace pidgeon_sv
                 {
                     if (Clients.Count == 0)
                     {
-                        return false;
+                        return true;
                     }
                     foreach (ProtocolMain ab in Clients)
                     {
                         ab.Deliver(text);
                     }
-                    foreach (ProtocolMain i in ClientsOK)
+                    lock (ClientsOK)
                     {
-                        Clients.Remove(i);
+                        foreach (ProtocolMain i in ClientsOK)
+                        {
+                            Clients.Remove(i);
+                        }
                     }
                 }
-                catch (Exception)
+                catch (Exception fail)
                 {
-                    Console.WriteLine("Error 10");
+                    Core.handleException(fail);
                 }
             }
             return true;
@@ -142,6 +149,7 @@ namespace pidgeon_sv
                 server.Port = port;
                 server._server = networkid;
                 server.owner = this;
+                server.buffer = new ProtocolIrc.Buffer(this, network);
                 lock (networks)
                 {
                     networks.Add(server);

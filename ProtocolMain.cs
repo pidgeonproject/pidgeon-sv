@@ -53,6 +53,27 @@ namespace pidgeon_sv
                 return datagram.InnerXml;
             }
 
+            public static Datagram FromText(string text)
+            {
+                XmlDocument gram = new XmlDocument();
+                gram.LoadXml(text);
+
+                if (gram.ChildNodes.Count < 1)
+                {
+                    Core.DebugLog("Invalid xml for data gram");
+                    return null;
+                }
+
+                ProtocolMain.Datagram datagram = new ProtocolMain.Datagram(gram.ChildNodes[0].Name, gram.ChildNodes[0].InnerText);
+
+                foreach (XmlAttribute parameter in gram.ChildNodes[0].Attributes)
+                {
+                    datagram.Parameters.Add(parameter.Name, parameter.Value);
+                }
+
+                return datagram;
+            }
+
             public string _InnerText;
             public string _Datagram;
             public Dictionary<string, string> Parameters = new Dictionary<string, string>();
@@ -319,7 +340,7 @@ namespace pidgeon_sv
                     Deliver(response);
                     return;
                 case "LOAD":
-                    response = new Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections");
+                    response = new Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb");
                     Deliver(response);
                     return;
                 case "BACKLOGSV":

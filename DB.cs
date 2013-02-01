@@ -21,40 +21,36 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    class Config
+    public class DB
     {
-        /// <summary>
-        /// Port
-        /// </summary>
-        public static int server_port = 22;
-        public static string userfile = "db/users";
+        public Account client;
+        public Dictionary<string, int> MessageSize = new Dictionary<string, int>();
 
-        /// <summary>
-        /// This is a minimal size of one chunk before it's written to storage, to free a memory
-        /// </summary>
-        public static int chunk = 200;
-
-        /// <summary>
-        /// This is a maximal size of one chunk. If it's not 0 system will freeze in case that current buffer - minbs will be more than this value.
-        /// </summary>
-        public static int MaxChunk = 0;
-
-        /// <summary>
-        /// Maximum buffer size before flush
-        /// </summary>
-        public static int maxbs
+        public virtual void Clear()
         {
-            get
-            {
-                return minbs + chunk;
-            }
+
         }
-        /// <summary>
-        /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
-        /// </summary>
-        public static int minbs = 2000;
 
+        public int GetMessageSize(string network)
+        {
+            lock (MessageSize)
+            {
+                if (!MessageSize.ContainsKey(network))
+                {
+                    MessageSize.Add(network, 0);
+                }
+            }
+            return MessageSize[network];
+        }
 
-        public static readonly string version = "1.0.2.0";
+        public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network)
+        {
+
+        }
+
+        public virtual void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
+        {
+
+        }
     }
 }

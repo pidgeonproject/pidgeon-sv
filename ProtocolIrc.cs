@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
+using System.Threading;
+using System.Xml;
 
 namespace pidgeon_sv
 {
@@ -58,13 +60,22 @@ namespace pidgeon_sv
         public System.Threading.Thread th;
 
 
-        public Buffer buffer = new Buffer();
+        public Buffer buffer = null;
         public DateTime pong = DateTime.Now;
         public Account owner = null;
 
 
         public class Buffer
         {
+            public Account parent = null;
+            public string Network = null;
+
+            public Buffer(Account _account, string server)
+            {
+                Network = server;
+                parent = _account;
+            }
+
             public class Message
             {
                 public Priority _Priority;
@@ -74,10 +85,27 @@ namespace pidgeon_sv
                 {
                     time = DateTime.Now;
                 }
+
+                public string ToDocumentXmlText()
+                {
+                    XmlDocument datagram = new XmlDocument();
+                    XmlNode b1 = datagram.CreateElement("message");
+                    Dictionary<string, string> Parameters = new Dictionary<string, string>();
+                    Parameters.Add("priority", _Priority.ToString());
+                    Parameters.Add("time", time.ToBinary().ToString());
+                    foreach (KeyValuePair<string, string> curr in Parameters)
+                    {
+                        XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
+                        b2.Value = curr.Value;
+                        b1.Attributes.Append(b2);
+                    }
+                    b1.InnerText = message.ToDocumentXmlText();
+                    datagram.AppendChild(b1);
+                    return datagram.InnerXml;
+                }
             }
 
             public List<Message> messages = new List<Message>();
-            public List<Message> newmessages = new List<Message>();
             public List<Message> oldmessages = new List<Message>();
             public ProtocolIrc protocol;
 
@@ -101,64 +129,38 @@ namespace pidgeon_sv
                     {
                         try
                         {
-                            if (protocol.owner == null)
+                            if (messages.Count == 0)
                             {
-                                System.Threading.Thread.Sleep(100);
+                                Thread.Sleep(100);
                                 continue;
                             }
-                            bool skip = false;
-                            lock (protocol.owner.Clients)
+                            List<Message> newmessages = new List<Message>();
+                            if (messages.Count > 0)
                             {
-                                if (protocol.owner.Clients.Count == 0)
+                                lock (messages)
                                 {
-                                    skip = true;
-                                }
-                                if (messages.Count > 0)
-                                {
-                                    lock (messages)
-                                    {
-                                        newmessages.AddRange(messages);
-                                        messages.Clear();
-                                    }
+                                    newmessages.AddRange(messages);
+                                    messages.Clear();
                                 }
                             }
                             if (newmessages.Count > 0)
                             {
-                                if (skip)
+                                if (protocol.owner != null)
                                 {
-                                    System.Threading.Thread.Sleep(100);
-                                    continue;
-                                }
-                                while (newmessages.Count > 0)
-                                {
-                                    // we need to get all messages that have been scheduled to be send
-                                    lock (messages)
-                                    {
-                                        if (messages.Count > 0)
-                                        {
-                                            newmessages.AddRange(messages);
-                                            messages.Clear();
-                                        }
-                                    }
-
                                     foreach (Message message in newmessages)
                                     {
                                         message.message.Parameters.Add("time", message.time.ToBinary().ToString());
                                         protocol.owner.Deliver(message.message);
                                     }
+                                }
 
-                                    if (oldmessages.Count > Config.maxbs)
-                                    {
-                                        FlushOld();
-                                    }
-                                    lock (oldmessages)
-                                    {
-                                        oldmessages.AddRange(newmessages);
-                                    }
-                                    lock (newmessages)
-                                    {
-                                        newmessages.Clear();
-                                    }
+                                if (oldmessages.Count > Config.maxbs)
+                                {
+                                    FlushOld();
+                                }
+                                lock (oldmessages)
+                                {
+                                    oldmessages.AddRange(newmessages);
                                 }
                             }
                             newmessages.Clear();
@@ -178,28 +180,17 @@ namespace pidgeon_sv
 
             public void FlushOld()
             {
-                List<Message> stored = new List<Message>();
+                int Count = 0;
                 lock (oldmessages)
                 {
-                    int current = 0;
-
-                    while (current < (Config.maxbs - Config.minbs))
+                    while (oldmessages.Count > Config.minbs)
                     {
-                        string item = "";
-
-                        foreach (KeyValuePair<string, string> data in oldmessages[current].message.Parameters)
-                        {
-                            item += " " + data.Key + "=\"" + System.Web.HttpUtility.HtmlEncode(data.Value) + "\"";
-                        }
-                        stored.Add(oldmessages[current]);
-                        string line = "<" + oldmessages[current].message._Datagram + item + ">" + System.Web.HttpUtility.HtmlEncode(oldmessages[current].message._InnerText) + "</" + oldmessages[current].message._Datagram + ">\n";
-                        System.IO.File.AppendAllText("db/" + protocol.Server + ".db", line);
-                    }
-                    foreach (Message message in stored)
-                    {
-                        oldmessages.Remove(message);
+                        Count++;
+                        parent.data.MessagePool_InsertData(oldmessages[0], Network);
+                        oldmessages.RemoveAt(0);
                     }
                 }
+                Core.DebugLog("Stored " + Count.ToString());
             }
         }
 
@@ -896,55 +887,15 @@ namespace pidgeon_sv
             buffer.DeliverMessage(dt);
         }
 
-        private void recoverDatagrams(int n)
-        {
-            lock (buffer.oldmessages)
-            {
-                List<string> line = new List<string>();
-                if (System.IO.File.Exists("db/" + Server + ".db"))
-                {
-                    line.AddRange(System.IO.File.ReadAllLines("db/" + Server + ".db"));
-                    foreach (string Line in line)
-                    {
-                        try
-                        {
-                            System.Xml.XmlDocument node = new System.Xml.XmlDocument();
-                            Buffer.Message message = new Buffer.Message();
-
-                            node.LoadXml(Line);
-                            ProtocolMain.Datagram text = new ProtocolMain.Datagram(node.ChildNodes[0].Name);
-                            text._InnerText = node.ChildNodes[0].InnerText;
-                            foreach (System.Xml.XmlAttribute part in node.ChildNodes[0].Attributes)
-                            {
-                                text.Parameters.Add(part.Name, part.Value);
-                            }
-                            message._Priority = Priority.Normal;
-                            message.message = text;
-                            if (node.ChildNodes[0].Attributes.Count > 0)
-                            {
-                                message.time = DateTime.FromBinary(long.Parse(node.ChildNodes[0].Attributes[0].Value));
-                            }
-                            buffer.oldmessages.Insert(0, message);
-                        }
-                        catch (Exception fail)
-                        {
-                            Core.DebugLog(fail.Message + fail.StackTrace);
-                        }
-                    }
-                }
-                else
-                {
-                    Core.DebugLog("There is no data on storage for this server");
-                }
-            }
-        }
-
         public void getDepth(int n, ProtocolMain user)
         {
+            Core.DebugLog("User " + owner.nickname + " requested a backlog of data");
+            int i = 0;
+            int total_count = 0;
+            total_count = n;
+            int index = 0;
             lock (buffer.oldmessages)
             {
-                Core.DebugLog("User " + owner.nickname + " requested a backlog of data");
-                int i = 0;
                 if (buffer.oldmessages.Count == 0)
                 {
                     Core.DebugLog("User " + owner.nickname + " requested a backlog, there are no data");
@@ -955,38 +906,45 @@ namespace pidgeon_sv
                 }
                 if (buffer.oldmessages.Count < n)
                 {
-                    Core.DebugLog("User " + owner.nickname + " requested a backlog, but there are not so many in memory as they requested, recovering some from storage");
-                    recoverDatagrams(n);
-                }
-                if (buffer.oldmessages.Count < n)
-                {
-                    Core.DebugLog("User " + owner.nickname + " requested a backlog, but there are not so many in memory as they requested and not even on storage");
+                    Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
+                    if (buffer.oldmessages.Count + owner.data.GetMessageSize(Server) < n)
+                    {
+                        total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
+                        Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
+                    }
+                    ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", total_count.ToString());
+                    count.Parameters.Add("network", Server);
+                    user.Deliver(count);
+                    owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server);
+                    if (index < 0)
+                    {
+                        Core.DebugLog("Something went wrong");
+                        return;
+                    }
                     n = buffer.oldmessages.Count;
+                }
+                else
+                {
                     ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", n.ToString());
                     count.Parameters.Add("network", Server);
                     user.Deliver(count);
-                    
-                    while (i < n)
-                    {
-                        ProtocolMain.Datagram text = new ProtocolMain.Datagram("");
-                        text._InnerText = buffer.oldmessages[i].message._InnerText;
-                        text._Datagram = buffer.oldmessages[i].message._Datagram;
-                        foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
-                        {
-                            text.Parameters.Add(current.Key, current.Value);
-                        }
-                        text.Parameters.Add("buffer", i.ToString());
-                        //text.Parameters.Add("time", buffer.oldmessages[i].time.ToBinary().ToString());
-                        //text.Parameters.Add("network", Server);
-                        //text.Parameters.Add("index", i.ToString());
-                        //text.Parameters.Add("priority", buffer.oldmessages[i]._Priority.ToString());
-                        //text.Parameters.Add("type", buffer.oldmessages[i].message._Datagram);
-                        user.Deliver(text);
-                        i = i + 1;
-
-                    }
-                    Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
                 }
+                
+                while (i < n)
+                {
+                    ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
+                    text._InnerText = buffer.oldmessages[i].message._InnerText;
+                    foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                    {
+                        text.Parameters.Add(current.Key, current.Value);
+                    }
+                    text.Parameters.Add("buffer", index.ToString());
+                    user.Deliver(text);
+                    i = i + 1;
+                    index++;
+
+                }
+                Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
                 foreach (MessageOrigin d in MessageBuffer)
                 {
                     ProtocolMain.Datagram text = new ProtocolMain.Datagram("SELFDG");
