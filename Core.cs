@@ -58,29 +58,37 @@ namespace pidgeon_sv
 
         public static void SaveData()
         {
-            lock (_accounts)
+            try
             {
-                System.Xml.XmlDocument config = new System.Xml.XmlDocument();
-                foreach (Account user in _accounts)
+                lock (_accounts)
                 {
-                    System.Xml.XmlNode xmlnode = config.CreateElement("user");
-                    XmlAttribute name = config.CreateAttribute("name");
-                    XmlAttribute pw = config.CreateAttribute("password");
-                    XmlAttribute nickname = config.CreateAttribute("nickname");
-                    XmlAttribute ident = config.CreateAttribute("ident");
-                    XmlAttribute realname = config.CreateAttribute("realname");
-                    name.Value = user.username;
-                    pw.Value = user.password;
-                    xmlnode.Attributes.Append(name);
-                    nickname.Value = user.nickname;
-                    ident.Value = user.ident;
-                    xmlnode.Attributes.Append(pw);
-                    xmlnode.Attributes.Append(nickname);
-                    xmlnode.Attributes.Append(ident);
-                    config.AppendChild(xmlnode);
-
+                    System.Xml.XmlDocument config = new System.Xml.XmlDocument();
+                    foreach (Account user in _accounts)
+                    {
+                        System.Xml.XmlNode xmlnode = config.CreateElement("user");
+                        XmlAttribute name = config.CreateAttribute("name");
+                        XmlAttribute pw = config.CreateAttribute("password");
+                        XmlAttribute nickname = config.CreateAttribute("nickname");
+                        XmlAttribute ident = config.CreateAttribute("ident");
+                        XmlAttribute realname = config.CreateAttribute("realname");
+                        XmlAttribute level = config.CreateAttribute("level");
+                        name.Value = user.username;
+                        pw.Value = user.password;   
+                        nickname.Value = user.nickname;
+                        ident.Value = user.ident;
+                        level.Value = user.Level.ToString();
+                        xmlnode.Attributes.Append(name);
+                        xmlnode.Attributes.Append(pw);
+                        xmlnode.Attributes.Append(nickname);
+                        xmlnode.Attributes.Append(ident);
+                        config.AppendChild(xmlnode);
+                    }
+                    config.Save(Config.UserFile);
                 }
-                config.Save(Config.userfile);
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
             }
         }
 
@@ -92,19 +100,41 @@ namespace pidgeon_sv
         {
             try
             {
-                if (File.Exists(Config.userfile))
+                SL("Loading users");
+                if (File.Exists(Config.UserFile))
                 {
                     XmlDocument configuration = new XmlDocument();
-                    configuration.Load(Config.userfile);
+                    configuration.Load(Config.UserFile);
                     foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                     {
                         if (curr.Attributes.Count > 1)
                         {
+                            Account.UserLevel UserLevel = Account.UserLevel.User;
+                            if (Config.Rooted)
+                            {
+                                UserLevel = Account.UserLevel.Root;
+                            }
+                            if (curr.Attributes.Count > 3)
+                            {
+                                switch (curr.Attributes[3].Value)
+                                {
+                                    case "Root":
+                                        UserLevel = Account.UserLevel.Root;
+                                        break;
+                                    case "Admin":
+                                        UserLevel = Account.UserLevel.Admin;
+                                        break;
+                                    case "User":
+                                        UserLevel = Account.UserLevel.User;
+                                        break;
+                                }
+                            }
                             Account line = new Account(curr.Attributes[0].Value, curr.Attributes[1].Value);
                             if (curr.Attributes.Count > 2)
                             {
                                 line.nickname = curr.Attributes[2].Value;
                             }
+                            line.Level = UserLevel;
                             _accounts.Add(line);
                         }
                         else
@@ -112,7 +142,11 @@ namespace pidgeon_sv
                             SL("Skipping record:" + curr.OuterXml);
                         }
                     }
-                    SL("Accounts: " + _accounts.Count.ToString());
+                    SL("Loaded users: " + _accounts.Count.ToString());
+                }
+                else
+                {
+                    SL("There is no userfile for this instance");
                 }
             }
             catch (Exception fail)
@@ -126,20 +160,48 @@ namespace pidgeon_sv
             Console.WriteLine(DateTime.Now.ToString() + ": " + text);
         }
 
-
-        public static void Listen()
+        public static bool Init()
         {
             try
             {
-                SL("Pidgeon services loading");
+                SL("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
+                SL("OS: " + Environment.OSVersion.ToString());
+
+                Config.UserFile = Config.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
                 if (!Directory.Exists("db"))
                 {
                     Directory.CreateDirectory("db");
                 }
 
+                SL("This instance of pidgeon services has following parameters:");
+                if (Config.MaxFileChunkSize == 0)
+                {
+                    SL("Maximum file chunk size: unlimited");
+                }
+                else
+                {
+                    SL("Maximum file chunk size: " + Config.MaxFileChunkSize.ToString());
+                }
+                SL("Minimum buffer size: " + Config.minbs.ToString());
+                SL("Minimum chunk size: " + Config.ChunkSize.ToString());
+
                 LoadUser();
 
+                return true;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                SL("Fatal error - exiting");
+                return false;
+            }
+        }
+
+        public static void Listen()
+        {
+            try
+            {
                 SL("Waiting for clients");
 
                 System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.server_port);

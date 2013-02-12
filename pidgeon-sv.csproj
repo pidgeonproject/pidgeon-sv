@@ -56,6 +56,7 @@
     <Compile Include="Protocol.cs" />
     <Compile Include="ProtocolIrc.cs" />
     <Compile Include="ProtocolMain.cs" />
+    <Compile Include="Responses.cs" />
     <Compile Include="User.cs" />
   </ItemGroup>
   <ItemGroup>

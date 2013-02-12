@@ -34,6 +34,7 @@ namespace pidgeon_sv
         public List<Network> ConnectedNetworks = new List<Network>();
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
         public DB data = null;
+        public UserLevel Level = UserLevel.User;
 
         public Account(string user, string pw)
         {
@@ -176,6 +177,13 @@ namespace pidgeon_sv
                 }
             }
             return false;
+        }
+
+        public enum UserLevel
+        {
+            Root,
+            Admin,
+            User
         }
     }
 }

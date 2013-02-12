@@ -153,7 +153,6 @@ namespace pidgeon_sv
             }
         }
 
-
         /// <summary>
         /// Process the request
         /// </summary>
@@ -173,6 +172,9 @@ namespace pidgeon_sv
                     case "CONNECT":
                     case "NICK":
                     case "NETWORKINFO":
+                    case "MAINTLISTUSER":
+                    case "MAINTADDUSER":
+                    case "MAINTDELUSER":
                     case "JOIN":
                     case "PART":
                     case "BACKLOGSV":
@@ -187,146 +189,20 @@ namespace pidgeon_sv
             switch (node.Name.ToUpper())
             {
                 case "STATUS":
-                    string info = connection.status.ToString();
-                    response = new Datagram("STATUS", info);
-                    Deliver(response);
+                    Responses.Status(node, this);
                     break;
                 case "NETWORKINFO":
-                    Network network2 = connection.account.retrieveServer(node.InnerText);
-                    if (network2 == null)
-                    {
-                        response = new Datagram("NETWORKINFO", "UNKNOWN");
-                        response.Parameters.Add("network", node.InnerText);
-                        Deliver(response);
-                        return;
-                    }
-                    if (network2.Connected == false)
-                    {
-                        response = new Datagram("NETWORKINFO", "OFFLINE");
-                        response.Parameters.Add("network", node.InnerText);
-                        Deliver(response);
-                        return;
-                    }
-                    response = new Datagram("NETWORKINFO", "ONLINE");
-                    response.Parameters.Add("network", node.InnerText);
-                    Deliver(response);
+                    Responses.NetworkInfo(node, this);
                     return;
                 case "RAW":
-                    if (node.Attributes.Count > 0)
-                    {
-                        string server = node.Attributes[0].Value;
-                        string priority = "Normal";
-                        int depth = 0;
-                        if (node.Attributes.Count > 2)
-                        {
-                            depth = int.Parse(node.Attributes[2].Value);
-                        }
-                        ProtocolIrc.Priority Priority = ProtocolIrc.Priority.Normal;
-                        if (node.Attributes.Count > 1)
-                        {
-                            priority = node.Attributes[1].Value;
-                            switch (priority)
-                            {
-                                case "High":
-                                    Priority = ProtocolIrc.Priority.High;
-                                    break;
-                                case "Low":
-                                    Priority = ProtocolIrc.Priority.Low;
-                                    break;
-                            }
-                        }
-                        if (connection.account.containsNetwork(server))
-                        {
-                            Network network = connection.account.retrieveServer(server);
-                            if (depth > 0)
-                            {
-
-                            }
-                            network._protocol.Transfer(node.InnerText, Priority);
-                            if (node.InnerText.StartsWith("PRIVMSG"))
-                            {
-                                ProtocolIrc.MessageOrigin xx = new ProtocolIrc.MessageOrigin();
-                                xx.text = node.InnerText;
-                                xx.time = DateTime.Now;
-                            }
-
-                        }
-                    }
+                    Responses.Raw(node, this);
                     break;
                 case "NICK":
-                    if (node.Attributes.Count > 0)
-                    {
-                        Network b008 = connection.account.retrieveServer(node.Attributes[0].Value);
-                        if (b008 != null)
-                        {
-                            response = new Datagram("NICK", b008.nickname);
-                            response.Parameters.Add("network", b008.server);
-                            Deliver(response);
-                            break;
-                        }
-                        response = new Datagram("NICK", "UNKNOWN");
-                        response.Parameters.Add("network", b008.server);
-                        response.Parameters.Add("failure", "failure");
-                        Deliver(response);
-                    }
+                    Responses.Nick(node, this);
                     break;
                 case "CHANNELINFO":
-                    Network b002 = connection.account.retrieveServer(node.Attributes[0].Value);
-                    switch (node.InnerText)
-                    {
-                        case "LIST":
-                            if (b002 == null)
-                            {
-                                Deliver(new Datagram("CHANNELINFO", "EMPTY"));
-                                return;
-                            }
-                            string list = "";
-                            lock (b002.Channels)
-                            {
-                                foreach (Channel curr in b002.Channels)
-                                {
-                                    list += curr.Name + "!";
-                                }
-                            }
-                            response = new Datagram("CHANNELINFO", "");
-                            response.Parameters.Add("network", node.Attributes[0].Value);
-                            response.Parameters.Add("channels", list);
-                            Deliver(response);
-                            break;
-                        case "INFO":
-                            if (b002 == null)
-                            {
-                                Deliver(new Datagram("CHANNELINFO", "EMPTY"));
-                                return;
-                            }
-                            if (node.Attributes.Count > 1)
-                            {
-                                Channel channel = b002.getChannel(node.Attributes[1].Value);
-                                if (channel == null)
-                                {
-                                    Console.WriteLine(b002.Channels.Count.ToString());
-                                    response = new Datagram("CHANNELINFO", "EMPTY");
-                                    response.Parameters.Add("network", node.Attributes[0].Value);
-                                    response.Parameters.Add("channel", node.Attributes[1].Value);
-                                    Deliver(response);
-                                    return;
-
-                                }
-                                string userli = "";
-                                foreach (User l2 in channel.UserList)
-                                {
-                                    userli += l2.Nick + "!" + l2.Ident + "@" + l2.Host + l2.ChannelMode.ToString() + ":";
-                                }
-                                response = new Datagram("CHANNELINFO", "USERLIST");
-                                response.Parameters.Add("network", node.Attributes[0].Value);
-                                response.Parameters.Add("channel", node.Attributes[1].Value);
-                                response.Parameters.Add("ul", userli);
-                                Console.WriteLine("can't find " + node.Attributes[1].Value);
-                                Deliver(response);
-                            }
-                            break;
-                    }
-                    return;
+                    Responses.ChannelInfo(node, this);
+                    break;
                 case "NETWORKLIST":
                     string networks = "";
                     lock (connection.account.ConnectedNetworks)

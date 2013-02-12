@@ -35,16 +35,28 @@ namespace pidgeon_sv
         public DatabaseFile(Account _client)
         {
             this.client = _client;
-            db = "data" + System.IO.Path.DirectorySeparatorChar + _client.username;
+            db = Config.FileDBDefaultFolder + System.IO.Path.DirectorySeparatorChar + _client.username;
         }
 
         public override void Clear()
         {
-            if (System.IO.Directory.Exists(db))
+            try
             {
-                System.IO.Directory.Delete(db, true);
+                if (System.IO.Directory.Exists(db))
+                {
+                    System.IO.Directory.Delete(db, true);
+                }
+                System.IO.Directory.CreateDirectory(db);
+                if (System.IO.Directory.Exists(db))
+                {
+                    Running = true;
+                }
             }
-            System.IO.Directory.CreateDirectory(db);
+            catch (Exception fail)
+            {
+                Running = false;
+                Core.handleException(fail);
+            }
             base.Clear();
         }
 
@@ -105,11 +117,16 @@ namespace pidgeon_sv
 
         public override void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network)
         {
+            if (!Running)
+            {
+                return;
+            }
             if (!System.IO.File.Exists(MessagePool(network)))
             {
                 return;
             }
             Lock(network);
+            int sent = 0;
             try
             {
                 int skip = 0;
@@ -134,9 +151,9 @@ namespace pidgeon_sv
                 string line = null;
                 while (((line = file.ReadLine()) != null) && current_line < number)
                 {
-                    if (current_line < skip)
+                    if (skip > 0)
                     {
-                        current_line++;
+                        skip--;
                         continue;
                     }
                     if (line == "")
@@ -144,9 +161,10 @@ namespace pidgeon_sv
                         continue;
                     }
                     SendData(str2M(line), ref no, protocol);
+                    sent++;
                     current_line++;
                 }
-
+                Core.DebugLog("Sent messages: " + sent.ToString());
                 locked[network] = false;
             }
             catch (Exception fail)
@@ -158,6 +176,10 @@ namespace pidgeon_sv
 
         public override void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
+            if (!Running)
+            {
+                return;
+            }
             Lock(network);
             try
             {

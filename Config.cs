@@ -23,21 +23,27 @@ namespace pidgeon_sv
 {
     class Config
     {
+        public static DateTime StartedTime;
         /// <summary>
         /// Port
         /// </summary>
         public static int server_port = 22;
-        public static string userfile = "db/users";
+        public static string UserFile = "users";
 
         /// <summary>
         /// This is a minimal size of one chunk before it's written to storage, to free a memory
         /// </summary>
-        public static int chunk = 200;
+        public static int ChunkSize = 200;
 
         /// <summary>
         /// This is a maximal size of one chunk. If it's not 0 system will freeze in case that current buffer - minbs will be more than this value.
         /// </summary>
-        public static int MaxChunk = 0;
+        public static int MaxFileChunkSize = 0;
+
+        /// <summary>
+        /// If this is true all users with unknown user level will be considered as root
+        /// </summary>
+        public static bool Rooted = true;
 
         /// <summary>
         /// Maximum buffer size before flush
@@ -46,9 +52,14 @@ namespace pidgeon_sv
         {
             get
             {
-                return minbs + chunk;
+                return minbs + ChunkSize;
             }
         }
+
+        public static string DatabaseFolder = "db";
+
+        public static string FileDBDefaultFolder = "data";
+
         /// <summary>
         /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
         /// </summary>

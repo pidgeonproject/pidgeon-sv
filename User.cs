@@ -23,13 +23,12 @@ namespace pidgeon_sv
 {
     public class User : IComparable
     {
-
-        public string Host;
-        public Network _Network;
-        public string Ident;
+        public string Host = null;
+        public Network _Network = null;
+        public string Ident = null;
         public Protocol.Mode ChannelMode = new Protocol.Mode();
-        public string Nick;
-        public List<Channel> ChannelList;
+        public string Nick = null;
+        public List<Channel> ChannelList = null;
         public User(string _Nick, string host, Network x, string ident)
         {
             ChannelList = new List<Channel>();

@@ -25,6 +25,11 @@ namespace pidgeon_sv
     {
         static void Main(string[] args)
         {
+            Config.StartedTime = DateTime.Now;
+            if (!Core.Init())
+            {
+                return;
+            }
             Core.Listen();
         }
     }

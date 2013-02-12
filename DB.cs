@@ -25,6 +25,7 @@ namespace pidgeon_sv
     {
         public Account client;
         public Dictionary<string, int> MessageSize = new Dictionary<string, int>();
+        public bool Running = false;
 
         public virtual void Clear()
         {
