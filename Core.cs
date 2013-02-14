@@ -72,15 +72,18 @@ namespace pidgeon_sv
                         XmlAttribute ident = config.CreateAttribute("ident");
                         XmlAttribute realname = config.CreateAttribute("realname");
                         XmlAttribute level = config.CreateAttribute("level");
+                        XmlAttribute locked = config.CreateAttribute("locked");
                         name.Value = user.username;
-                        pw.Value = user.password;   
+                        pw.Value = user.password;
                         nickname.Value = user.nickname;
                         ident.Value = user.ident;
                         level.Value = user.Level.ToString();
+                        locked.Value = user.Locked.ToString();
                         xmlnode.Attributes.Append(name);
                         xmlnode.Attributes.Append(pw);
                         xmlnode.Attributes.Append(nickname);
                         xmlnode.Attributes.Append(ident);
+                        xmlnode.Attributes.Append(locked);
                         config.AppendChild(xmlnode);
                     }
                     config.Save(Config.UserFile);
@@ -107,40 +110,67 @@ namespace pidgeon_sv
                     configuration.Load(Config.UserFile);
                     foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                     {
-                        if (curr.Attributes.Count > 1)
+                        Account.UserLevel UserLevel = Account.UserLevel.User;
+                        bool locked = false;
+                        string name = null;
+                        string password = null;
+                        string nickname = null;
+                        string ident = null;
+                        string realname = null;
+                        if (Config.Rooted)
                         {
-                            Account.UserLevel UserLevel = Account.UserLevel.User;
-                            if (Config.Rooted)
-                            {
-                                UserLevel = Account.UserLevel.Root;
-                            }
-                            if (curr.Attributes.Count > 3)
-                            {
-                                switch (curr.Attributes[3].Value)
-                                {
-                                    case "Root":
-                                        UserLevel = Account.UserLevel.Root;
-                                        break;
-                                    case "Admin":
-                                        UserLevel = Account.UserLevel.Admin;
-                                        break;
-                                    case "User":
-                                        UserLevel = Account.UserLevel.User;
-                                        break;
-                                }
-                            }
-                            Account line = new Account(curr.Attributes[0].Value, curr.Attributes[1].Value);
-                            if (curr.Attributes.Count > 2)
-                            {
-                                line.nickname = curr.Attributes[2].Value;
-                            }
-                            line.Level = UserLevel;
-                            _accounts.Add(line);
+                            UserLevel = Account.UserLevel.Root;
                         }
-                        else
+                        foreach (XmlAttribute configitem in curr.Attributes)
                         {
-                            SL("Skipping record:" + curr.OuterXml);
+                            switch (configitem.Name.ToLower())
+                            {
+                                case "name":
+                                    name = configitem.Value;
+                                    break;
+                                case "password":
+                                    password = configitem.Value;
+                                    break;
+                                case "locked":
+                                    locked = bool.Parse(configitem.Value);
+                                    break;
+                                case "nickname":
+                                    nickname = configitem.Value;
+                                    break;
+                                case "ident":
+                                    ident = configitem.Value;
+                                    break;
+                                case "realname":
+                                    realname = configitem.Value;
+                                    break;
+                                case "level":
+                                    switch (configitem.Value)
+                                    {
+                                        case "Root":
+                                            UserLevel = Account.UserLevel.Root;
+                                            break;
+                                        case "Admin":
+                                            UserLevel = Account.UserLevel.Admin;
+                                            break;
+                                        case "User":
+                                            UserLevel = Account.UserLevel.User;
+                                            break;
+                                    }
+                                    break;
+                            }
                         }
+                        if (name == null || password == null)
+                        {
+                            SL("Invalid record for some user, skipped");
+                            continue;
+                        }
+                        Account line = new Account(name, password);
+                        line.nickname = nickname;
+                        line.Locked = locked;
+                        line.ident = ident;
+                        line.realname = realname;
+                        line.Level = UserLevel;
+                        _accounts.Add(line);
                     }
                     SL("Loaded users: " + _accounts.Count.ToString());
                 }

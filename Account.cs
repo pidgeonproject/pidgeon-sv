@@ -35,6 +35,7 @@ namespace pidgeon_sv
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
         public DB data = null;
         public UserLevel Level = UserLevel.User;
+        public bool Locked = false;
 
         public Account(string user, string pw)
         {

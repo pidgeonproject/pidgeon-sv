@@ -204,140 +204,28 @@ namespace pidgeon_sv
                     Responses.ChannelInfo(node, this);
                     break;
                 case "NETWORKLIST":
-                    string networks = "";
-                    lock (connection.account.ConnectedNetworks)
-                    {
-                        foreach (Network current_net in connection.account.ConnectedNetworks)
-                        {
-                            networks += current_net.server + "|";
-                        }
-                    }
-                    response = new Datagram("NETWORKLIST", networks);
-                    Deliver(response);
+                    Responses.NetworkList(node, this);
                     return;
                 case "LOAD":
-                    response = new Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb");
-                    Deliver(response);
+                    Responses.Load(node, this);
                     return;
                 case "BACKLOGSV":
-                    if (node.Attributes.Count > 1)
-                    {
-                        Network network = connection.account.retrieveServer(node.Attributes[0].Value);
-                        if (network != null)
-                        {
-                            ProtocolIrc protocol = (ProtocolIrc)network._protocol;
-                            protocol.getDepth(int.Parse(node.Attributes[1].Value), this);
-                            lock (connection.account.Messages)
-                            {
-                                foreach (SelfData xx in connection.account.Messages)
-                                {
-                                    if (xx.network.server == protocol.Server)
-                                    {
-                                        connection.account.MessageBack(xx, this);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Core.DebugLog("User " + this.connection.IP + " requested log of unknown network");
-                        }
-                    }
+                    Responses.BacklogSv(node, this);
                     return;
                 case "CONNECT":
-                    if (connection.account.containsNetwork(node.InnerText))
-                    {
-                        response = new Datagram("CONNECT", "CONNECTED");
-                        response.Parameters.Add("network", node.InnerText);
-                        Deliver(response);
-                        return;
-                    }
-                    int port = 6667;
-                    if (node.Attributes.Count > 0)
-                    {
-                        port = int.Parse(node.Attributes[0].Value);
-                    }
-                    connection.account.ConnectIRC(node.InnerText, port);
-                    Core.SL(connection.IP + ": Connecting to " + node.InnerText);
-                    response = new Datagram("CONNECT", "OK");
-                    response.Parameters.Add("network", node.InnerText);
-                    Deliver(response);
+                    Responses.Connect(node, this);
                     break;
                 case "GLOBALIDENT":
-                    connection.account.ident = node.InnerText;
-                    Deliver(new Datagram("GLOBALIDENT", node.InnerText));
+                    Responses.GlobalIdent(node, this);
                     break;
                 case "MESSAGE":
-                    if (node.Attributes.Count > 2)
-                    {
-                        Network network4 = connection.account.retrieveServer(node.Attributes[0].Value);
-                        if (network4 != null)
-                        {
-                            string target = node.Attributes[2].Value;
-                            string ff = node.Attributes[1].Value;
-                            ProtocolIrc.Priority Priority = ProtocolIrc.Priority.Normal;
-                            switch (ff)
-                            {
-                                case "Low":
-                                    Priority = ProtocolIrc.Priority.Low;
-                                    break;
-                                case "High":
-                                    Priority = ProtocolIrc.Priority.High;
-                                    break;
-                            }
-                            SelfData data = new SelfData(network4, node.InnerText, DateTime.Now, target);
-                            lock (connection.account.Messages)
-                            {
-                                connection.account.Messages.Add(data);
-                            }
-                            connection.account.MessageBack(data);
-                            network4._protocol.Message(node.InnerText, target, Priority);
-                            //ProtocolIrc prot = (ProtocolIrc)network4._protocol;
-                        }
-                        else
-                        {
-                            Core.DebugLog("Network was not found for " + connection.IP);
-                        }
-                    }
+                    Responses.Message(node, this);
                     break;
                 case "GLOBALNICK":
-                    if (node.InnerText == "")
-                    {
-                        Deliver(new Datagram("GLOBALNICK", connection.account.nickname));
-                        break;
-                    }
-                    Deliver(new Datagram("GLOBALNICK", node.InnerText));
-                    connection.account.nickname = node.InnerText;
-                    Core.SaveData();
+                    Responses.GlobalNick(node, this);
                     break;
                 case "AUTH":
-                    string username = node.Attributes[0].Value;
-                    string pw = node.Attributes[1].Value;
-                    lock (Core._accounts)
-                    {
-                        foreach (Account curr_user in Core._accounts)
-                        {
-                            if (curr_user.username == username)
-                            {
-                                if (curr_user.password == pw)
-                                {
-                                    connection.account = curr_user;
-                                    lock (connection.account.Clients)
-                                    {
-                                        connection.account.Clients.Add(this);
-                                    }
-                                    Core.SL(connection.IP + ": Logged in as " + connection.account.username);
-                                    response = new Datagram("AUTH", "OK");
-                                    response.Parameters.Add("ls", "There is " + connection.account.Clients.Count.ToString() + " connections logged in to this account");
-                                    connection.status = Connection.Status.Connected;
-                                    Deliver(response);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    response = new Datagram("AUTH", "INVALID");
-                    Deliver(response);
+                    Responses.Auth(node, this);
                     return;
             }
         }
