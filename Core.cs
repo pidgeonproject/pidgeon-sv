@@ -205,6 +205,7 @@ namespace pidgeon_sv
                 }
 
                 SL("This instance of pidgeon services has following parameters:");
+                SL("-----------------------------------------------------------");
                 if (Config.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");
@@ -215,6 +216,8 @@ namespace pidgeon_sv
                 }
                 SL("Minimum buffer size: " + Config.minbs.ToString());
                 SL("Minimum chunk size: " + Config.ChunkSize.ToString());
+
+                SL("-----------------------------------------------------------");
 
                 LoadUser();
 

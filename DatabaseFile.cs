@@ -60,6 +60,22 @@ namespace pidgeon_sv
             base.Clear();
         }
 
+        public void Unlock(string network)
+        {
+            lock (locked)
+            {
+                if (!locked.ContainsKey(network))
+                {
+                    locked.Add(network, false);
+                }
+                if (!locked[network])
+                {
+                    throw new Exception("Tried to free a lock on item which wasn't locked - fix me!!");
+                }
+                locked[network] = false;
+            }
+        }
+
         public void Lock(string network)
         {
             lock (locked)
@@ -165,11 +181,11 @@ namespace pidgeon_sv
                     current_line++;
                 }
                 Core.DebugLog("Sent messages: " + sent.ToString());
-                locked[network] = false;
+                Unlock(network);
             }
             catch (Exception fail)
             {
-                locked[network] = false;
+                Unlock(network);
                 Core.handleException(fail);
             }
         }
@@ -192,7 +208,7 @@ namespace pidgeon_sv
                 }
                 System.IO.File.AppendAllText(MessagePool(network), message.ToDocumentXmlText() + "\n");
                 MessageSize[network]= (MessageSize[network] + 1);
-                locked[network] = false;
+                Unlock(network);
             }
             catch (Exception fail)
             {
