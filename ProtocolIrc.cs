@@ -49,8 +49,6 @@ namespace pidgeon_sv
 
         Messages _messages = new Messages();
 
-
-        public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
         public List<MessageOrigin> MessageBuffer = new List<MessageOrigin>();
 
 
@@ -62,7 +60,6 @@ namespace pidgeon_sv
 
         public Buffer buffer = null;
         public DateTime pong = DateTime.Now;
-        public Account owner = null;
 
 
         public class Buffer
@@ -367,7 +364,9 @@ namespace pidgeon_sv
                 while (_server.Connected && !_reader.EndOfStream)
                 {
                     text = _reader.ReadLine();
-                    if (text.StartsWith(":"))
+                    ProcessorIRC parser = new ProcessorIRC(_server, text, ref pong);
+                    parser.Result();
+                    /* if (text.StartsWith(":"))
                     {
                         string[] data = text.Split(':');
                         if (data.Length > 1)
@@ -867,7 +866,7 @@ namespace pidgeon_sv
                         ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", text);
                         dt.Parameters.Add("network", Server);
                         buffer.DeliverMessage(dt);
-                    }
+                    }*/
                 }
             }
             catch (System.Threading.ThreadAbortException)

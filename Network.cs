@@ -27,6 +27,7 @@ namespace pidgeon_sv
         public string name = "";
         public bool writable = false;
     }
+    
     public class Network
     {
         public bool Connected;

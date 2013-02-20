@@ -54,16 +54,16 @@ namespace pidgeon_sv
     public class Channel
     {
         public static List<Channel> _control = new List<Channel>();
-        public string Name;
-        public Network _Network;
+        public string Name = null;
+        public Network _Network = null;
         public List<User> UserList = new List<User>();
-        public string Topic;
+        public string Topic = null;
         public bool dispose = false;
-        public string TopicUser;
-        public int TopicDate;
-        public List<Invite> Invites;
-        public List<SimpleBan> Bl;
-        public List<Except> Exceptions;
+        public string TopicUser = null;
+        public int TopicDate = 0;
+        public List<Invite> Invites = null;
+        public List<SimpleBan> Bans = null;
+        public List<Except> Exceptions = null;
         public bool parsing_who = false;
         public bool parsing_xb = false;
         public bool parsing_xe = false;
@@ -116,9 +116,9 @@ namespace pidgeon_sv
 
         public bool containsBan(string host)
         {
-            lock (Bl)
+            lock (Bans)
             {
-                foreach (var name in Bl)
+                foreach (var name in Bans)
                 {
                     if (name.Target == host)
                     {

@@ -23,11 +23,19 @@ namespace pidgeon_sv
 {
     class Program
     {
+        public static List<string> data;
         static void Main(string[] args)
         {
-            Config.StartedTime = DateTime.Now;
+            Core.StartedTime = DateTime.Now;
+            data = new List<string>();
+            data.AddRange(args);
             if (!Core.Init())
             {
+                return;
+            }
+            if (data.Contains("--manage"))
+            {
+                Account.Manage();
                 return;
             }
             Core.Listen();

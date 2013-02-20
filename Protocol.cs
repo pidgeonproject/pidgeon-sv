@@ -31,8 +31,10 @@ namespace pidgeon_sv
         public List<char> SModes = new List<char> { 'k', 'L' };
         public List<char> XModes = new List<char> { 'l' };
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
+        public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
         public bool Connected = false;
         public int type = 0;
+        public Account owner = null;
         public class Mode
         {
             public List<string> _Mode = new List<string>();

@@ -29,6 +29,8 @@ namespace pidgeon_sv
     {
         public static bool running = true;
 
+        public static DateTime StartedTime;
+
         public static List<Account> _accounts = new List<Account>();
         public static List<Thread> threads = new List<Thread>();
 
@@ -176,12 +178,65 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    SL("There is no userfile for this instance");
+                    SL("There is no userfile for this instance, create one using parameter --manage");
                 }
             }
             catch (Exception fail)
             {
                 handleException(fail);
+            }
+        }
+
+        public static void SaveUser()
+        {
+            try
+            {
+                if (File.Exists(Config.UserFile))
+                {
+                    File.Copy(Config.UserFile, Config.UserFile + "~", true);
+                }
+
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                File.Copy(Config.UserFile + "~", Config.UserFile, true);
+            }
+        }
+
+        public static void LoadConf()
+        {
+            if (!File.Exists(Config.File))
+            {
+                SL("WARNING: there is no configuration file");
+                return;
+            }
+            else
+            {
+                XmlDocument config = new XmlDocument();
+                config.Load(Config.File);
+                foreach (XmlNode curr in config.ChildNodes[0].ChildNodes)
+                {
+                    int value = 0;
+                    switch (curr.Name.ToLower())
+                    {
+                        case "databasefolder":
+                            Config.DatabaseFolder = curr.InnerText;
+                            break;
+                        case "serverport":
+                            Config.server_port = int.Parse(curr.InnerText);
+                            break;
+                        case "chunksize":
+                            value = int.Parse(curr.InnerText);
+                            if (value < 100)
+                            {
+                                SL("Invalid chunk size, using default: " + Config.ChunkSize);
+                                break;
+                            }
+                            Config.ChunkSize = value;
+                            break;
+                    }
+                }
             }
         }
 
@@ -197,6 +252,8 @@ namespace pidgeon_sv
                 SL("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
                 SL("OS: " + Environment.OSVersion.ToString());
 
+                LoadConf();
+
                 Config.UserFile = Config.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
                 if (!Directory.Exists("db"))
@@ -206,6 +263,7 @@ namespace pidgeon_sv
 
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
+                SL("Port: " + Config.server_port.ToString());
                 if (Config.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");

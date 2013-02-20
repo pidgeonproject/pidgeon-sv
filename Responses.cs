@@ -132,7 +132,7 @@ namespace pidgeon_sv
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb");
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb uptime: " + (DateTime.Now - Core.StartedTime).ToString());
             protocol.Deliver(response);
         }
 
@@ -257,6 +257,110 @@ namespace pidgeon_sv
             protocol.Deliver(response);
         }
 
+        public static void Manage(XmlNode node, ProtocolMain protocol)
+        {
+            ProtocolMain.Datagram response = null;
+            switch (node.Value)
+            {
+                case "LIST":
+                    if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.ReadUser))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+                    string users = "";
+                    lock (Core._accounts)
+                    {
+                        foreach (Account curr in Core._accounts)
+                        {
+                            users += curr.username + ":" + curr.nickname + ":" + curr.Locked.ToString() + "&";
+                        }
+                    }
+                    response = new ProtocolMain.Datagram("USERLIST", users);
+                    break;
+                case "CREATEUSER":
+                    if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.CreateUser))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+
+                    break;
+                case "LK":
+                    if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.ModifyUser))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+                    if (node.Attributes.Count > 0)
+                    {
+                        string user = node.Attributes[0].Value;
+                        Account target = Account.getUser(user);
+                        if (target != null)
+                        {
+                            target.Locked = true;
+                            Core.SaveUser();
+                            response = new ProtocolMain.Datagram("SYSTEM", "LK");
+                            response.Parameters.Add("username", user);
+                        }
+                        else
+                        {
+                            response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
+                            response.Parameters.Add("action", "lk");
+                            response.Parameters.Add("explanation", "unknown user");
+                        }
+                    }
+                    else
+                    {
+                        response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
+                        response.Parameters.Add("action", "lk");
+                        response.Parameters.Add("explanation", "invalid");
+                    }
+
+                    break;
+                case "UN":
+                    if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.ModifyUser))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+                    if (node.Attributes.Count > 0)
+                    {
+                        string user = node.Attributes[0].Value;
+                        Account target = Account.getUser(user);
+                        if (target != null)
+                        {
+                            target.Locked = false;
+                            Core.SaveUser();
+                            response = new ProtocolMain.Datagram("SYSTEM", "UN");
+                            response.Parameters.Add("username", user);
+                        }
+                        else
+                        {
+                            response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
+                            response.Parameters.Add("action", "un");
+                            response.Parameters.Add("explanation", "unknown user");
+                        }
+                    }
+                    else
+                    {
+                        response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
+                        response.Parameters.Add("action", "un");
+                        response.Parameters.Add("explanation", "invalid");
+                    }
+                    break;
+                case "REMOVE":
+                    if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.DeleteUser))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+
+                    break;
+            }
+            protocol.Deliver(response);
+        }
+
         public static void ChannelInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
@@ -274,7 +378,10 @@ namespace pidgeon_sv
                     {
                         foreach (Channel curr in b002.Channels)
                         {
-                            list += curr.Name + "!";
+                            if (curr.ok)
+                            {
+                                list += curr.Name + "!";
+                            }
                         }
                     }
                     response = new ProtocolMain.Datagram("CHANNELINFO", "");

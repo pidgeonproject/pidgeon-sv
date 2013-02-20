@@ -165,6 +165,56 @@ namespace pidgeon_sv
             return true;
         }
 
+        public static void CreateEntry(string name, string password, string nick, UserLevel level)
+        {
+            Account user = new Account(name, password);
+            user.Level = level;
+            user.nickname = nick;
+            Core._accounts.Add(user);
+            Core.SaveUser();
+        }
+
+        public static Account getUser(string name)
+        {
+            lock (Core._accounts)
+            {
+                foreach (Account account in Core._accounts)
+                {
+                    if (account.username == name)
+                    {
+                        return account;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static void CreateUser()
+        { 
+            
+        }
+
+        public static void Manage()
+        {
+            bool OK = true;
+            while (OK)
+            {
+                Console.WriteLine("Select one option:");
+                Console.WriteLine("1. Create new user");
+                Console.WriteLine("ctrl + c - quit");
+                ConsoleKeyInfo data = Console.ReadKey();
+                switch (data.Key)
+                { 
+                    case ConsoleKey.D1:
+                        CreateUser();
+                        break;
+                    default:
+                        Console.WriteLine("This is unknown option for me");
+                        break;
+                }
+            }
+        }
+
         public bool containsNetwork(string network)
         {
             lock (ConnectedNetworks)

@@ -23,12 +23,13 @@ namespace pidgeon_sv
 {
     class Config
     {
-        public static DateTime StartedTime;
         /// <summary>
         /// Port
         /// </summary>
-        public static int server_port = 22;
+        public static int server_port = 64530;
         public static string UserFile = "users";
+
+        public static readonly string File = "pidgeon.conf";
 
         /// <summary>
         /// This is a minimal size of one chunk before it's written to storage, to free a memory
@@ -66,6 +67,12 @@ namespace pidgeon_sv
         public static int minbs = 2000;
 
 
-        public static readonly string version = "1.0.2.0";
+        public static string version
+        {
+            get
+            {
+                return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+        }
     }
 }

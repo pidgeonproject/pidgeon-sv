@@ -172,9 +172,7 @@ namespace pidgeon_sv
                     case "CONNECT":
                     case "NICK":
                     case "NETWORKINFO":
-                    case "MAINTLISTUSER":
-                    case "MAINTADDUSER":
-                    case "MAINTDELUSER":
+                    case "SYSTEM":
                     case "JOIN":
                     case "PART":
                     case "BACKLOGSV":
@@ -226,6 +224,9 @@ namespace pidgeon_sv
                     break;
                 case "AUTH":
                     Responses.Auth(node, this);
+                    return;
+                case "SYSTEM":
+                    Responses.Manage(node, this);
                     return;
             }
         }
