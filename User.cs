@@ -36,12 +36,12 @@ namespace pidgeon_sv
             if (_Nick != "")
             {
                 char prefix = _Nick[0];
-                if (x._protocol.UChars.Contains(prefix))
+                if (x.UChars.Contains(prefix))
                 {
-                    int Mode = x._protocol.UChars.IndexOf(prefix);
-                    if (x._protocol.CUModes.Count >= Mode + 1)
+                    int Mode = x.UChars.IndexOf(prefix);
+                    if (x.CUModes.Count >= Mode + 1)
                     {
-                        ChannelMode.mode("+" + x._protocol.CUModes[Mode].ToString());
+                        ChannelMode.mode("+" + x.CUModes[Mode].ToString());
                         _Nick = _Nick.Substring(1);
                     }
                 }

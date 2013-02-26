@@ -888,72 +888,82 @@ namespace pidgeon_sv
 
         public void getDepth(int n, ProtocolMain user)
         {
-            Core.DebugLog("User " + owner.nickname + " requested a backlog of data");
-            int i = 0;
-            int total_count = 0;
-            total_count = n;
-            int index = 0;
-            lock (buffer.oldmessages)
+            try
             {
-                if (buffer.oldmessages.Count == 0)
+                Core.DebugLog("User " + owner.nickname + " requested a backlog of data");
+                int i = 0;
+                user.TrafficChunks = true;
+                int total_count = 0;
+                total_count = n;
+                int index = 0;
+                lock (buffer.oldmessages)
                 {
-                    Core.DebugLog("User " + owner.nickname + " requested a backlog, there are no data");
-                    ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
-                    size.Parameters.Add("network", Server);
-                    user.Deliver(size);
-                    return;
-                }
-                if (buffer.oldmessages.Count < n)
-                {
-                    Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
-                    if (buffer.oldmessages.Count + owner.data.GetMessageSize(Server) < n)
+                    if (buffer.oldmessages.Count == 0)
                     {
-                        total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
-                        Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
-                    }
-                    ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", total_count.ToString());
-                    count.Parameters.Add("network", Server);
-                    user.Deliver(count);
-                    owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server);
-                    if (index < 0)
-                    {
-                        Core.DebugLog("Something went wrong");
+                        Core.DebugLog("User " + owner.nickname + " requested a backlog, there are no data");
+                        ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
+                        size.Parameters.Add("network", Server);
+                        user.Deliver(size);
                         return;
                     }
-                    n = buffer.oldmessages.Count;
-                }
-                else
-                {
-                    ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", n.ToString());
-                    count.Parameters.Add("network", Server);
-                    user.Deliver(count);
-                }
-                
-                while (i < n)
-                {
-                    ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
-                    text._InnerText = buffer.oldmessages[i].message._InnerText;
-                    foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                    if (buffer.oldmessages.Count < n)
                     {
-                        text.Parameters.Add(current.Key, current.Value);
+                        Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
+                        if (buffer.oldmessages.Count + owner.data.GetMessageSize(Server) < n)
+                        {
+                            total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
+                            Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
+                        }
+                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", total_count.ToString());
+                        count.Parameters.Add("network", Server);
+                        user.Deliver(count);
+                        owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server);
+                        if (index < 0)
+                        {
+                            Core.DebugLog("Something went wrong");
+                            return;
+                        }
+                        n = buffer.oldmessages.Count;
                     }
-                    text.Parameters.Add("buffer", index.ToString());
-                    user.Deliver(text);
-                    i = i + 1;
-                    index++;
+                    else
+                    {
+                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", n.ToString());
+                        count.Parameters.Add("network", Server);
+                        user.Deliver(count);
+                    }
 
+                    while (i < n)
+                    {
+                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
+                        text._InnerText = buffer.oldmessages[i].message._InnerText;
+                        foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                        {
+                            text.Parameters.Add(current.Key, current.Value);
+                        }
+                        text.Parameters.Add("buffer", index.ToString());
+                        user.Deliver(text);
+                        i = i + 1;
+                        index++;
+
+                    }
+                    user.TrafficChunks = false;
+                    Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
+                    foreach (MessageOrigin d in MessageBuffer)
+                    {
+                        ProtocolMain.Datagram text = new ProtocolMain.Datagram("SELFDG");
+                        text._InnerText = d.text;
+                        text.Parameters.Add("network", Server);
+                        text.Parameters.Add("buffer", i.ToString());
+                        text.Parameters.Add("time", d.time.ToBinary().ToString());
+                        i++;
+                        user.Deliver(text);
+                    }
                 }
-                Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
-                foreach (MessageOrigin d in MessageBuffer)
-                {
-                    ProtocolMain.Datagram text = new ProtocolMain.Datagram("SELFDG");
-                    text._InnerText = d.text;
-                    text.Parameters.Add("network", Server);
-                    text.Parameters.Add("buffer", i.ToString());
-                    text.Parameters.Add("time", d.time.ToBinary().ToString());
-                    i++;
-                    user.Deliver(text);
-                }
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                user.TrafficChunks = false;
             }
         }
 

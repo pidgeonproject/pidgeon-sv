@@ -25,6 +25,9 @@ namespace pidgeon_sv
 {
     public class ProtocolMain
     {
+        public bool TrafficChunks = false;
+        private string TrafficChunk = "";
+
         public class Datagram
         {
             /// <summary>
@@ -173,6 +176,7 @@ namespace pidgeon_sv
                     case "NICK":
                     case "NETWORKINFO":
                     case "SYSTEM":
+                    case "REMOVE":
                     case "JOIN":
                     case "PART":
                     case "BACKLOGSV":
@@ -228,6 +232,9 @@ namespace pidgeon_sv
                 case "SYSTEM":
                     Responses.Manage(node, this);
                     return;
+                case "REMOVE":
+                    Responses.DiscNw(node, this);
+                    return;
             }
         }
 
@@ -264,7 +271,7 @@ namespace pidgeon_sv
             }
         }
 
-        public bool Send(string text)
+        public bool Send(string text, bool Enforced = false)
         {
             if (!Connected)
             {
@@ -272,8 +279,32 @@ namespace pidgeon_sv
             }
             try
             {
-                connection._w.WriteLine(text);
-                connection._w.Flush();
+                if (!TrafficChunks)
+                {
+                    connection._w.WriteLine(text);
+                    connection._w.Flush();
+                    if (TrafficChunk != "")
+                    {
+                        connection._w.WriteLine(TrafficChunk);
+                        connection._w.Flush();
+                        TrafficChunk = "";
+                    }
+                    return true;
+                }
+                else
+                {
+                    lock (TrafficChunk)
+                    {
+                        TrafficChunk += text + "\n";
+                        if (TrafficChunk.Length > 2000 || Enforced)
+                        {
+                            connection._w.WriteLine(TrafficChunk);
+                            connection._w.Flush();
+                            TrafficChunk = "";
+                        }
+                    }
+                    return false;
+                }
             }
             catch (IOException)
             {

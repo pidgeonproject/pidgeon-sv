@@ -158,6 +158,34 @@ namespace pidgeon_sv
             protocol.Deliver(response);
         }
 
+        public static void DiscNw(XmlNode node, ProtocolMain protocol)
+        {
+            ProtocolMain.Datagram response = null;
+            Network network = protocol.connection.account.retrieveServer(node.InnerText);
+            if (network == null)
+            {
+                response = new ProtocolMain.Datagram("REMOVE", "FAIL");
+                response.Parameters.Add("network", node.InnerText);
+                protocol.Deliver(response);
+                return;
+            }
+            ProtocolIrc IRC = (ProtocolIrc)network._protocol;
+            IRC.Exit();
+            lock (protocol.connection.account.ConnectedNetworks)
+            {
+                if (protocol.connection.account.ConnectedNetworks.Contains(network))
+                {
+                    protocol.connection.account.ConnectedNetworks.Remove(network);
+                    response = new ProtocolMain.Datagram("REMOVE", node.InnerText);
+                    protocol.Deliver(response);
+                }
+                else
+                { 
+                    Core.DebugLog("Can't remove the protocol from system, error #2");
+                }
+            }
+        }
+
         public static void GlobalIdent(XmlNode node, ProtocolMain protocol)
         {
             protocol.connection.account.ident = node.InnerText;
