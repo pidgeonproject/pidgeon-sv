@@ -30,9 +30,9 @@ namespace pidgeon_sv
     
     public class Network
     {
-        public bool Connected;
+        public bool Connected = false;
         public List<User> PrivateChat = new List<User>();
-        public string server;
+        public string server = null;
         public Protocol.UserMode usermode = new Protocol.UserMode();
         public string username;
         public List<Channel> Channels = new List<Channel>();
@@ -48,6 +48,7 @@ namespace pidgeon_sv
         public List<char> SModes = new List<char> { 'k', 'L' };
         public List<char> XModes = new List<char> { 'l' };
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
+		public string id = null;
 
 
 
@@ -113,6 +114,7 @@ namespace pidgeon_sv
         {
             server = Server;
             _protocol = sv;
+			id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
             quit = "Pidgeon service - http://pidgeonclient.org";
             CreateChat("!system", true);
         }

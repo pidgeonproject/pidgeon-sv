@@ -274,14 +274,17 @@ namespace pidgeon_sv
         {
             ProtocolMain.Datagram response = null;
             string networks = "";
+			string id = "";
             lock (protocol.connection.account.ConnectedNetworks)
             {
                 foreach (Network current_net in protocol.connection.account.ConnectedNetworks)
                 {
                     networks += current_net.server + "|";
+					id += current_net.id + "|";
                 }
             }
             response = new ProtocolMain.Datagram("NETWORKLIST", networks);
+			response.Parameters.Add("identification", id);
             protocol.Deliver(response);
         }
 

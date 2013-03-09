@@ -44,7 +44,7 @@ namespace pidgeon_sv
             return MessageSize[network];
         }
 
-        public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network)
+        public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, ref int MQID)
         {
 
         }

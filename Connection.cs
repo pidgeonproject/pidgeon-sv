@@ -38,7 +38,6 @@ namespace pidgeon_sv
 
     public class OutgoingQueue
     {
-
         List<Item> queue = new List<Item>();
     }
 
