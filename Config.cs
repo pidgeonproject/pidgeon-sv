@@ -57,6 +57,8 @@ namespace pidgeon_sv
             }
         }
 
+        public static Mode mode = Mode.Core;
+
         public static string DatabaseFolder = "db";
 
         public static string FileDBDefaultFolder = "data";
@@ -66,6 +68,11 @@ namespace pidgeon_sv
         /// </summary>
         public static int minbs = 2000;
 
+        public enum Mode
+        { 
+            Core,
+            Bouncer,
+        }
 
         public static string version
         {

@@ -235,6 +235,14 @@ namespace pidgeon_sv
                             }
                             Config.ChunkSize = value;
                             break;
+                        case "mode":
+                            Config.Mode mode = Config.Mode.Core;
+                            if (curr.InnerText == "bouncer")
+                            {
+                                mode = Config.Mode.Bouncer;
+                            }
+                            Config.mode = mode;
+                            break;
                     }
                 }
             }
@@ -272,6 +280,7 @@ namespace pidgeon_sv
                 {
                     SL("Maximum file chunk size: " + Config.MaxFileChunkSize.ToString());
                 }
+                SL("Mode: " + Config.mode.ToString());
                 SL("Minimum buffer size: " + Config.minbs.ToString());
                 SL("Minimum chunk size: " + Config.ChunkSize.ToString());
 
