@@ -719,6 +719,7 @@ namespace pidgeon_sv
                 }
                 ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", text);
                 dt.Parameters.Add("network", _Protocol.Server);
+                dt.Parameters.Add("MQID", _Protocol.getMQID().ToString());
                 ProtocolIrc protocol = (ProtocolIrc)_Protocol;
                 protocol.buffer.DeliverMessage(dt);
             }

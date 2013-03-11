@@ -61,6 +61,7 @@ namespace pidgeon_sv
                 data.Parameters.Add("network", text.network.server);
                 data.Parameters.Add("time", text.time.ToBinary().ToString());
                 data.Parameters.Add("target", text.target);
+                data.Parameters.Add("MQID", text.MQID.ToString());
                 if (connection == null)
                 {
                     lock (Clients)

@@ -109,8 +109,13 @@ namespace pidgeon_sv
                 Network network = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
+                    int mqid = 0;
+                    if (node.Attributes.Count > 2)
+                    {
+                        mqid = int.Parse(node.Attributes[2].Value);
+                    }
                     ProtocolIrc _protocol = (ProtocolIrc)network._protocol;
-                    _protocol.getDepth(int.Parse(node.Attributes[1].Value), protocol);
+                    _protocol.getDepth(int.Parse(node.Attributes[1].Value), protocol, mqid);
                     lock (protocol.connection.account.Messages)
                     {
                         foreach (ProtocolMain.SelfData xx in protocol.connection.account.Messages)
@@ -219,7 +224,7 @@ namespace pidgeon_sv
                             Priority = ProtocolIrc.Priority.High;
                             break;
                     }
-                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target);
+                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._protocol.getMQID());
                     lock (protocol.connection.account.Messages)
                     {
                         protocol.connection.account.Messages.Add(data);

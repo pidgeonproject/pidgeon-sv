@@ -392,13 +392,12 @@ namespace pidgeon_sv
             buffer.DeliverMessage(dt);
         }
 
-        public void getDepth(int n, ProtocolMain user)
+        public void getDepth(int n, ProtocolMain user, int mqid)
         {
             try
             {
-                Core.DebugLog("User " + owner.nickname + " requested a backlog of data");
+                Core.DebugLog("User " + owner.nickname + " requested a backlog of data starting from " + mqid.ToString());
                 int i = 0;
-				int MQID = 0;
                 user.TrafficChunks = true;
                 int total_count = 0;
                 total_count = n;
@@ -424,7 +423,7 @@ namespace pidgeon_sv
                         ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", total_count.ToString());
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
-                        owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, ref MQID);
+                        owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
                         if (index < 0)
                         {
                             Core.DebugLog("Something went wrong");
@@ -441,22 +440,23 @@ namespace pidgeon_sv
 
                     while (i < n)
                     {
-                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
-                        text._InnerText = buffer.oldmessages[i].message._InnerText;
-                        foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                        if (int.Parse(buffer.oldmessages[i].message.Parameters["MQID"]) > mqid)
                         {
-                            text.Parameters.Add(current.Key, current.Value);
+                            ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
+                            text._InnerText = buffer.oldmessages[i].message._InnerText;
+                            foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                            {
+                                text.Parameters.Add(current.Key, current.Value);
+                            }
+                            text.Parameters.Add("buffer", index.ToString());
+                            user.Deliver(text);
                         }
-                        text.Parameters.Add("buffer", index.ToString());
-						text.Parameters.Add("MQID", MQID.ToString());
-                        user.Deliver(text);
-                        i = i + 1;
                         index++;
-						MQID++;
-
+                        i++;
                     }
                     user.TrafficChunks = false;
-                    Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
+                    user.Deliver(new ProtocolMain.Datagram("PING"));
+                    /*Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
                     foreach (MessageOrigin d in MessageBuffer)
                     {
                         ProtocolMain.Datagram text = new ProtocolMain.Datagram("SELFDG");
@@ -464,11 +464,11 @@ namespace pidgeon_sv
                         text.Parameters.Add("network", Server);
                         text.Parameters.Add("buffer", i.ToString());
                         text.Parameters.Add("time", d.time.ToBinary().ToString());
-						text.Parameters.Add("MQID", MQID.ToString());
-						MQID++;
+						//text.Parameters.Add("MQID", m.ToString());
+						//MQID++;
                         i++;
                         user.Deliver(text);
-                    }
+                    }*/
                 }
             }
             catch (Exception fail)

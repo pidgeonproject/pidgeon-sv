@@ -57,7 +57,7 @@ namespace pidgeon_sv
             }
         }
 
-        public static Mode mode = Mode.Core;
+        public static Mode mode = Mode.Bouncer;
 
         public static string DatabaseFolder = "db";
 

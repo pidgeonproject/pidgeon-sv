@@ -16,6 +16,7 @@
  ***************************************************************************/
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Text;
 
@@ -35,6 +36,30 @@ namespace pidgeon_sv
         public bool Connected = false;
         public int type = 0;
         public Account owner = null;
+        private bool Locked = false;
+        private int Current_ID = 0;
+
+        public int getMQID()
+        {
+            try
+            {
+                while (Locked)
+                {
+                    Thread.Sleep(10);
+                }
+                Locked = true;
+                Current_ID++;
+                int id = Current_ID;
+                Locked = false;
+                return id;
+            } catch (Exception fail)
+            {
+                Locked = false;
+                Core.handleException(fail);
+                return Current_ID;
+            }
+        }
+
         public class Mode
         {
             public List<string> _Mode = new List<string>();

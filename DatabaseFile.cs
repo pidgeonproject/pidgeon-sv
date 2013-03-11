@@ -93,7 +93,7 @@ namespace pidgeon_sv
         }
 
 
-        private void SendData(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol, ref int MQID)
+        private void SendData(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
         {
             ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
             text._InnerText = message.message._InnerText;
@@ -102,9 +102,7 @@ namespace pidgeon_sv
                 text.Parameters.Add(current.Key, current.Value);
             }
             text.Parameters.Add("buffer", index.ToString());
-			text.Parameters.Add("MQID", MQID.ToString());
             protocol.Deliver(text);
-			MQID++;
             index++;
             return;
         }
@@ -133,7 +131,7 @@ namespace pidgeon_sv
             return message;
         }
 
-        public override void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, ref int MQID)
+        public override void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
             if (!Running)
             {
@@ -172,15 +170,18 @@ namespace pidgeon_sv
                     if (skip > 0)
                     {
                         skip--;
-						MQID++;
                         continue;
                     }
                     if (line == "")
                     {
                         continue;
                     }
-                    SendData(str2M(line), ref no, protocol, ref MQID);
-                    sent++;
+                    ProtocolIrc.Buffer.Message message = str2M(line);
+                    if (MQID < int.Parse(message.message.Parameters["MQID"]))
+                    {
+                        SendData(message, ref no, protocol);
+                        sent++;
+                    }
                     current_line++;
                 }
                 Core.DebugLog("Sent messages: " + sent.ToString());

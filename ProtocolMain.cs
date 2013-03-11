@@ -89,7 +89,8 @@ namespace pidgeon_sv
             public DateTime time;
             public Network network = null;
             public string target = null;
-            public SelfData(Network _network, string _text, DateTime date, string _target)
+            public int MQID;
+            public SelfData(Network _network, string _text, DateTime date, string _target, int curr)
             {
                 if (_network == null)
                 {
@@ -101,6 +102,7 @@ namespace pidgeon_sv
                 target = _target;
                 time = date;
                 network = _network;
+                MQID = curr;
             }
         }
 
