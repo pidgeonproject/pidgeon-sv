@@ -135,6 +135,10 @@ namespace pidgeon_sv
                     Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
                 }
             }
+            else
+            {
+                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+            }
         }
 
         public static void Load(XmlNode node, ProtocolMain protocol)

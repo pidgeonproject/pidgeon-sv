@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Xml;
 using System.Text;
 
@@ -202,6 +204,7 @@ namespace pidgeon_sv
             }
             try
             {
+                Core.DebugLog("Getting size from disk");
                 int messages = 0;
                 Lock(network);
                 int skip = 0;
@@ -223,6 +226,11 @@ namespace pidgeon_sv
                 }
                 int current_line = 0;
 
+                if (!File.Exists(MessagePool(network)))
+                {
+                    Unlock(network);
+                    return 0;
+                }
                 System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
                 while (((line = file.ReadLine()) != null) && current_line < size)
@@ -243,6 +251,8 @@ namespace pidgeon_sv
                     }
                     current_line++;
                 }
+                Unlock(network);
+                Core.DebugLog("size retrieved for " + network);
                 return messages;
             }
             catch (Exception fail)

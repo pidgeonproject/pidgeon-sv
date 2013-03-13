@@ -395,6 +395,7 @@ namespace pidgeon_sv
         public int getBacklog(int mqid, int size)
         {
             // check memory first (quickly)
+            Core.DebugLog("Retrieving size of backlog for " + Server);
             DateTime start_time = DateTime.Now;
             bool FoundNewer = false;
             int backlog_size = 0;
