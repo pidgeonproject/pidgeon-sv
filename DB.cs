@@ -49,6 +49,11 @@ namespace pidgeon_sv
 
         }
 
+        public virtual int MessagePool_Backlog(int size, int mqid, string network)
+        {
+            return 0;
+        }
+
         public virtual void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
 

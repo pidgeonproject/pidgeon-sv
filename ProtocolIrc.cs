@@ -392,6 +392,33 @@ namespace pidgeon_sv
             buffer.DeliverMessage(dt);
         }
 
+        public int getBacklog(int mqid, int size)
+        {
+            // check memory first (quickly)
+            DateTime start_time = DateTime.Now;
+            bool FoundNewer = false;
+            int backlog_size = 0;
+            lock (buffer.oldmessages)
+            {
+                foreach (Buffer.Message message in buffer.oldmessages)
+                {
+                    if (int.Parse(message.message.Parameters["MQID"]) > mqid)
+                    {
+                        FoundNewer = true;
+                        backlog_size++;
+                    }
+                }
+            }
+            if (!FoundNewer)
+            {
+                return 0;
+            }
+            // now search the disk
+            backlog_size = backlog_size + owner.data.MessagePool_Backlog(size, mqid, Server);
+            Core.DebugLog("Parsed size in " + (DateTime.Now - start_time).ToString());
+            return backlog_size;
+        }
+
         public void getDepth(int n, ProtocolMain user, int mqid)
         {
             try
@@ -402,6 +429,7 @@ namespace pidgeon_sv
                 int total_count = 0;
                 total_count = n;
                 int index = 0;
+                int backlog_size = 0;
                 lock (buffer.oldmessages)
                 {
                     if (buffer.oldmessages.Count == 0)
@@ -420,7 +448,8 @@ namespace pidgeon_sv
                             total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
                             Core.DebugLog("User " + owner.nickname + " requested a backlog of " + n.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
                         }
-                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", total_count.ToString());
+                        backlog_size = getBacklog(mqid, n);
+                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
                         owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
@@ -433,7 +462,8 @@ namespace pidgeon_sv
                     }
                     else
                     {
-                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", n.ToString());
+                        backlog_size = getBacklog(mqid, n);
+                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
                     }
@@ -448,14 +478,14 @@ namespace pidgeon_sv
                             {
                                 text.Parameters.Add(current.Key, current.Value);
                             }
+                            index++;
                             text.Parameters.Add("buffer", index.ToString());
                             user.Deliver(text);
                         }
-                        index++;
                         i++;
                     }
                     user.TrafficChunks = false;
-                    user.Deliver(new ProtocolMain.Datagram("PING"));
+                    user.Deliver(new ProtocolMain.Datagram("PING"));    
                     /*Core.DebugLog("User " + owner.nickname + " messages " + MessageBuffer.Count.ToString());
                     foreach (MessageOrigin d in MessageBuffer)
                     {

@@ -101,9 +101,9 @@ namespace pidgeon_sv
             {
                 text.Parameters.Add(current.Key, current.Value);
             }
+            index++;
             text.Parameters.Add("buffer", index.ToString());
             protocol.Deliver(text);
-            index++;
             return;
         }
 
@@ -192,6 +192,65 @@ namespace pidgeon_sv
                 Unlock(network);
                 Core.handleException(fail);
             }
+        }
+
+        public override int MessagePool_Backlog(int size, int mqid, string network)
+        {
+            if (!Running)
+            {
+                return 0;
+            }
+            try
+            {
+                int messages = 0;
+                Lock(network);
+                int skip = 0;
+                lock (MessageSize)
+                {
+                    if (!MessageSize.ContainsKey(network))
+                    {
+                        MessageSize.Add(network, 0);
+                    }
+                }
+                if (MessageSize[network] < size)
+                {
+                    size = MessageSize[network];
+                    skip = 0;
+                }
+                else
+                {
+                    skip = MessageSize[network] - size;
+                }
+                int current_line = 0;
+
+                System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                string line = null;
+                while (((line = file.ReadLine()) != null) && current_line < size)
+                {
+                    if (skip > 0)
+                    {
+                        skip--;
+                        continue;
+                    }
+                    if (line == "")
+                    {
+                        continue;
+                    }
+                    ProtocolIrc.Buffer.Message message = str2M(line);
+                    if (mqid < int.Parse(message.message.Parameters["MQID"]))
+                    {
+                        messages++;
+                    }
+                    current_line++;
+                }
+                return messages;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                Unlock(network);
+            }
+            return 0;
         }
 
         public override void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)

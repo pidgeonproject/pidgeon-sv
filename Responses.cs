@@ -120,9 +120,12 @@ namespace pidgeon_sv
                     {
                         foreach (ProtocolMain.SelfData xx in protocol.connection.account.Messages)
                         {
-                            if (xx.network.server == _protocol.Server)
+                            if (xx.MQID > mqid)
                             {
-                                protocol.connection.account.MessageBack(xx, protocol);
+                                if (xx.network.server == _protocol.Server)
+                                {
+                                    protocol.connection.account.MessageBack(xx, protocol);
+                                }
                             }
                         }
                     }
