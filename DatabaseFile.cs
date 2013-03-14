@@ -28,6 +28,17 @@ namespace pidgeon_sv
     {
         public string db = "data";
         public Dictionary <string, bool> locked = new Dictionary<string,bool>();
+        public Dictionary <string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
+
+        public class Index
+        {
+            public int mqid;
+
+            public Index(int MQID)
+            { 
+                
+            }
+        }
 
         public string MessagePool(string network)
         {
@@ -154,6 +165,10 @@ namespace pidgeon_sv
                     {
                         MessageSize.Add(network, 0);
                     }
+                    if (!Indexes.ContainsKey(network))
+                    {
+                        Indexes.Add(network, new Dictionary<int, Index>());
+                    }
                 }
                 if (MessageSize[network] < number)
                 {
@@ -214,6 +229,10 @@ namespace pidgeon_sv
                     {
                         MessageSize.Add(network, 0);
                     }
+                    if (!Indexes.ContainsKey(network))
+                    {
+                        Indexes.Add(network, new Dictionary<int, Index>());
+                    }
                 }
                 if (MessageSize[network] < size)
                 {
@@ -233,7 +252,8 @@ namespace pidgeon_sv
                 }
                 System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
-                while (((line = file.ReadLine()) != null) && current_line < size)
+
+                while (current_line < size && (current_line + 1) < Indexes[network].Count)
                 {
                     if (skip > 0)
                     {
@@ -244,8 +264,7 @@ namespace pidgeon_sv
                     {
                         continue;
                     }
-                    ProtocolIrc.Buffer.Message message = str2M(line);
-                    if (mqid < int.Parse(message.message.Parameters["MQID"]))
+                    if (mqid < Indexes[network][current_line].mqid)
                     {
                         messages++;
                     }
@@ -278,8 +297,13 @@ namespace pidgeon_sv
                     {
                         MessageSize.Add(network, 0);
                     }
+                    if (!Indexes.ContainsKey(network))
+                    {
+                        Indexes.Add(network, new Dictionary<int, Index>());
+                    }
                 }
                 System.IO.File.AppendAllText(MessagePool(network), message.ToDocumentXmlText() + "\n");
+                Indexes[network].Add(MessageSize[network], new Index(int.Parse(message.message.Parameters["MQID"])));
                 MessageSize[network]= (MessageSize[network] + 1);
                 Unlock(network);
             }
