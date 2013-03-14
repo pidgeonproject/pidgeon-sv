@@ -236,6 +236,7 @@ namespace pidgeon_sv
                             Config.ChunkSize = value;
                             break;
                         case "mode":
+                            break;
                             Config.Mode mode = Config.Mode.Core;
                             if (curr.InnerText == "bouncer")
                             {

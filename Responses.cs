@@ -406,7 +406,6 @@ namespace pidgeon_sv
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
-
                     break;
             }
             protocol.Deliver(response);
