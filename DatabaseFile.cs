@@ -35,8 +35,8 @@ namespace pidgeon_sv
             public int mqid;
 
             public Index(int MQID)
-            { 
-                
+            {
+                mqid = MQID;
             }
         }
 
