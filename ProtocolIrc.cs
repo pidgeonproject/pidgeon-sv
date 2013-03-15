@@ -469,10 +469,11 @@ namespace pidgeon_sv
                         {
                             backlog_size = total_requested_size;
                         }
-
+                        Core.DebugLog("Delivering backlog messages to peer: " + backlog_size.ToString());
                         ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
+
                         owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
                         if (index < 0)
                         {

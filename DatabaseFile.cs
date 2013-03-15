@@ -182,6 +182,7 @@ namespace pidgeon_sv
                 
                 System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
+                Dictionary<int, Index> index = Indexes[network];
                 while (((line = file.ReadLine()) != null) && current_line < number)
                 {
                     if (skip > 0)
@@ -193,11 +194,28 @@ namespace pidgeon_sv
                     {
                         continue;
                     }
-                    ProtocolIrc.Buffer.Message message = str2M(line);
-                    if (MQID < int.Parse(message.message.Parameters["MQID"]))
+
+                    if ((current_line + 1) < Indexes[network].Count)
                     {
-                        SendData(message, ref no, protocol);
-                        sent++;
+                        if (MQID < index[current_line].mqid)
+                        {
+                            ProtocolIrc.Buffer.Message message = str2M(line);
+                            if (MQID < int.Parse(message.message.Parameters["MQID"]))
+                            {
+                                SendData(message, ref no, protocol);
+                                sent++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Core.DebugLog("Invalid index (browsing slowly) for " + network);
+                        ProtocolIrc.Buffer.Message message = str2M(line);
+                        if (MQID < int.Parse(message.message.Parameters["MQID"]))
+                        {
+                            SendData(message, ref no, protocol);
+                            sent++;
+                        }
                     }
                     current_line++;
                 }
@@ -253,6 +271,8 @@ namespace pidgeon_sv
                 System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
 
+                Dictionary<int, Index> index = Indexes[network];
+
                 while (current_line < size && (current_line + 1) < Indexes[network].Count)
                 {
                     if (skip > 0)
@@ -264,7 +284,7 @@ namespace pidgeon_sv
                     {
                         continue;
                     }
-                    if (mqid < Indexes[network][current_line].mqid)
+                    if (mqid < index[current_line].mqid)
                     {
                         messages++;
                     }
