@@ -534,6 +534,33 @@ namespace pidgeon_sv
             }
         }
 
+        public void getRange(ProtocolMain user, int from, int last)
+        {
+            Core.DebugLog("User " + owner.nickname + " requested a range of data starting from " + from.ToString());
+            int index = 0;
+            lock (buffer.oldmessages)
+            {
+                foreach (Buffer.Message curr in buffer.oldmessages)
+                {
+                    int mq =int.Parse(curr.message.Parameters["MQID"]);
+                    if (from >= mq && last <= mq)
+                    {
+                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(curr.message._Datagram);
+                        text._InnerText = curr.message._InnerText;
+                        foreach (KeyValuePair<string, string> current in curr.message.Parameters)
+                        {
+                            text.Parameters.Add(current.Key, current.Value);
+                        }
+                        text.Parameters.Add("range", index.ToString());
+                        index++;
+                        user.Deliver(text);
+                    }
+                }
+            }
+
+            owner.data.MessagePool_Range(from, last, Server, ref index, user);
+        }
+
         public override bool Command(string cm)
         {
             try

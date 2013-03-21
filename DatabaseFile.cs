@@ -105,6 +105,19 @@ namespace pidgeon_sv
             locked[network] = true;
         }
 
+        private void SendRange(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
+        {
+            ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
+            text._InnerText = message.message._InnerText;
+            foreach (KeyValuePair<string, string> current in message.message.Parameters)
+            {
+                text.Parameters.Add(current.Key, current.Value);
+            }
+            text.Parameters.Add("range", index.ToString());
+            index++;
+            protocol.Deliver(text);
+            return;
+        }
 
         private void SendData(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
         {
@@ -227,6 +240,66 @@ namespace pidgeon_sv
                 Unlock(network);
                 Core.handleException(fail);
             }
+        }
+
+        public override int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)
+        {
+            if (!Running)
+            {
+                return 0;
+            }
+            try
+            {
+                Core.DebugLog("Getting range from disk");
+                int messages = 0;
+                Lock(network);
+                lock (MessageSize)
+                {
+                    if (!MessageSize.ContainsKey(network))
+                    {
+                        MessageSize.Add(network, 0);
+                    }
+                    if (!Indexes.ContainsKey(network))
+                    {
+                        Indexes.Add(network, new Dictionary<int, Index>());
+                    }
+                }
+                int current_line = 0;
+
+                if (!File.Exists(MessagePool(network)))
+                {
+                    Unlock(network);
+                    Core.DebugLog("There is no datafile for " + network);
+                    return 0;
+                }
+                System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                string line = null;
+
+                Dictionary<int, Index> index = Indexes[network];
+
+                while ((current_line + 1) < Indexes[network].Count)
+                {
+                    if (line == "")
+                    {
+                        continue;
+                    }
+                    if (from <= index[current_line].mqid && to >= index[current_line].mqid)
+                    {
+                        ProtocolIrc.Buffer.Message message = str2M(line);
+                        SendRange(message, ref id, protocol);
+                        messages++;
+                    }
+                    current_line++;
+                }
+                Unlock(network);
+                return messages;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                Unlock(network);
+            }
+            return 0;
         }
 
         public override int MessagePool_Backlog(int size, int mqid, string network)

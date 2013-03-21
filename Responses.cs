@@ -102,6 +102,29 @@ namespace pidgeon_sv
             }
         }
 
+        public static void BacklogRange(XmlNode node, ProtocolMain protocol)
+        {
+            if (node.Attributes.Count > 2)
+            {
+                Network network = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
+                if (network != null)
+                {
+                    int from = int.Parse(node.Attributes[1].Value);
+                    int to = int.Parse(node.Attributes[2].Value);
+                    ProtocolIrc _protocol = (ProtocolIrc)network._protocol;
+                    _protocol.getRange(protocol, from, to);
+                }
+                else
+                {
+                    Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                }
+            }
+            else
+            {
+                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+            }
+        }
+
         public static void BacklogSv(XmlNode node, ProtocolMain protocol)
         {
             if (node.Attributes.Count > 1)

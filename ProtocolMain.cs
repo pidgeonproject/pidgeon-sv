@@ -182,6 +182,7 @@ namespace pidgeon_sv
                     case "JOIN":
                     case "PART":
                     case "BACKLOGSV":
+                    case "BACKLOGRANGE":
                     case "KICK":
                     case "NETWORKLIST":
                         response = new Datagram(node.Name.ToUpper(), "PERMISSIONDENY");
@@ -194,19 +195,19 @@ namespace pidgeon_sv
             {
                 case "STATUS":
                     Responses.Status(node, this);
-                    break;
+                    return;
                 case "NETWORKINFO":
                     Responses.NetworkInfo(node, this);
                     return;
                 case "RAW":
                     Responses.Raw(node, this);
-                    break;
+                    return;
                 case "NICK":
                     Responses.Nick(node, this);
-                    break;
+                    return;
                 case "CHANNELINFO":
                     Responses.ChannelInfo(node, this);
-                    break;
+                    return;
                 case "NETWORKLIST":
                     Responses.NetworkList(node, this);
                     return;
@@ -218,16 +219,16 @@ namespace pidgeon_sv
                     return;
                 case "CONNECT":
                     Responses.Connect(node, this);
-                    break;
+                    return;
                 case "GLOBALIDENT":
                     Responses.GlobalIdent(node, this);
-                    break;
+                    return;
                 case "MESSAGE":
                     Responses.Message(node, this);
-                    break;
+                    return;
                 case "GLOBALNICK":
                     Responses.GlobalNick(node, this);
-                    break;
+                    return;
                 case "AUTH":
                     Responses.Auth(node, this);
                     return;
@@ -236,6 +237,9 @@ namespace pidgeon_sv
                     return;
                 case "REMOVE":
                     Responses.DiscNw(node, this);
+                    return;
+                case "BACKLOGRANGE":
+                    Responses.BacklogRange(node, this);
                     return;
             }
         }

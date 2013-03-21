@@ -54,6 +54,11 @@ namespace pidgeon_sv
             return 0;
         }
 
+        public virtual int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)
+        {
+            return 0;
+        }
+
         public virtual void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
 
