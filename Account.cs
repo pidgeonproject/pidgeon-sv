@@ -134,6 +134,18 @@ namespace pidgeon_sv
             return true;
         }
 
+        public static bool isValid(string name)
+        {
+            if (name.Contains("&") ||
+                name.Contains("|") ||
+                name.Contains(" ") ||
+                name.Contains(":"))
+            {
+                return false;
+            }
+            return true;
+        }
+
         public bool ConnectIRC(string network, int port = 6667)
         {
             try
@@ -166,12 +178,63 @@ namespace pidgeon_sv
             return true;
         }
 
-        public static void CreateEntry(string name, string password, string nick, UserLevel level)
+        public static void KickUser(Account user)
+        {
+            user.Locked = true;
+            lock (user.ConnectedNetworks)
+            {
+                List<Network> networks = new List<Network>();
+                networks.AddRange(user.ConnectedNetworks);
+                foreach (Network network in networks)
+                {
+                    // disconnect from all irc networks
+                    network._protocol.Exit();
+                }
+            }
+
+            lock (user.Clients)
+            {
+                List<ProtocolMain> connections = new List<ProtocolMain>();
+                connections.AddRange(user.Clients);
+                foreach (ProtocolMain clients in connections)
+                {
+                    ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("FAIL", "KILLED");
+                    datagram.Parameters.Add("code", "6");
+                    clients.TrafficChunks = false;
+                    clients.Deliver(datagram);
+                    clients.Exit();
+                }
+            }
+        }
+
+        public static void DeleteUser(Account user)
+        {
+            lock (Core._accounts)
+            {
+                if (Core._accounts.Contains(user))
+                {
+                    KickUser(user);
+                    user.data.Clear();
+                    user.ConnectedNetworks.Clear();
+                    user.Clients.Clear();
+                    user.Messages.Clear();
+                    Core._accounts.Remove(user);
+                }
+            }
+            Core.SaveUser();
+        }
+
+        public static void CreateEntry(string name, string password, string nick, UserLevel level, string realname, string ident)
         {
             Account user = new Account(name, password);
             user.Level = level;
             user.nickname = nick;
-            Core._accounts.Add(user);
+            user.realname = realname;
+            user.ident = ident;
+            lock (Core._accounts)
+            {
+                Core._accounts.Add(user);
+            }
             Core.SaveUser();
         }
 

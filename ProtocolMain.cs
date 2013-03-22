@@ -241,7 +241,16 @@ namespace pidgeon_sv
                 case "BACKLOGRANGE":
                     Responses.BacklogRange(node, this);
                     return;
+                case "FAIL":
+                    return;
+                case "PING":
+                    return;
             }
+
+            response = new ProtocolMain.Datagram("FAIL", "GENERIC");
+            response.Parameters.Add("code", "4");
+            response.Parameters.Add("description", "invalid data: " + node.Name);
+            Deliver(response);
         }
 
         public ProtocolMain(Connection t)

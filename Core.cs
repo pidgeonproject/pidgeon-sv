@@ -110,6 +110,11 @@ namespace pidgeon_sv
                 {
                     XmlDocument configuration = new XmlDocument();
                     configuration.Load(Config.UserFile);
+                    if (!(configuration.ChildNodes.Count > 0))
+                    {
+                        Core.DebugLog("There is no proper information about users in config file");
+                        return;
+                    }
                     foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                     {
                         Account.UserLevel UserLevel = Account.UserLevel.User;
@@ -146,15 +151,15 @@ namespace pidgeon_sv
                                     realname = configitem.Value;
                                     break;
                                 case "level":
-                                    switch (configitem.Value)
+                                    switch (configitem.Value.ToLower())
                                     {
-                                        case "Root":
+                                        case "root":
                                             UserLevel = Account.UserLevel.Root;
                                             break;
-                                        case "Admin":
+                                        case "admin":
                                             UserLevel = Account.UserLevel.Admin;
                                             break;
-                                        case "User":
+                                        case "user":
                                             UserLevel = Account.UserLevel.User;
                                             break;
                                     }
@@ -195,7 +200,43 @@ namespace pidgeon_sv
                 {
                     File.Copy(Config.UserFile, Config.UserFile + "~", true);
                 }
+                XmlDocument configuration = new XmlDocument();
 
+                XmlNode xmlnode = configuration.CreateElement("users");
+
+                lock (_accounts)
+                {
+                    foreach (Account user in _accounts)
+                    {
+                        XmlNode item = configuration.CreateElement("user");
+                        XmlAttribute name = configuration.CreateAttribute("name");
+                        XmlAttribute password = configuration.CreateAttribute("password");
+                        XmlAttribute nick = configuration.CreateAttribute("nickname");
+                        XmlAttribute ident = configuration.CreateAttribute("ident");
+                        XmlAttribute realname = configuration.CreateAttribute("realname");
+                        XmlAttribute locked = configuration.CreateAttribute("locked");
+                        XmlAttribute level = configuration.CreateAttribute("level");
+                        name.Value = user.username;
+                        password.Value = user.password;
+                        nick.Value = user.nickname;
+                        ident.Value = user.ident;
+                        realname.Value = user.realname;
+                        locked.Value = user.Locked.ToString();
+                        level.Value = user.Level.ToString();
+                        item.Attributes.Append(name);
+                        item.Attributes.Append(password);
+                        item.Attributes.Append(nick);
+                        item.Attributes.Append(ident);
+                        item.Attributes.Append(realname);
+                        item.Attributes.Append(locked);
+                        item.Attributes.Append(level);
+                        xmlnode.AppendChild(item);
+                    }
+                }
+
+                configuration.AppendChild(xmlnode);
+                configuration.Save(Config.UserFile);
+                File.Delete(Config.UserFile + "~");
             }
             catch (Exception fail)
             {

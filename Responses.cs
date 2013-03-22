@@ -195,9 +195,14 @@ namespace pidgeon_sv
                 port = int.Parse(node.Attributes[0].Value);
             }
             protocol.connection.account.ConnectIRC(node.InnerText, port);
+            Network network = protocol.connection.account.retrieveServer(node.InnerText);
             Core.SL(protocol.connection.IP + ": Connecting to " + node.InnerText);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
             response.Parameters.Add("network", node.InnerText);
+            if (network != null)
+            {
+                response.Parameters.Add("id", network.id);
+            }
             protocol.Deliver(response);
         }
 
@@ -223,7 +228,7 @@ namespace pidgeon_sv
                     protocol.Deliver(response);
                 }
                 else
-                { 
+                {
                     Core.DebugLog("Can't remove the protocol from system, error #2");
                 }
             }
@@ -317,17 +322,17 @@ namespace pidgeon_sv
         {
             ProtocolMain.Datagram response = null;
             string networks = "";
-			string id = "";
+            string id = "";
             lock (protocol.connection.account.ConnectedNetworks)
             {
                 foreach (Network current_net in protocol.connection.account.ConnectedNetworks)
                 {
                     networks += current_net.server + "|";
-					id += current_net.id + "|";
+                    id += current_net.id + "|";
                 }
             }
             response = new ProtocolMain.Datagram("NETWORKLIST", networks);
-			response.Parameters.Add("identification", id);
+            response.Parameters.Add("identification", id);
             protocol.Deliver(response);
         }
 
@@ -359,13 +364,54 @@ namespace pidgeon_sv
                         break;
                     }
 
-                    break;
-                case "LK":
+                    if (node.Attributes.Count < 4)
+                    {
+                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                        response.Parameters.Add("code", "2");
+                        response.Parameters.Add("description", "invalid number of parameters");
+                        protocol.Deliver(response);
+                        return;
+                    }
+
+                    if (Account.isValid(node.Attributes[0].Value))
+                    {
+
+                        Account.UserLevel level = Account.UserLevel.User;
+
+                        switch (node.Attributes[3].Value.ToUpper())
+                        {
+                            case "USER":
+                                level = Account.UserLevel.User;
+                                break;
+                            case "ADMIN":
+                                level = Account.UserLevel.Admin;
+                                break;
+                            case "ROOT":
+                                level = Account.UserLevel.Root;
+                                break;
+                        }
+
+                        Account.CreateEntry(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
+
+                        response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
+                        response.Parameters.Add("name", node.Attributes[0].Value);
+                        response.Parameters.Add("result", "ok");
+                        protocol.Deliver(response);
+                    }
+
+                    response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                    response.Parameters.Add("code", "3");
+                    response.Parameters.Add("description", "invalid name");
+                    protocol.Deliver(response);
+
+                    return;
+                case "LOCKUSER":
                     if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.ModifyUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
+
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
@@ -376,28 +422,35 @@ namespace pidgeon_sv
                             Core.SaveUser();
                             response = new ProtocolMain.Datagram("SYSTEM", "LK");
                             response.Parameters.Add("username", user);
+                            protocol.Deliver(response);
+                            return;
                         }
                         else
                         {
-                            response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
-                            response.Parameters.Add("action", "lk");
-                            response.Parameters.Add("explanation", "unknown user");
+                            response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                            response.Parameters.Add("code", "5");
+                            response.Parameters.Add("description", "LK: invalid name");
+                            protocol.Deliver(response);
+                            return;
                         }
                     }
                     else
                     {
-                        response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
-                        response.Parameters.Add("action", "lk");
-                        response.Parameters.Add("explanation", "invalid");
+                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                        response.Parameters.Add("code", "5");
+                        response.Parameters.Add("description", "LK: invalid name");
+                        protocol.Deliver(response);
+                        return;
                     }
-
-                    break;
-                case "UN":
+                case "UNLOCK":
                     if (!SecurityLayers.isAuthorized(protocol.connection.account, SecurityLayers.ModifyUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
+
+
+
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
@@ -429,7 +482,34 @@ namespace pidgeon_sv
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
-                    break;
+
+                    if (node.Attributes.Count > 0)
+                    {
+                        string user = node.Attributes[0].Value;
+                        Account target = Account.getUser(user);
+                        if (target != null)
+                        {
+                            response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                            response.Parameters.Add("code", "7");
+                            response.Parameters.Add("explanation", "unknown user");
+                            protocol.Deliver(response);
+                            return;
+                        }
+                        else
+                        {
+                            Account.DeleteUser(target);
+                            response = new ProtocolMain.Datagram("SYSTEM", "REMOVE");
+                            response.Parameters.Add("name", node.Attributes[0].Value);
+                            protocol.Deliver(response);
+                            return;
+                        }
+                    }
+
+                    response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                    response.Parameters.Add("code", "7");
+                    response.Parameters.Add("explanation", "unknown user");
+                    protocol.Deliver(response);
+                    return;
             }
             protocol.Deliver(response);
         }
