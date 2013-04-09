@@ -15,7 +15,6 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -46,17 +45,14 @@ namespace pidgeon_sv
         public Network _server;
         private System.IO.StreamWriter _writer;
 
-
         Messages _messages = new Messages();
 
         public List<MessageOrigin> MessageBuffer = new List<MessageOrigin>();
-
 
         public System.Threading.Thread main;
         public System.Threading.Thread deliveryqueue;
         public System.Threading.Thread keep;
         public System.Threading.Thread th;
-
 
         public Buffer buffer = null;
         public DateTime pong = DateTime.Now;

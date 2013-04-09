@@ -42,14 +42,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Account.cs" />
+    <Compile Include="Certificate.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Connection.cs" />
-    <Compile Include="Core.cs" />
-    <Compile Include="DatabaseFile.cs" />
-    <Compile Include="DatabaseSQL.cs" />
-    <Compile Include="DB.cs" />
-    <Compile Include="IRC.cs" />
+    <Compile Include="Core\ConfigIO.cs" />
+    <Compile Include="Core\Core.cs" />
+    <Compile Include="Database\DatabaseFile.cs" />
+    <Compile Include="Database\DatabaseSQL.cs" />
+    <Compile Include="Database\DB.cs" />
+    <Compile Include="IRC\Formatter.cs" />
+    <Compile Include="IRC\IRC.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -46,6 +46,8 @@ namespace pidgeon_sv
         /// </summary>
         public static bool Rooted = true;
 
+        public static bool UsingSSL = true;
+
         /// <summary>
         /// Maximum buffer size before flush
         /// </summary>
@@ -62,6 +64,8 @@ namespace pidgeon_sv
         public static string DatabaseFolder = "db";
 
         public static string FileDBDefaultFolder = "data";
+
+        public static string CertificatePath = "server.pfx";
 
         /// <summary>
         /// Minimal buffer size to store, this HAVE to be lower than maximum buffer

@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Net;
 using System.Xml;
@@ -25,11 +27,11 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public class Item
+    public class ConnectionItem
     {
         public DateTime _date;
         string _text;
-        public Item(string Data)
+        public ConnectionItem(string Data)
         {
             _date = DateTime.Now;
             _text = Data;
@@ -38,19 +40,19 @@ namespace pidgeon_sv
 
     public class OutgoingQueue
     {
-        List<Item> queue = new List<Item>();
+        List<ConnectionItem> queue = new List<ConnectionItem>();
     }
 
     public class IncomingQueue
     {
-        List<Item> queue = new List<Item>();
+        List<ConnectionItem> queue = new List<ConnectionItem>();
     }
 
     public class Connection
     {
+        public static List<Connection> ActiveUsers = new List<Connection>();
         public string name = null;
         public string host = null;
-        public static List<Connection> ActiveUsers = new List<Connection>();
         public string user = null;
         public Account account = null;
         public Status status = Status.WaitingPW;
@@ -63,6 +65,7 @@ namespace pidgeon_sv
         public Thread main = null;
         public string IP = "";
         public bool working = true;
+        public bool Mode = false;
 
         public bool Active = true;
 
@@ -71,8 +74,6 @@ namespace pidgeon_sv
             Connected,
             Disconnected,
         }
-
-        public bool Mode = false;
 
         public Connection()
         { 
@@ -152,10 +153,24 @@ namespace pidgeon_sv
                 {
                     ActiveUsers.Add(connection);
                 }
-                System.Net.Sockets.NetworkStream ns = client.GetStream();
 
-                connection._w = new StreamWriter(ns);
-                connection._r = new StreamReader(ns, Encoding.UTF8);
+                if (Config.UsingSSL)
+                {
+                    X509Certificate cert = new X509Certificate2(
+                            Config.CertificatePath, 
+                            "pidgeon");
+                    System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
+                        new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    _networkSsl.AuthenticateAsServer(cert);
+                    connection._w = new StreamWriter(_networkSsl);
+                    connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
+                }
+                else
+                {
+                    System.Net.Sockets.NetworkStream ns = client.GetStream();
+                    connection._w = new StreamWriter(ns);
+                    connection._r = new StreamReader(ns, Encoding.UTF8);
+                }
 
                 string text = connection._r.ReadLine();
 
@@ -273,6 +288,11 @@ namespace pidgeon_sv
             {
                 Core.handleException(fail);
             }
+        }
+
+        public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
     }
 }

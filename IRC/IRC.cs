@@ -67,7 +67,7 @@ namespace pidgeon_sv
                 Channel channel = _Network.getChannel(code[3]);
                 if (channel != null)
                 {
-                   
+
                     channel._mode.mode(code[4]);
                     return true;
                 }
@@ -225,7 +225,7 @@ namespace pidgeon_sv
 
         private bool ProcessPM(string source, string parameters, string value)
         {
-            
+
             return false;
         }
 
@@ -393,29 +393,29 @@ namespace pidgeon_sv
             {
                 User delete = null;
 
-                    if (channel.containsUser(user))
+                if (channel.containsUser(user))
+                {
+                    lock (channel.UserList)
                     {
-                        lock (channel.UserList)
+                        foreach (User _user in channel.UserList)
                         {
-                            foreach (User _user in channel.UserList)
+                            if (_user.Nick == user)
                             {
-                                if (_user.Nick == user)
-                                {
-                                    delete = _user;
-                                    break;
-                                }
+                                delete = _user;
+                                break;
                             }
                         }
-
-                        if (updated_text)
-                        {
-                            if (delete != null)
-                            {
-                                channel.UserList.Remove(delete);
-                            }
-                        }
-                        return false;
                     }
+
+                    if (updated_text)
+                    {
+                        if (delete != null)
+                        {
+                            channel.UserList.Remove(delete);
+                        }
+                    }
+                    return false;
+                }
             }
             return false;
         }
@@ -460,10 +460,10 @@ namespace pidgeon_sv
                     }
                     if (target != null)
                     {
-                            lock (item.UserList)
-                            {
-                                item.UserList.Remove(target);
-                            }
+                        lock (item.UserList)
+                        {
+                            item.UserList.Remove(target);
+                        }
                     }
                 }
             }
@@ -477,15 +477,15 @@ namespace pidgeon_sv
             Channel channel = _Network.getChannel(parameters.Substring(0, parameters.IndexOf(" ")));
             if (channel != null)
             {
-                    if (channel.containsUser(user))
+                if (channel.containsUser(user))
+                {
+                    User delete = null;
+                    delete = channel.userFromName(user);
+                    if (delete != null)
                     {
-                        User delete = null;
-                        delete = channel.userFromName(user);
-                        if (delete != null)
-                        {
-                            channel.UserList.Remove(delete);
-                        }
+                        channel.UserList.Remove(delete);
                     }
+                }
             }
             return false;
         }
@@ -507,14 +507,14 @@ namespace pidgeon_sv
             Channel channel = _Network.getChannel(chan);
             if (channel != null)
             {
-               
-                        if (!channel.containsUser(user))
-                        {
-                            lock (channel.UserList)
-                            {
-                                channel.UserList.Add(new User(user, _host, _Network, _ident));
-                            }
-                        }
+
+                if (!channel.containsUser(user))
+                {
+                    lock (channel.UserList)
+                    {
+                        channel.UserList.Add(new User(user, _host, _Network, _ident));
+                    }
+                }
             }
             return false;
         }

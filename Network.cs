@@ -21,7 +21,55 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public class WO
+    public class SimpleMode
+    {
+        private char _char;
+        private string _Parameter = null;
+        /// <summary>
+        /// Character of this mode
+        /// </summary>
+        public char Mode
+        {
+            get
+            {
+                return _char;
+            }
+        }
+        /// <summary>
+        /// Parameter of this mode
+        /// </summary>
+        public string Parameter
+        {
+            get
+            {
+                return _Parameter;
+            }
+        }
+        public bool ContainsParameter
+        {
+            get
+            {
+                return !(_Parameter == null);
+            }
+        }
+
+        public SimpleMode(char mode, string parameter)
+        {
+            _char = mode;
+            _Parameter = parameter;
+        }
+
+        public override string ToString()
+        {
+            if (ContainsParameter)
+            {
+                return "+" + _char.ToString() + " " + Parameter;
+            }
+            return "+" + _char.ToString();
+        }
+    }
+
+    public class WindowObject
     {
         public bool ok = true;
         public string name = "";
@@ -40,7 +88,7 @@ namespace pidgeon_sv
         public string ident;
         public string quit;
         public Protocol _protocol;
-        public List<WO> windows = new List<WO>();
+        public List<WindowObject> windows = new List<WindowObject>();
         public List<char> UModes = new List<char> { 'i', 'w', 'o', 'Q', 'r', 'A' };
         public List<char> UChars = new List<char> { '~', '&', '@', '%', '+' };
         public List<char> CUModes = new List<char> { 'q', 'a', 'o', 'h', 'v' };
@@ -49,8 +97,6 @@ namespace pidgeon_sv
         public List<char> XModes = new List<char> { 'l' };
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
 		public string id = null;
-
-
 
         public string channel_prefix = "#";
 
@@ -71,7 +117,7 @@ namespace pidgeon_sv
 
         public void CreateChat(string _name, bool _Focus, bool _writable = false, bool channelw = false)
         {
-            WO w = new WO();
+            WindowObject w = new WindowObject();
             w.name = _name;
             w.writable = _writable;
             lock (windows)
