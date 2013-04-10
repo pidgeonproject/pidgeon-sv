@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Threading;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 
 namespace pidgeon_sv
@@ -44,6 +46,7 @@ namespace pidgeon_sv
 
         public Network _server;
         private System.IO.StreamWriter _writer;
+        private SslStream _networkSsl;
 
         Messages _messages = new Messages();
 
@@ -327,12 +330,25 @@ namespace pidgeon_sv
             _messages.protocol = this;
             try
             {
-                _network = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
+                
                 _server.Connected = true;
 
-                _writer = new System.IO.StreamWriter(_network);
-                _reader = new System.IO.StreamReader(_network, Encoding.UTF8);
+                if (!SSL)
+                {
+                    _network = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
+                    _writer = new System.IO.StreamWriter(_network);
+                    _reader = new System.IO.StreamReader(_network, Encoding.UTF8);
+                }
 
+                if (SSL)
+                {
+                    System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient(Server, Port);
+                    _networkSsl = new System.Net.Security.SslStream(client.GetStream(), true,
+                        new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    _networkSsl.AuthenticateAsClient(Server);
+                    _writer = new System.IO.StreamWriter(_networkSsl);
+                    _reader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
+                }
 
                 _writer.WriteLine("USER " + _server.ident + " 8 * :" + _server.username);
                 _writer.WriteLine("NICK " + _server.nickname);
@@ -379,6 +395,11 @@ namespace pidgeon_sv
             {
                 Core.handleException(fail);
             }
+        }
+
+        public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
 
         public void ClientData(string content)

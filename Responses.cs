@@ -199,23 +199,38 @@ namespace pidgeon_sv
         public static void Connect(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            if (protocol.connection.account.containsNetwork(node.InnerText))
+            bool ssl = false;
+            string server = node.InnerText;
+            if (server.StartsWith("$"))
+            {
+                server = server.Substring(1);
+                ssl = true;
+            }
+            if (protocol.connection.account.containsNetwork(server))
             {
                 response = new ProtocolMain.Datagram("CONNECT", "CONNECTED");
-                response.Parameters.Add("network", node.InnerText);
+                response.Parameters.Add("network", server);
                 protocol.Deliver(response);
                 return;
             }
             int port = 6667;
+            
             if (node.Attributes.Count > 0)
             {
                 port = int.Parse(node.Attributes[0].Value);
             }
-            protocol.connection.account.ConnectIRC(node.InnerText, port);
-            Network network = protocol.connection.account.retrieveServer(node.InnerText);
-            Core.SL(protocol.connection.IP + ": Connecting to " + node.InnerText);
+
+            if (server.Contains(":"))
+            {
+                port = int.Parse(server.Substring(server.IndexOf(":") + 1));
+                server = server.Substring(0, server.IndexOf(":"));
+            }
+
+            protocol.connection.account.ConnectIRC(server, port, ssl);
+            Network network = protocol.connection.account.retrieveServer(server);
+            Core.SL(protocol.connection.IP + ": Connecting to " + server);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
-            response.Parameters.Add("network", node.InnerText);
+            response.Parameters.Add("network", server);
             if (network != null)
             {
                 response.Parameters.Add("id", network.id);

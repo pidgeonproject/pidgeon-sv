@@ -81,7 +81,7 @@ namespace pidgeon_sv
             public string _Datagram;
             public Dictionary<string, string> Parameters = new Dictionary<string, string>();
         }
-        
+
         public class SelfData
         {
             public string text = null;
@@ -294,31 +294,34 @@ namespace pidgeon_sv
             }
             try
             {
-                if (!TrafficChunks)
+                lock (connection._w)
                 {
-                    connection._w.WriteLine(text);
-                    connection._w.Flush();
-                    if (TrafficChunk != "")
+                    if (!TrafficChunks)
                     {
-                        connection._w.WriteLine(TrafficChunk);
+                        connection._w.WriteLine(text);
                         connection._w.Flush();
-                        TrafficChunk = "";
-                    }
-                    return true;
-                }
-                else
-                {
-                    lock (TrafficChunk)
-                    {
-                        TrafficChunk += text + "\n";
-                        if (TrafficChunk.Length > 2000 || Enforced)
+                        if (TrafficChunk != "")
                         {
                             connection._w.WriteLine(TrafficChunk);
                             connection._w.Flush();
                             TrafficChunk = "";
                         }
+                        return true;
                     }
-                    return false;
+                    else
+                    {
+                        lock (TrafficChunk)
+                        {
+                            TrafficChunk += text + "\n";
+                            if (TrafficChunk.Length > 2000 || Enforced)
+                            {
+                                connection._w.WriteLine(TrafficChunk);
+                                connection._w.Flush();
+                                TrafficChunk = "";
+                            }
+                        }
+                        return false;
+                    }
                 }
             }
             catch (IOException)

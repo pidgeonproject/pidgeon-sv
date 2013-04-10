@@ -264,11 +264,8 @@ internal class Certificate
 
 
             CryptKeyProviderInformation kpi = new CryptKeyProviderInformation();
-
             kpi.ContainerName = containerName;
-
             kpi.ProviderType = 1; // PROV_RSA_FULL
-
             kpi.KeySpec = 1; // AT_KEYEXCHANGE
 
 

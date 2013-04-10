@@ -146,11 +146,12 @@ namespace pidgeon_sv
             return true;
         }
 
-        public bool ConnectIRC(string network, int port = 6667)
+        public bool ConnectIRC(string network, int port = 6667, bool ssl = false)
         {
             try
             {
                 ProtocolIrc server = new ProtocolIrc();
+                server.SSL = ssl;
                 Network networkid = new Network(network, server);
                 networkid.nickname = nickname;
                 networkid.ident = ident;

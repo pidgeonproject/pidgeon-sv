@@ -24,13 +24,81 @@ namespace pidgeon_sv
 {
     public class Protocol
     {
-        public char delimiter = (char)001;
         public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
-        public bool Connected = false;
         public int type = 0;
         public Account owner = null;
         private bool Locked = false;
         private int Current_ID = 0;
+
+        /// <summary>
+        /// Character which is separating the special commands (such as CTCP part)
+        /// </summary>
+        public char delimiter = (char)001;
+        /// <summary>
+        /// Whether this server is connected or not
+        /// </summary>
+        protected bool Connected = false;
+        /// <summary>
+        /// If changes to windows should be suppressed (no color changes on new messages)
+        /// </summary>
+        public bool SuppressChanges = false;
+        /// <summary>
+        /// Password for server
+        /// </summary>
+        public string Password = null;
+        /// <summary>
+        /// Server
+        /// </summary>
+        public string Server = null;
+        /// <summary>
+        /// Port
+        /// </summary>
+        public int Port = 6667;
+        /// <summary>
+        /// Ssl
+        /// </summary>
+        public bool SSL = false;
+        private bool destroyed = false;
+        /// <summary>
+        /// This is a time when this connection was open
+        /// </summary>
+        protected DateTime _time;
+
+        /// <summary>
+        /// Time since you connected to this protocol
+        /// </summary>
+        public TimeSpan ConnectionTime
+        {
+            get
+            {
+                return DateTime.Now - _time;
+            }
+        }
+
+        public bool IsConnected
+        {
+            get
+            {
+                return Connected;
+            }
+        }
+
+        /// <summary>
+        /// This will return true in case object was requested to be disposed
+        /// you should never work with objects that return true here
+        /// </summary>
+        public bool IsDestroyed
+        {
+            get
+            {
+                return destroyed;
+            }
+        }
+
+        public Protocol()
+        {
+            _time = DateTime.Now;
+        }
 
         public int getMQID()
         {
@@ -106,10 +174,6 @@ namespace pidgeon_sv
                 return false;
             }
         }
-
-        public string Server = "";
-        public int Port = 6667;
-        public bool SSL;
 
 
         public string PRIVMSG(string user, string text)
