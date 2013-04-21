@@ -139,23 +139,27 @@ namespace pidgeon_sv
                 parseXml(curr);
             }
         }
-
+		
+		public void Disconnect()
+		{
+			if (!Connected)
+			{
+				return;
+			}
+			connection.Disconnect();
+			Connected = false;
+		}
+		
         public void Exit()
         {
-            Connected = false;
-            if (connection.account != null)
-            {
-                lock (connection.account.Clients)
-                {
-                    if (!connection.account.ClientsOK.Contains(this))
-                    {
-                        lock (connection.account.ClientsOK)
-                        {
-                            connection.account.ClientsOK.Add(this);
-                        }
-                    }
-                }
-            }
+            Disconnect();
+			lock (connection.account.Clients)
+			{
+				if (connection.account.Clients.Contains (this))
+				{
+					connection.account.Clients.Remove (this);
+				}
+			}
         }
 
         /// <summary>

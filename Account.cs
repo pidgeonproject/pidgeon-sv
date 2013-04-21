@@ -23,20 +23,51 @@ namespace pidgeon_sv
 {
     public class Account
     {
-        public List<ProtocolIrc> networks = new List<ProtocolIrc>();
-        public List<ProtocolMain> ClientsOK = new List<ProtocolMain>();
+		/// <summary>
+		/// List of active connections to services
+		/// </summary>
         public List<ProtocolMain> Clients = new List<ProtocolMain>();
+		/// <summary>
+		/// The username.
+		/// </summary>
         public string username = null;
+		/// <summary>
+		/// The password.
+		/// </summary>
         public string password = "";
+		/// <summary>
+		/// The nickname.
+		/// </summary>
         public string nickname = "PidgeonUser";
+		/// <summary>
+		/// The ident.
+		/// </summary>
         public string ident = "pidgeon";
+		/// <summary>
+		/// The realname.
+		/// </summary>
         public string realname = "http://pidgeonclient.org";
+		/// <summary>
+		/// The connected networks.
+		/// </summary>
         public List<Network> ConnectedNetworks = new List<Network>();
+		/// <summary>
+		/// The messages.
+		/// </summary>
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
         public DB data = null;
         public UserLevel Level = UserLevel.User;
         public bool Locked = false;
-
+		
+		/// <summary>
+		/// Initializes a new instance of the <see cref="pidgeon_sv.Account"/> class.
+		/// </summary>
+		/// <param name='user'>
+		/// User
+		/// </param>
+		/// <param name='pw'>
+		/// Password
+		/// </param>
         public Account(string user, string pw)
         {
             username = user;
@@ -45,7 +76,6 @@ namespace pidgeon_sv
             Core.DebugLog("Cleaning DB for " + username);
             data.Clear();
         }
-
 
         public void MessageBack(ProtocolMain.SelfData text, ProtocolMain connection = null)
         {
@@ -118,13 +148,6 @@ namespace pidgeon_sv
                     {
                         ab.Deliver(text);
                     }
-                    lock (ClientsOK)
-                    {
-                        foreach (ProtocolMain i in ClientsOK)
-                        {
-                            Clients.Remove(i);
-                        }
-                    }
                 }
                 catch (Exception fail)
                 {
@@ -166,10 +189,6 @@ namespace pidgeon_sv
                 server._server = networkid;
                 server.owner = this;
                 server.buffer = new ProtocolIrc.Buffer(this, network);
-                lock (networks)
-                {
-                    networks.Add(server);
-                }
                 server.Open();
             }
             catch (Exception fail)
@@ -178,7 +197,13 @@ namespace pidgeon_sv
             }
             return true;
         }
-
+		
+		/// <summary>
+		/// Kicks the user
+		/// </summary>
+		/// <param name='user'>
+		/// User.
+		/// </param>
         public static void KickUser(Account user)
         {
             user.Locked = true;
