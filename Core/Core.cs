@@ -27,10 +27,24 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
-        public static bool running = true;
-
+		private static bool running = true;
+		/// <summary>
+		/// The running.
+		/// </summary>
+        public static bool IsRunning
+		{
+			get
+			{
+				return true;
+			}
+		}
+		/// <summary>
+		/// Uptime
+		/// </summary>
         public static DateTime StartedTime;
-
+		/// <summary>
+		/// List of all existing accounts in system
+		/// </summary>
         public static List<Account> _accounts = new List<Account>();
         public static List<Thread> threads = new List<Thread>();
 
@@ -39,11 +53,14 @@ namespace pidgeon_sv
             SL("Killing all connections and running processes");
             foreach (Thread curr in threads)
             {
-                curr.Abort();
+				if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
+				{
+                	curr.Abort();
+				}
             }
             SL("Exiting");
         }
-
+		
         public static void handleException(Exception reason, bool ThreadOK = false)
         {
             if (reason.GetType() == typeof(ThreadAbortException) && ThreadOK)
@@ -57,12 +74,18 @@ namespace pidgeon_sv
         {
             SL("DEBUG: " + text);
         }
-
+		
+		/// <summary>
+		/// System log
+		/// </summary>
+		/// <param name='text'>
+		/// Text
+		/// </param>
         public static void SL(string text)
         {
             Console.WriteLine(DateTime.Now.ToString() + ": " + text);
         }
-
+		
         public static bool Init()
         {
             try

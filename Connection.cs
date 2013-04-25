@@ -29,35 +29,73 @@ namespace pidgeon_sv
 {
     public class Connection
     {
+		/// <summary>
+		/// The active users.
+		/// </summary>
         public static List<Connection> ActiveUsers = new List<Connection>();
+		/// <summary>
+		/// The name.
+		/// </summary>
         public string name = null;
         public string host = null;
+		/// <summary>
+		/// The user.
+		/// </summary>
         public string user = null;
+		/// <summary>
+		/// The account.
+		/// </summary>
         public Account account = null;
+		/// <summary>
+		/// The status.
+		/// </summary>
         public Status status = Status.WaitingPW;
+		/// <summary>
+		/// The queue.
+		/// </summary>
         public Thread queue = null;
+		/// <summary>
+		/// The client.
+		/// </summary>
         public System.Net.Sockets.TcpClient client = null;
+		/// <summary>
+		/// The _r.
+		/// </summary>
         public System.IO.StreamReader _r = null;
+		/// <summary>
+		/// The _w.
+		/// </summary>
         public System.IO.StreamWriter _w = null;
+		/// <summary>
+		/// The main.
+		/// </summary>
         public Thread main = null;
+		/// <summary>
+		/// The I.
+		/// </summary>
         public string IP = "";
+		/// <summary>
+		/// The connected.
+		/// </summary>
+		private bool Connected = false;
+		/// <summary>
+		/// If connection is working
+		/// </summary>
         public bool working = true;
-        private bool Connected = false;
+		/// <summary>
+		/// The mode.
+		/// </summary>
+        public bool Mode = false;
+		/// <summary>
+		/// The active.
+		/// </summary>
+        public bool Active = true;
         public bool IsConnected
         {
             get
             {
                 return Connected;
             }
-        }
-
-        public bool Active = true;
-
-        public enum Status
-        {
-            WaitingPW,
-            Connected,
-            Disconnected,
         }
 
         public Connection()
@@ -120,7 +158,17 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
         }
-
+		
+		public void Disconnect()
+		{
+			if (Connected)
+			{
+				_r.Close();
+				_w.Close();
+				Connected = false;
+			}
+		}
+		
         public static void InitialiseClient(object data)
         {
             System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
@@ -230,6 +278,7 @@ namespace pidgeon_sv
             try
             {
                 Core.SL("Cleaning data for connection: " + connection.IP);
+				connection.Disconnect();
                 lock (ActiveUsers)
                 {
                     if (ActiveUsers.Contains(connection))
@@ -250,6 +299,13 @@ namespace pidgeon_sv
         public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true;
+        }
+		
+		public enum Status
+        {
+            WaitingPW,
+            Connected,
+            Disconnected,
         }
     }
 }
