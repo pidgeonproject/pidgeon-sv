@@ -75,14 +75,6 @@ namespace pidgeon_sv
             }
         }
 
-        public bool IsConnected
-        {
-            get
-            {
-                return Connected;
-            }
-        }
-
         /// <summary>
         /// This will return true in case object was requested to be disposed
         /// you should never work with objects that return true here

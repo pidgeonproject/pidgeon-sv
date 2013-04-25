@@ -179,9 +179,9 @@ namespace pidgeon_sv
             Disconnect();
 			lock (connection.account.Clients)
 			{
-				if (connection.account.Clients.Contains (this))
+				if (connection.account.Clients.Contains(this))
 				{
-					connection.account.Clients.Remove (this);
+					connection.account.Clients.Remove(this);
 				}
 			}
         }

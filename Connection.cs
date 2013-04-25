@@ -34,15 +34,6 @@ namespace pidgeon_sv
 		/// </summary>
         public static List<Connection> ActiveUsers = new List<Connection>();
 		/// <summary>
-		/// The name.
-		/// </summary>
-        public string name = null;
-        public string host = null;
-		/// <summary>
-		/// The user.
-		/// </summary>
-        public string user = null;
-		/// <summary>
 		/// The account.
 		/// </summary>
         public Account account = null;
@@ -50,10 +41,6 @@ namespace pidgeon_sv
 		/// The status.
 		/// </summary>
         public Status status = Status.WaitingPW;
-		/// <summary>
-		/// The queue.
-		/// </summary>
-        public Thread queue = null;
 		/// <summary>
 		/// The client.
 		/// </summary>
@@ -71,25 +58,14 @@ namespace pidgeon_sv
 		/// </summary>
         public Thread main = null;
 		/// <summary>
-		/// The I.
+		/// The IP
 		/// </summary>
-        public string IP = "";
+        public string IP;
 		/// <summary>
 		/// The connected.
 		/// </summary>
 		private bool Connected = false;
-		/// <summary>
-		/// If connection is working
-		/// </summary>
-        public bool working = true;
-		/// <summary>
-		/// The mode.
-		/// </summary>
-        public bool Mode = false;
-		/// <summary>
-		/// The active.
-		/// </summary>
-        public bool Active = true;
+        private ProtocolMain protocol;
         public bool IsConnected
         {
             get
@@ -100,7 +76,8 @@ namespace pidgeon_sv
 
         public Connection()
         {
-
+            protocol = null;
+            IP = "unknown";
         }
 
         public static void ConnectionKiller(object data)
@@ -114,7 +91,14 @@ namespace pidgeon_sv
                     if (conn.status == Connection.Status.WaitingPW)
                     {
                         Core.SL("Failed to authenticate in time - killing connection " + conn.IP);
-                        conn.main.Abort();
+                        if (conn.main.ThreadState == ThreadState.WaitSleepJoin || conn.main.ThreadState == ThreadState.Running)
+                        {
+                            conn.main.Abort();
+                        }
+                        else
+                        {
+                            Core.SL("DEBUG: The thread is aborted " + conn.IP);
+                        }
                         lock (ActiveUsers)
                         {
                             if (ActiveUsers.Contains(conn))
@@ -124,24 +108,6 @@ namespace pidgeon_sv
                         }
                         ConnectionClean(conn);
                         return;
-                    }
-                    if (!conn.working)
-                    {
-                        Core.SL("Failed to respond in time - killing connection " + conn.IP);
-                        conn.main.Abort();
-                        lock (ActiveUsers)
-                        {
-                            if (ActiveUsers.Contains(conn))
-                            {
-                                Core.SL("DEBUG: Connection was not properly terminated! Trying again " + conn.IP);
-                            }
-                        }
-                        ConnectionClean(conn);
-                        return;
-                    }
-                    else
-                    {
-                        conn.working = false;
                     }
                 }
                 else
@@ -163,6 +129,10 @@ namespace pidgeon_sv
 		{
 			if (Connected)
 			{
+                if (protocol != null)
+                {
+                    protocol.Disconnect();
+                }
 				_r.Close();
 				_w.Close();
 				Connected = false;
@@ -183,6 +153,7 @@ namespace pidgeon_sv
                 checker.Name = "watcher";
                 connection.Connected = true;
                 checker.Start(connection);
+
                 lock (ActiveUsers)
                 {
                     ActiveUsers.Add(connection);
@@ -206,8 +177,8 @@ namespace pidgeon_sv
 
                 string text = connection._r.ReadLine();
 
-                ProtocolMain protocol = new ProtocolMain(connection);
-                while (connection.Active && !connection._r.EndOfStream)
+                connection.protocol = new ProtocolMain(connection);
+                while (connection.IsConnected && !connection._r.EndOfStream)
                 {
                     try
                     {
@@ -219,7 +190,7 @@ namespace pidgeon_sv
 
                         if (ProtocolMain.Valid(text))
                         {
-                            protocol.parseCommand(text);
+                            connection.protocol.parseCommand(text);
                             continue;
                         }
                         else
@@ -231,7 +202,7 @@ namespace pidgeon_sv
                     catch (IOException)
                     {
                         Core.SL("Connection closed: " + connection.IP);
-                        protocol.Exit();
+                        connection.protocol.Exit();
                         connection.Connected = false;
                         ConnectionClean(connection);
                         return;
@@ -239,7 +210,7 @@ namespace pidgeon_sv
                     }
                     catch (ThreadAbortException)
                     {
-                        protocol.Exit();
+                        connection.protocol.Exit();
                         connection.Connected = false;
                         ConnectionClean(connection);
                         return;
@@ -250,7 +221,7 @@ namespace pidgeon_sv
                     }
                 }
                 Core.SL("Connection closed by remote: " + connection.IP);
-                protocol.Exit();
+                connection.protocol.Exit();
                 ConnectionClean(connection);
             }
             catch (System.IO.IOException)
@@ -289,6 +260,7 @@ namespace pidgeon_sv
                         connection.client.Close();
                     }
                 }
+                connection.protocol = null;
             }
             catch (Exception fail)
             {
