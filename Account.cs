@@ -36,6 +36,8 @@ namespace pidgeon_sv
         public DB data = null;
         public UserLevel Level = UserLevel.User;
         public bool Locked = false;
+        // number of self messages of this user
+        private int MessageCount = 0;
 
         public Account(string user, string pw)
         {
@@ -177,6 +179,36 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
             return true;
+        }
+
+        public void MessageBacklog(int mqid, Protocol _protocol, ProtocolMain protocol)
+        {
+            lock (Messages)
+            {
+                foreach (ProtocolMain.SelfData xx in Messages)
+                {
+                    if (xx.MQID > mqid)
+                    {
+                        if (xx.network.server == _protocol.Server)
+                        {
+                            MessageBack(xx, protocol);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Message(ProtocolMain.SelfData data)
+        {
+            MessageCount++;
+            //while (Messages.Count > Config.MaxSM)
+            //{
+                
+            //}
+            lock (Messages)
+            {
+                Messages.Add(data);
+            }
         }
 
         public static void KickUser(Account user)

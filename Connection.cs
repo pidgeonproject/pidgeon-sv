@@ -27,27 +27,6 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public class ConnectionItem
-    {
-        public DateTime _date;
-        string _text;
-        public ConnectionItem(string Data)
-        {
-            _date = DateTime.Now;
-            _text = Data;
-        }
-    }
-
-    public class OutgoingQueue
-    {
-        List<ConnectionItem> queue = new List<ConnectionItem>();
-    }
-
-    public class IncomingQueue
-    {
-        List<ConnectionItem> queue = new List<ConnectionItem>();
-    }
-
     public class Connection
     {
         public static List<Connection> ActiveUsers = new List<Connection>();
@@ -60,24 +39,30 @@ namespace pidgeon_sv
         public System.Net.Sockets.TcpClient client = null;
         public System.IO.StreamReader _r = null;
         public System.IO.StreamWriter _w = null;
-        public OutgoingQueue _outgoing = new OutgoingQueue();
-        public IncomingQueue _incoming = new IncomingQueue();
         public Thread main = null;
         public string IP = "";
         public bool working = true;
-        public bool Mode = false;
+        private bool Connected = false;
+        public bool IsConnected
+        {
+            get
+            {
+                return Connected;
+            }
+        }
 
         public bool Active = true;
 
-        public enum Status {
+        public enum Status
+        {
             WaitingPW,
             Connected,
             Disconnected,
         }
 
         public Connection()
-        { 
-            
+        {
+
         }
 
         public static void ConnectionKiller(object data)
@@ -148,6 +133,7 @@ namespace pidgeon_sv
                 connection.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
                 checker.Name = "watcher";
+                connection.Connected = true;
                 checker.Start(connection);
                 lock (ActiveUsers)
                 {
@@ -156,9 +142,7 @@ namespace pidgeon_sv
 
                 if (Config.UsingSSL)
                 {
-                    X509Certificate cert = new X509Certificate2(
-                            Config.CertificatePath, 
-                            "pidgeon");
+                    X509Certificate cert = new X509Certificate2(Config.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
@@ -174,79 +158,52 @@ namespace pidgeon_sv
 
                 string text = connection._r.ReadLine();
 
-                connection.Mode = ProtocolMain.Valid(text);
                 ProtocolMain protocol = new ProtocolMain(connection);
-                try
+                while (connection.Active && !connection._r.EndOfStream)
                 {
-                    while (connection.Active && !connection._r.EndOfStream)
+                    try
                     {
-                        try
+                        text = connection._r.ReadLine();
+                        if (text == "")
                         {
-                            text = connection._r.ReadLine();
-                            if (text == "" || text == null)
-                            {
-                                break;
-                            }
-                            if (connection.Mode == false)
-                            {
-                                System.Threading.Thread.Sleep(2000);
-                                continue;
-                            }
+                            continue;
+                        }
 
-                            if (ProtocolMain.Valid(text))
-                            {
-                                protocol.parseCommand(text);
-                                continue;
-                            }
-                            else
-                            {
-                                Core.SL("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
-                                System.Threading.Thread.Sleep(800);
-                            }
-                        }
-                        catch (IOException)
+                        if (ProtocolMain.Valid(text))
                         {
-                            Core.SL("Connection closed: " + connection.IP);
-                            protocol.Exit();
-                            ConnectionClean(connection);
-                            return;
-
+                            protocol.parseCommand(text);
+                            continue;
                         }
-                        catch (ThreadAbortException)
+                        else
                         {
-                            protocol.Exit();
-                            ConnectionClean(connection);
-                            return;
-                        }
-                        catch (Exception fail)
-                        {
-                            Core.handleException(fail);
+                            Core.SL("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
+                            System.Threading.Thread.Sleep(800);
                         }
                     }
-                    Core.SL("Connection closed by remote: " + connection.IP);
-                    protocol.Exit();
-                    ConnectionClean(connection);
+                    catch (IOException)
+                    {
+                        Core.SL("Connection closed: " + connection.IP);
+                        protocol.Exit();
+                        connection.Connected = false;
+                        ConnectionClean(connection);
+                        return;
+
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        protocol.Exit();
+                        connection.Connected = false;
+                        ConnectionClean(connection);
+                        return;
+                    }
+                    catch (Exception fail)
+                    {
+                        Core.handleException(fail);
+                    }
                 }
-                catch (System.IO.IOException)
-                {
-                    Core.SL("Connection closed: " + connection.IP);
-                    protocol.Exit();
-                    ConnectionClean(connection);
-                    return;
-                }
-                catch (ThreadAbortException)
-                {
-                    protocol.Exit();
-                    ConnectionClean(connection);
-                    return;
-                }
-                catch (Exception fail)
-                {
-                    Core.SL(fail.StackTrace + fail.Message);
-                    protocol.Exit();
-                    ConnectionClean(connection);
-                    return;
-                }
+                Core.SL("Connection closed by remote: " + connection.IP);
+                protocol.Exit();
+                ConnectionClean(connection);
             }
             catch (System.IO.IOException)
             {

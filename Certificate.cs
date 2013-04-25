@@ -11,256 +11,136 @@ internal class Certificate
         DateTime startTime,
         DateTime endTime)
     {
-
         byte[] pfxData = CreateSelfSignCertificatePfx(
-
             x500,
-
             startTime,
-
             endTime,
-
             (SecureString)null);
-
         return pfxData;
-
     }
 
-
-
     public static byte[] CreateSelfSignCertificatePfx(
-
         string x500,
-
         DateTime startTime,
-
         DateTime endTime,
-
         string insecurePassword)
     {
-
         byte[] pfxData;
-
         SecureString password = null;
-
-
-
         try
         {
-
             if (!string.IsNullOrEmpty(insecurePassword))
             {
-
                 password = new SecureString();
-
                 foreach (char ch in insecurePassword)
                 {
-
                     password.AppendChar(ch);
-
                 }
 
-
-
                 password.MakeReadOnly();
-
             }
-
-
 
             pfxData = CreateSelfSignCertificatePfx(
-
                 x500,
-
                 startTime,
-
                 endTime,
-
                 password);
-
         }
-
         finally
         {
-
             if (password != null)
             {
-
                 password.Dispose();
-
             }
-
         }
 
-
-
         return pfxData;
-
     }
 
-
-
     public static byte[] CreateSelfSignCertificatePfx(
-
         string x500,
-
         DateTime startTime,
-
         DateTime endTime,
-
         SecureString password)
     {
-
         byte[] pfxData;
-
-
 
         if (x500 == null)
         {
-
             x500 = "";
-
         }
 
-
-
         SystemTime startSystemTime = ToSystemTime(startTime);
-
         SystemTime endSystemTime = ToSystemTime(endTime);
-
         string containerName = Guid.NewGuid().ToString();
 
-
-
         GCHandle dataHandle = new GCHandle();
-
         IntPtr providerContext = IntPtr.Zero;
-
         IntPtr cryptKey = IntPtr.Zero;
-
         IntPtr certContext = IntPtr.Zero;
-
         IntPtr certStore = IntPtr.Zero;
-
         IntPtr storeCertContext = IntPtr.Zero;
-
         IntPtr passwordPtr = IntPtr.Zero;
-
         RuntimeHelpers.PrepareConstrainedRegions();
-
         try
         {
-
             Check(NativeMethods.CryptAcquireContextW(
-
                 out providerContext,
-
                 containerName,
-
                 null,
-
                 1, // PROV_RSA_FULL
-
                 8)); // CRYPT_NEWKEYSET
 
-
-
             Check(NativeMethods.CryptGenKey(
-
                 providerContext,
-
                 1, // AT_KEYEXCHANGE
-
                 1, // CRYPT_EXPORTABLE
-
                 out cryptKey));
 
-
-
             IntPtr errorStringPtr;
-
             int nameDataLength = 0;
-
             byte[] nameData;
 
-
-
             // errorStringPtr gets a pointer into the middle of the x500 string,
-
             // so x500 needs to be pinned until after we've copied the value
-
             // of errorStringPtr.
 
             dataHandle = GCHandle.Alloc(x500, GCHandleType.Pinned);
 
-
-
             if (!NativeMethods.CertStrToNameW(
-
                 0x00010001, // X509_ASN_ENCODING | PKCS_7_ASN_ENCODING
-
                 dataHandle.AddrOfPinnedObject(),
-
                 3, // CERT_X500_NAME_STR = 3
-
                 IntPtr.Zero,
-
                 null,
-
                 ref nameDataLength,
-
                 out errorStringPtr))
             {
-
                 string error = Marshal.PtrToStringUni(errorStringPtr);
-
                 throw new ArgumentException(error);
-
             }
-
-
 
             nameData = new byte[nameDataLength];
 
-
-
             if (!NativeMethods.CertStrToNameW(
-
                 0x00010001, // X509_ASN_ENCODING | PKCS_7_ASN_ENCODING
-
                 dataHandle.AddrOfPinnedObject(),
-
                 3, // CERT_X500_NAME_STR = 3
-
                 IntPtr.Zero,
-
                 nameData,
-
                 ref nameDataLength,
-
                 out errorStringPtr))
             {
-
                 string error = Marshal.PtrToStringUni(errorStringPtr);
-
                 throw new ArgumentException(error);
-
             }
-
-
 
             dataHandle.Free();
 
-
-
             dataHandle = GCHandle.Alloc(nameData, GCHandleType.Pinned);
-
             CryptoApiBlob nameBlob = new CryptoApiBlob(
-
                 nameData.Length,
-
                 dataHandle.AddrOfPinnedObject());
-
 
 
             CryptKeyProviderInformation kpi = new CryptKeyProviderInformation();

@@ -254,6 +254,16 @@ namespace pidgeon_sv
         {
             string nick = source.Substring(0, source.IndexOf("!"));
             string _new = value;
+            if (value == "" && parameters != "")
+            {
+                // server is fucked
+                _new = parameters;
+                // server is totally borked
+                if (_new.Contains(" "))
+                {
+                    _new = _new.Substring(0, _new.IndexOf(" "));
+                }
+            }
             foreach (Channel item in _Network.Channels)
             {
                 if (item.ok)
@@ -550,7 +560,18 @@ namespace pidgeon_sv
                 {
                     if (_data2[1].Contains("NICK"))
                     {
-                        _Network.nickname = _value;
+                        string _new = _value;
+                        if (_value == "" && _data2.Length > 1 && _data2[2] != "")
+                        {
+                            // server is fucked
+                            _new = _data2[2];
+                            // server is totally borked
+                            if (_new.Contains(" "))
+                            {
+                                _new = _new.Substring(0, _new.IndexOf(" "));
+                            }
+                        }
+                        _Network.nickname = _new;
                     }
                     if (_data2[1].Contains("PART"))
                     {
@@ -582,7 +603,6 @@ namespace pidgeon_sv
         {
             try
             {
-                bool OK = false;
                 if (text == null || text == "")
                 {
                     return false;

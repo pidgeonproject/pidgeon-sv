@@ -48,6 +48,8 @@ namespace pidgeon_sv
 
         public static bool UsingSSL = true;
 
+        public static int MaxSM = 100;
+
         /// <summary>
         /// Maximum buffer size before flush
         /// </summary>

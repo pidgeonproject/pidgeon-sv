@@ -25,11 +25,17 @@ namespace pidgeon_sv
     {
         public Account client;
         public Dictionary<string, int> MessageSize = new Dictionary<string, int>();
+        public int SMessageSize = 0;
         public bool Running = false;
 
         public virtual void Clear()
         {
 
+        }
+
+        public virtual void DeleteCache(string network)
+        {
+            
         }
 
         public int GetMessageSize(string network)
@@ -44,6 +50,14 @@ namespace pidgeon_sv
             return MessageSize[network];
         }
 
+        /// <summary>
+        /// This function is used to retrieve a backlog from storage and instantly send it to client as a stream of datagrams
+        /// </summary>
+        /// <param name="number">Size of backlog the user requested</param>
+        /// <param name="no"></param>
+        /// <param name="protocol">Protocol this user is connected through</param>
+        /// <param name="network">Network name the user request backlog for</param>
+        /// <param name="MQID">Initial MQID</param>
         public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
 
@@ -52,6 +66,11 @@ namespace pidgeon_sv
         public virtual int MessagePool_Backlog(int size, int mqid, string network)
         {
             return 0;
+        }
+
+        public virtual void Store_SM(ProtocolMain.SelfData message)
+        {
+            
         }
 
         public virtual int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)

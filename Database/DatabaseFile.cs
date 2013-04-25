@@ -119,6 +119,40 @@ namespace pidgeon_sv
             return;
         }
 
+        public override void DeleteCache(string network)
+        {
+            try
+            {
+                Lock(network);
+                if (MessageSize.ContainsKey(network))
+                {
+                    MessageSize.Remove(network);
+                }
+                if (!System.IO.File.Exists(MessagePool(network)))
+                {
+                    return;
+                }
+                System.IO.File.Delete(MessagePool(network));
+                if (Indexes.ContainsKey(network))
+                {
+                    Indexes.Remove(network);
+                }
+                Unlock(network);
+                lock (locked)
+                {
+                    if (locked.ContainsKey(network))
+                    {
+                        locked.Remove(network);
+                    }
+                }
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                Unlock(network);
+            }
+        }
+
         private void SendData(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
         {
             ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
@@ -131,6 +165,11 @@ namespace pidgeon_sv
             text.Parameters.Add("buffer", index.ToString());
             protocol.Deliver(text);
             return;
+        }
+
+        public override void Store_SM(ProtocolMain.SelfData message)
+        {
+            
         }
 
         private ProtocolIrc.Buffer.Message str2M(string data)

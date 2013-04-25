@@ -156,19 +156,7 @@ namespace pidgeon_sv
                     }
                     ProtocolIrc _protocol = (ProtocolIrc)network._protocol;
                     _protocol.getDepth(int.Parse(node.Attributes[1].Value), protocol, mqid);
-                    lock (protocol.connection.account.Messages)
-                    {
-                        foreach (ProtocolMain.SelfData xx in protocol.connection.account.Messages)
-                        {
-                            if (xx.MQID > mqid)
-                            {
-                                if (xx.network.server == _protocol.Server)
-                                {
-                                    protocol.connection.account.MessageBack(xx, protocol);
-                                }
-                            }
-                        }
-                    }
+                    protocol.connection.account.MessageBacklog(mqid, _protocol, protocol);
                 }
                 else
                 {
@@ -186,11 +174,11 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             if (Config.mode == Config.Mode.Bouncer)
             {
-                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb uptime: " + (DateTime.Now - Core.StartedTime).ToString());
+                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb private and " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
             }
             else
             {
-                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " in remote client mode, currently " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb uptime: " + (DateTime.Now - Core.StartedTime).ToString());
+                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " in remote client mode, currently " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb uptime: " + (DateTime.Now - Core.StartedTime).ToString());
             }
 
             protocol.Deliver(response);
@@ -292,10 +280,7 @@ namespace pidgeon_sv
                             break;
                     }
                     ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._protocol.getMQID());
-                    lock (protocol.connection.account.Messages)
-                    {
-                        protocol.connection.account.Messages.Add(data);
-                    }
+                    protocol.connection.account.Message(data);
                     protocol.connection.account.MessageBack(data);
                     network._protocol.Message(node.InnerText, target, Priority);
                 }
@@ -315,7 +300,7 @@ namespace pidgeon_sv
             }
             protocol.Deliver(new ProtocolMain.Datagram("GLOBALNICK", node.InnerText));
             protocol.connection.account.nickname = node.InnerText;
-            Core.SaveData();
+            Core.SaveUser();
         }
 
         public static void Auth(XmlNode node, ProtocolMain protocol)
@@ -407,7 +392,6 @@ namespace pidgeon_sv
 
                     if (Account.isValid(node.Attributes[0].Value))
                     {
-
                         Account.UserLevel level = Account.UserLevel.User;
 
                         switch (node.Attributes[3].Value.ToUpper())
@@ -480,8 +464,6 @@ namespace pidgeon_sv
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
-
-
 
                     if (node.Attributes.Count > 0)
                     {

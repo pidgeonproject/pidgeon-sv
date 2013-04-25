@@ -27,46 +27,6 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
-        public static void SaveData()
-        {
-            try
-            {
-                lock (_accounts)
-                {
-                    System.Xml.XmlDocument config = new System.Xml.XmlDocument();
-                    foreach (Account user in _accounts)
-                    {
-                        System.Xml.XmlNode xmlnode = config.CreateElement("user");
-                        XmlAttribute name = config.CreateAttribute("name");
-                        XmlAttribute pw = config.CreateAttribute("password");
-                        XmlAttribute nickname = config.CreateAttribute("nickname");
-                        XmlAttribute ident = config.CreateAttribute("ident");
-                        XmlAttribute realname = config.CreateAttribute("realname");
-                        XmlAttribute level = config.CreateAttribute("level");
-                        XmlAttribute locked = config.CreateAttribute("locked");
-                        name.Value = user.username;
-                        pw.Value = user.password;
-                        nickname.Value = user.nickname;
-                        ident.Value = user.ident;
-                        level.Value = user.Level.ToString();
-                        locked.Value = user.Locked.ToString();
-                        xmlnode.Attributes.Append(name);
-                        xmlnode.Attributes.Append(pw);
-                        xmlnode.Attributes.Append(nickname);
-                        xmlnode.Attributes.Append(ident);
-                        xmlnode.Attributes.Append(locked);
-                        config.AppendChild(xmlnode);
-                    }
-                    config.Save(Config.UserFile);
-                }
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
-        }
-
-
         /// <summary>
         /// Load all user data and info
         /// </summary>
@@ -81,9 +41,10 @@ namespace pidgeon_sv
                     configuration.Load(Config.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
-                        Core.DebugLog("There is no proper information about users in config file");
+                        SL("There is no proper information about users in config file");
                         return;
                     }
+                    SL("Loading users: " + configuration.ChildNodes.Count.ToString());
                     foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                     {
                         Account.UserLevel UserLevel = Account.UserLevel.User;
@@ -91,8 +52,8 @@ namespace pidgeon_sv
                         string name = null;
                         string password = null;
                         string nickname = null;
-                        string ident = null;
-                        string realname = null;
+                        string ident = "pidgeon";
+                        string realname = "http://pidgeonclient.org/wiki";
                         if (Config.Rooted)
                         {
                             UserLevel = Account.UserLevel.Root;

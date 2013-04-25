@@ -33,33 +33,13 @@ namespace pidgeon_sv
             High = 8,
             Normal = 2,
             Low = 1
-        }
+        }    
 
         public class MessageOrigin
         {
             public string text = null;
             public DateTime time;
         }
-
-        private System.Net.Sockets.NetworkStream _network;
-        private System.IO.StreamReader _reader;
-
-        public Network _server;
-        private System.IO.StreamWriter _writer;
-        private SslStream _networkSsl;
-
-        Messages _messages = new Messages();
-
-        public List<MessageOrigin> MessageBuffer = new List<MessageOrigin>();
-
-        public System.Threading.Thread main;
-        public System.Threading.Thread deliveryqueue;
-        public System.Threading.Thread keep;
-        public System.Threading.Thread th;
-
-        public Buffer buffer = null;
-        public DateTime pong = DateTime.Now;
-
 
         public class Buffer
         {
@@ -103,7 +83,7 @@ namespace pidgeon_sv
 
             public List<Message> messages = new List<Message>();
             public List<Message> oldmessages = new List<Message>();
-            public ProtocolIrc protocol;
+            public ProtocolIrc protocol = null;
 
             public void DeliverMessage(ProtocolMain.Datagram Message, Priority Pr = Priority.Normal)
             {
@@ -288,6 +268,27 @@ namespace pidgeon_sv
                 }
             }
         }
+
+        private System.Net.Sockets.NetworkStream _network;
+        private System.IO.StreamReader _reader;
+
+        public Network _server;
+        private System.IO.StreamWriter _writer;
+        private SslStream _networkSsl;
+
+        Messages _messages = new Messages();
+
+        public List<MessageOrigin> MessageBuffer = new List<MessageOrigin>();
+
+        public System.Threading.Thread main;
+        public System.Threading.Thread deliveryqueue;
+        public System.Threading.Thread keep;
+        public System.Threading.Thread th;
+
+        public Buffer buffer = null;
+        public DateTime pong = DateTime.Now;
+
+        private bool destroyed = false;
 
         public override void Part(string name, Network network = null)
         {
@@ -644,7 +645,33 @@ namespace pidgeon_sv
             return 0;
         }
 
-        public override void Exit()
+        public void ClearBuffers()
+        {
+            Core.DebugLog("Removing all buffers for " + Server);
+            lock (buffer)
+            {
+                owner.data.DeleteCache(Server);
+                buffer.oldmessages.Clear();
+                buffer.messages.Clear();
+            }
+            lock (owner.Messages)
+            {
+                List<ProtocolMain.SelfData> delete = new List<ProtocolMain.SelfData>();
+                foreach (ProtocolMain.SelfData ms in owner.Messages)
+                {
+                    if (ms.network == _server)
+                    {
+                        delete.Add(ms);
+                    }
+                }
+                foreach (ProtocolMain.SelfData ms in delete)
+                {
+                    owner.Messages.Remove(ms);
+                }
+            }
+        }
+
+        public void Disconnect()
         {
             if (!_server.Connected)
             {
@@ -655,12 +682,23 @@ namespace pidgeon_sv
                 _writer.WriteLine("QUIT :" + _server.quit);
                 _writer.Flush();
             }
-            catch (Exception) { }
+            catch (Exception) {}
             _server.Connected = false;
-            System.Threading.Thread.Sleep(200);
+        }
+        
+        public override void Exit()
+        {
+            if (destroyed)
+            {
+                Core.DebugLog("This network was already destroyed");
+                return;
+            }
+            ClearBuffers();
+            destroyed = true;
+            Disconnect();
             deliveryqueue.Abort();
             keep.Abort();
-            if (main.ThreadState == System.Threading.ThreadState.Running)
+            if (main.ThreadState == System.Threading.ThreadState.Running || main.ThreadState == ThreadState.WaitSleepJoin)
             {
                 main.Abort();
             }

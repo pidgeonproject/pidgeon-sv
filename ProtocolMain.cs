@@ -25,9 +25,6 @@ namespace pidgeon_sv
 {
     public class ProtocolMain
     {
-        public bool TrafficChunks = false;
-        private string TrafficChunk = "";
-
         public class Datagram
         {
             /// <summary>
@@ -104,7 +101,34 @@ namespace pidgeon_sv
                 network = _network;
                 MQID = curr;
             }
+
+            public string ToDocumentXmlText()
+            {
+                XmlDocument datagram = new XmlDocument();
+                XmlNode b1 = datagram.CreateElement("SM");
+                XmlAttribute Nick = datagram.CreateAttribute("nick");
+                Nick.Value = nick;
+                b1.Attributes.Append(Nick);
+                XmlAttribute Time = datagram.CreateAttribute("time");
+                Time.Value = time.ToBinary().ToString();
+                b1.Attributes.Append(Time);
+                XmlAttribute nw = datagram.CreateAttribute("network");
+                nw.Value = network.server;
+                b1.Attributes.Append(nw);
+                XmlAttribute Target = datagram.CreateAttribute("tg");
+                Target.Value = target;
+                b1.Attributes.Append(Target);
+                XmlAttribute Mqid = datagram.CreateAttribute("mqid");
+                Mqid.Value = MQID.ToString();
+                b1.Attributes.Append(Mqid);
+                b1.InnerText = text;
+                datagram.AppendChild(b1);
+                return datagram.InnerXml;
+            }
         }
+
+        public bool TrafficChunks = false;
+        private string TrafficChunk = "";
 
         /// <summary>
         /// Pointer to client
@@ -265,6 +289,7 @@ namespace pidgeon_sv
             {
                 if (!Connected)
                 {
+                    Core.SL("Error: sending a text to closed connection " + connection.IP);
                     return;
                 }
                 XmlDocument datagram = new XmlDocument();
@@ -280,9 +305,9 @@ namespace pidgeon_sv
 
                 Send(datagram.InnerXml);
             }
-            catch (Exception blah)
+            catch (Exception fail)
             {
-                Core.handleException(blah);
+                Core.handleException(fail);
             }
         }
 
@@ -290,6 +315,7 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
+                Core.SL("Error: sending a text to closed connection " + connection.IP);
                 return false;
             }
             try
@@ -299,13 +325,12 @@ namespace pidgeon_sv
                     if (!TrafficChunks)
                     {
                         connection._w.WriteLine(text);
-                        connection._w.Flush();
                         if (TrafficChunk != "")
                         {
                             connection._w.WriteLine(TrafficChunk);
-                            connection._w.Flush();
                             TrafficChunk = "";
                         }
+                        connection._w.Flush();
                         return true;
                     }
                     else
@@ -320,19 +345,15 @@ namespace pidgeon_sv
                                 TrafficChunk = "";
                             }
                         }
-                        return false;
+                        return true;
                     }
                 }
             }
-            catch (IOException)
+            catch (Exception fail)
             {
-                Exit();
+                Core.handleException(fail);
+                return false;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.StackTrace + ex.Message);
-            }
-            return true;
         }
     }
 }
