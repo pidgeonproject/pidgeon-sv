@@ -26,10 +26,6 @@ namespace pidgeon_sv
 {
     class DatabaseFile : DB
     {
-        public string db = "data";
-        public Dictionary <string, bool> locked = new Dictionary<string,bool>();
-        public Dictionary <string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
-
         public class Index
         {
             public int mqid;
@@ -39,6 +35,9 @@ namespace pidgeon_sv
                 mqid = MQID;
             }
         }
+        private string db = "data";
+        private Dictionary <string, bool> locked = new Dictionary<string,bool>();
+        private Dictionary <string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
 
         public string MessagePool(string network)
         {
@@ -441,7 +440,7 @@ namespace pidgeon_sv
             }
             catch (Exception fail)
             {
-                locked[network] = false;
+                Unlock(network);
                 Core.handleException(fail);
             }
         }

@@ -71,8 +71,7 @@ namespace pidgeon_sv
 
     public class WindowObject
     {
-        public bool ok = true;
-        public string name = "";
+        public string name = null;
         public bool writable = false;
     }
     
@@ -82,12 +81,12 @@ namespace pidgeon_sv
         public List<User> PrivateChat = new List<User>();
         public string server = null;
         public Protocol.UserMode usermode = new Protocol.UserMode();
-        public string username;
+        public string username = null;
         public List<Channel> Channels = new List<Channel>();
-        public string nickname;
-        public string ident;
+        public string nickname = null;
+        public string ident = null;
         public string quit;
-        public Protocol _protocol;
+        public Protocol _protocol = null;
         public List<WindowObject> windows = new List<WindowObject>();
         public List<char> UModes = new List<char> { 'i', 'w', 'o', 'Q', 'r', 'A' };
         public List<char> UChars = new List<char> { '~', '&', '@', '%', '+' };
@@ -97,6 +96,7 @@ namespace pidgeon_sv
         public List<char> XModes = new List<char> { 'l' };
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
 		public string id = null;
+        private bool destroyed = false;
 
         public string channel_prefix = "#";
 
@@ -151,6 +151,21 @@ namespace pidgeon_sv
             return _channel;
         }
 
+        public void Destroy()
+        {
+            if (destroyed)
+            {
+                return;
+            }
+            Disconnect();
+            lock (Channels)
+            {
+                Channels.Clear();
+            }
+            _protocol = null;
+            destroyed = true;
+        }
+
         public bool ShowChat(string name)
         {
             return true;
@@ -163,6 +178,19 @@ namespace pidgeon_sv
 			id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
             quit = "Pidgeon service - http://pidgeonclient.org";
             CreateChat("!system", true);
+        }
+
+        ~Network()
+        {
+            Core.DebugLog("Destructor called for network " + server);
+        }
+
+        public void Disconnect()
+        {
+            lock (windows)
+            {
+                windows.Clear();
+            }
         }
     }
 }

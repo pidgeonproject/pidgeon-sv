@@ -24,16 +24,20 @@ namespace pidgeon_sv
     public class ChannelParameterMode
     {
         public string Target = "";
-        public string Time;
-        public string _User;
+        public string Time = null;
+        public string _User = null;
     }
+
     public class Invite : ChannelParameterMode
     {
         public Invite(string user, string target, string time)
         {
-
+            _User = user;
+            Time = time;
+            Target = target;
         }
     }
+
     public class Except : ChannelParameterMode
     {
         public Except()
@@ -41,6 +45,7 @@ namespace pidgeon_sv
 
         }
     }
+
     public class SimpleBan : ChannelParameterMode
     {
         public SimpleBan(string user, string target, string time)
@@ -53,50 +58,21 @@ namespace pidgeon_sv
 
     public class Channel
     {
-        public static List<Channel> _control = new List<Channel>();
         public string Name = null;
         public Network _Network = null;
         public List<User> UserList = new List<User>();
-        public string Topic = null;
-        public bool dispose = false;
-        public string TopicUser = null;
+        public string Topic = "";
+        public string TopicUser = "";
         public int TopicDate = 0;
         public List<Invite> Invites = null;
         public List<SimpleBan> Bans = null;
         public List<Except> Exceptions = null;
-        public bool parsing_who = false;
-        public bool parsing_xb = false;
-        public bool parsing_xe = false;
-        public bool parsing_wh = false;
         public Protocol.Mode _mode = new Protocol.Mode();
-        public bool Redraw;
         public bool ok;
 
         public Channel()
         {
             ok = true;
-            lock (_control)
-            {
-                _control.Add(this);
-            }
-            Topic = "";
-            TopicUser = "";
-        }
-
-        public void Dispose()
-        {
-            lock (_control)
-            {
-                if (_control.Contains(this))
-                {
-                    _control.Remove(this);
-                }
-            }
-        }
-
-        public class ChannelMode : Protocol.Mode
-        {
-
         }
 
         public bool containsUser(string user)

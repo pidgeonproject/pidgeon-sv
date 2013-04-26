@@ -66,6 +66,7 @@ namespace pidgeon_sv
 		/// </summary>
 		private bool Connected = false;
         private ProtocolMain protocol;
+
         public bool IsConnected
         {
             get
@@ -78,6 +79,11 @@ namespace pidgeon_sv
         {
             protocol = null;
             IP = "unknown";
+        }
+
+        ~Connection()
+        {
+            Core.DebugLog("Destructor called for " + IP);
         }
 
         public static void ConnectionKiller(object data)
@@ -98,13 +104,6 @@ namespace pidgeon_sv
                         else
                         {
                             Core.SL("DEBUG: The thread is aborted " + conn.IP);
-                        }
-                        lock (ActiveUsers)
-                        {
-                            if (ActiveUsers.Contains(conn))
-                            {
-                                Core.SL("DEBUG: Connection was not properly terminated! Trying again " + conn.IP);
-                            }
                         }
                         ConnectionClean(conn);
                         return;
@@ -127,16 +126,25 @@ namespace pidgeon_sv
 		
 		public void Disconnect()
 		{
-			if (Connected)
-			{
-                if (protocol != null)
+            lock (this)
+            {
+                if (Connected)
                 {
-                    protocol.Disconnect();
+                    Connected = false;
+                    if (protocol != null)
+                    {
+                        protocol.Disconnect();
+                    }
+                    if (_r != null)
+                    {
+                        _r.Close();
+                    }
+                    if (_w != null)
+                    {
+                        _w.Close();
+                    }
                 }
-				_r.Close();
-				_w.Close();
-				Connected = false;
-			}
+            }
 		}
 		
         public static void InitialiseClient(object data)
@@ -232,13 +240,12 @@ namespace pidgeon_sv
             }
             catch (ThreadAbortException)
             {
-                Core.SL("Connection closed");
                 ConnectionClean(connection);
                 return;
             }
             catch (Exception fail)
             {
-                Core.SL(fail.StackTrace + fail.Message);
+                Core.handleException(fail);
                 ConnectionClean(connection);
                 return;
             }
@@ -261,6 +268,7 @@ namespace pidgeon_sv
                     }
                 }
                 connection.protocol = null;
+                GC.Collect();
             }
             catch (Exception fail)
             {

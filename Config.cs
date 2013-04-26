@@ -72,7 +72,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
         /// </summary>
-        public static int minbs = 2000;
+        public static int minbs = 800;
 
         public enum Mode
         { 

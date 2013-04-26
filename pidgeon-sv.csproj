@@ -50,12 +50,14 @@
     <Compile Include="Database\DatabaseSQL.cs" />
     <Compile Include="Database\DB.cs" />
     <Compile Include="IRC\Formatter.cs" />
-    <Compile Include="IRC\IRC.cs" />
+    <Compile Include="IRC\Processor\IRC.cs" />
+    <Compile Include="IRC\Protocol\Buffer.cs" />
+    <Compile Include="IRC\Protocol\Queue.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol.cs" />
-    <Compile Include="IRC\ProtocolIrc.cs" />
+    <Compile Include="IRC\Protocol\ProtocolIrc.cs" />
     <Compile Include="ProtocolMain.cs" />
     <Compile Include="Responses.cs" />
     <Compile Include="SecurityLayers.cs" />

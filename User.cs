@@ -28,25 +28,24 @@ namespace pidgeon_sv
         public string Ident = null;
         public Protocol.Mode ChannelMode = new Protocol.Mode();
         public string Nick = null;
-        public List<Channel> ChannelList = null;
-        public User(string _Nick, string host, Network x, string ident)
+
+        public User(string nick, string host, Network x, string ident)
         {
-            ChannelList = new List<Channel>();
             _Network = x;
-            if (_Nick != "")
+            if (nick != "")
             {
-                char prefix = _Nick[0];
+                char prefix = nick[0];
                 if (x.UChars.Contains(prefix))
                 {
                     int Mode = x.UChars.IndexOf(prefix);
                     if (x.CUModes.Count >= Mode + 1)
                     {
                         ChannelMode.mode("+" + x.CUModes[Mode].ToString());
-                        _Nick = _Nick.Substring(1);
+                        nick = nick.Substring(1);
                     }
                 }
             }
-            Nick = _Nick;
+            Nick = nick;
             Ident = ident;
             Host = host;
         }
@@ -58,11 +57,6 @@ namespace pidgeon_sv
                 return this.Nick.CompareTo((obj as User).Nick);
             }
             return 0;
-        }
-
-        public string SummaryInfo()
-        {
-            return "";
         }
     }
 }

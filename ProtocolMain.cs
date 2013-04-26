@@ -137,6 +137,17 @@ namespace pidgeon_sv
 
         public bool Connected = false;
 
+        public ProtocolMain(Connection t)
+        {
+            Connected = true;
+            connection = t;
+        }
+
+        ~ProtocolMain()
+        {
+            Core.DebugLog("Destructor called for ProtocolMain of " + connection.IP);
+        }
+
         public static bool Valid(string datagram)
         {
             if (datagram == null)
@@ -170,8 +181,11 @@ namespace pidgeon_sv
 			{
 				return;
 			}
-			connection.Disconnect();
-			Connected = false;
+            Connected = false;
+            if (connection != null)
+            {
+                connection.Disconnect();
+            }
 		}
 		
         public void Exit()
@@ -279,12 +293,6 @@ namespace pidgeon_sv
             response.Parameters.Add("code", "4");
             response.Parameters.Add("description", "invalid data: " + node.Name);
             Deliver(response);
-        }
-
-        public ProtocolMain(Connection t)
-        {
-            Connected = true;
-            connection = t;
         }
 
         public void Deliver(Datagram message)
