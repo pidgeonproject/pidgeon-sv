@@ -44,7 +44,7 @@ namespace pidgeon_sv
                 return db + System.IO.Path.DirectorySeparatorChar + network + "_messages.fs";
         }
 
-        public DatabaseFile(Account _client)
+        public DatabaseFile(SystemUser _client)
         {
             this.client = _client;
             db = Config.FileDBDefaultFolder + System.IO.Path.DirectorySeparatorChar + _client.username;

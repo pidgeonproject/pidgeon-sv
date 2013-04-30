@@ -36,7 +36,7 @@ namespace pidgeon_sv
 		/// <summary>
 		/// The account.
 		/// </summary>
-        public Account account = null;
+        public SystemUser account = null;
 		/// <summary>
 		/// The status.
 		/// </summary>
@@ -61,12 +61,11 @@ namespace pidgeon_sv
 		/// The IP
 		/// </summary>
         public string IP;
-		/// <summary>
-		/// The connected.
-		/// </summary>
-		private bool Connected = false;
         private ProtocolMain protocol;
-
+        private bool Connected = false;
+        /// <summary>
+        /// Connected
+        /// </summary>
         public bool IsConnected
         {
             get
@@ -149,12 +148,13 @@ namespace pidgeon_sv
 		
         public static void InitialiseClient(object data)
         {
-            System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
-            Connection connection = new Connection();
-            connection.main = Thread.CurrentThread;
-            Core.SL("Opening a new connection to " + client.Client.RemoteEndPoint.ToString());
+            Connection connection = null;
             try
             {
+                System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
+                connection.main = Thread.CurrentThread;
+                connection = new Connection();
+                Core.SL("Opening a new connection to " + client.Client.RemoteEndPoint.ToString());
                 connection.client = client;
                 connection.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
@@ -251,6 +251,10 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// Remove all data associated with the connection
+        /// </summary>
+        /// <param name="connection"></param>
         public static void ConnectionClean(Connection connection)
         {
             try

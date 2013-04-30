@@ -59,13 +59,13 @@ namespace pidgeon_sv
                     return datagram.InnerXml;
                 }
             }
-            public Account parent = null;
+            public SystemUser parent = null;
             public string Network = null;
             public List<Message> messages = new List<Message>();
             public List<Message> oldmessages = new List<Message>();
             public ProtocolIrc protocol = null;
 
-            public Buffer(Account _account, string server)
+            public Buffer(SystemUser _account, string server)
             {
                 Network = server;
                 parent = _account;

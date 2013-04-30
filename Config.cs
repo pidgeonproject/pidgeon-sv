@@ -61,8 +61,6 @@ namespace pidgeon_sv
             }
         }
 
-        public static Mode mode = Mode.Bouncer;
-
         public static string DatabaseFolder = "db";
 
         public static string FileDBDefaultFolder = "data";
@@ -73,12 +71,6 @@ namespace pidgeon_sv
         /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
         /// </summary>
         public static int minbs = 800;
-
-        public enum Mode
-        { 
-            Core,
-            Bouncer,
-        }
 
         public static string version
         {

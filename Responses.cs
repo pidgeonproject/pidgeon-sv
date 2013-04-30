@@ -36,15 +36,15 @@ namespace pidgeon_sv
         public static void NetworkInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network network2 = protocol.connection.account.retrieveServer(node.InnerText);
-            if (network2 == null)
+            Network network = protocol.connection.account.retrieveServer(node.InnerText);
+            if (network == null)
             {
                 response = new ProtocolMain.Datagram("NETWORKINFO", "UNKNOWN");
                 response.Parameters.Add("network", node.InnerText);
                 protocol.Deliver(response);
                 return;
             }
-            if (network2.Connected == false)
+            if (network.Connected == false)
             {
                 response = new ProtocolMain.Datagram("NETWORKINFO", "OFFLINE");
                 response.Parameters.Add("network", node.InnerText);
@@ -166,14 +166,7 @@ namespace pidgeon_sv
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            if (Config.mode == Config.Mode.Bouncer)
-            {
-                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb private and " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
-            }
-            else
-            {
-                response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " in remote client mode, currently " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb uptime: " + (DateTime.Now - Core.StartedTime).ToString());
-            }
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb private and " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
 
             protocol.Deliver(response);
         }
@@ -196,7 +189,7 @@ namespace pidgeon_sv
                 return;
             }
             int port = 6667;
-            
+
             if (node.Attributes.Count > 0)
             {
                 port = int.Parse(node.Attributes[0].Value);
@@ -304,7 +297,7 @@ namespace pidgeon_sv
             string pw = node.Attributes[1].Value;
             lock (Core._accounts)
             {
-                foreach (Account curr_user in Core._accounts)
+                foreach (SystemUser curr_user in Core._accounts)
                 {
                     if (curr_user.username == username)
                     {
@@ -361,7 +354,7 @@ namespace pidgeon_sv
                     string users = "";
                     lock (Core._accounts)
                     {
-                        foreach (Account curr in Core._accounts)
+                        foreach (SystemUser curr in Core._accounts)
                         {
                             users += curr.username + ":" + curr.nickname + ":" + curr.Locked.ToString() + "&";
                         }
@@ -384,24 +377,24 @@ namespace pidgeon_sv
                         return;
                     }
 
-                    if (Account.isValid(node.Attributes[0].Value))
+                    if (SystemUser.isValid(node.Attributes[0].Value))
                     {
-                        Account.UserLevel level = Account.UserLevel.User;
+                        SystemUser.UserLevel level = SystemUser.UserLevel.User;
 
                         switch (node.Attributes[3].Value.ToUpper())
                         {
                             case "USER":
-                                level = Account.UserLevel.User;
+                                level = SystemUser.UserLevel.User;
                                 break;
                             case "ADMIN":
-                                level = Account.UserLevel.Admin;
+                                level = SystemUser.UserLevel.Admin;
                                 break;
                             case "ROOT":
-                                level = Account.UserLevel.Root;
+                                level = SystemUser.UserLevel.Root;
                                 break;
                         }
 
-                        Account.CreateEntry(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
+                        SystemUser.CreateEntry(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
 
                         response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
                         response.Parameters.Add("name", node.Attributes[0].Value);
@@ -425,7 +418,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
-                        Account target = Account.getUser(user);
+                        SystemUser target = SystemUser.getUser(user);
                         if (target != null)
                         {
                             target.Locked = true;
@@ -462,7 +455,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
-                        Account target = Account.getUser(user);
+                        SystemUser target = SystemUser.getUser(user);
                         if (target != null)
                         {
                             target.Locked = false;
@@ -494,7 +487,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
-                        Account target = Account.getUser(user);
+                        SystemUser target = SystemUser.getUser(user);
                         if (target != null)
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
@@ -505,7 +498,7 @@ namespace pidgeon_sv
                         }
                         else
                         {
-                            Account.DeleteUser(target);
+                            SystemUser.DeleteUser(target);
                             response = new ProtocolMain.Datagram("SYSTEM", "REMOVE");
                             response.Parameters.Add("name", node.Attributes[0].Value);
                             protocol.Deliver(response);

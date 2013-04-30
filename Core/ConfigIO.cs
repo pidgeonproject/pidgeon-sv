@@ -27,6 +27,14 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
+        public static FileSystemWatcher fs;
+
+        private static void OnChanged(object source, FileSystemEventArgs e)
+        {
+            Core.SL("Warning, the user file was changed, reloading it");
+            LoadUser();
+        }
+
         /// <summary>
         /// Load all user data and info
         /// </summary>
@@ -37,6 +45,14 @@ namespace pidgeon_sv
                 SL("Loading users");
                 if (File.Exists(Config.UserFile))
                 {
+                    fs = new FileSystemWatcher();
+                    fs.Path = Config.DatabaseFolder;
+                    fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                    fs.Filter = "users";
+                    fs.Changed += new FileSystemEventHandler(OnChanged);
+                    fs.Created += new FileSystemEventHandler(OnChanged);
+                    fs.Deleted += new FileSystemEventHandler(OnChanged);
+                    fs.EnableRaisingEvents = true;
                     XmlDocument configuration = new XmlDocument();
                     configuration.Load(Config.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
@@ -44,76 +60,89 @@ namespace pidgeon_sv
                         SL("There is no proper information about users in config file");
                         return;
                     }
-                    SL("Loading users: " + configuration.ChildNodes.Count.ToString());
-                    foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
+                    lock (_accounts)
                     {
-                        Account.UserLevel UserLevel = Account.UserLevel.User;
-                        bool locked = false;
-                        string name = null;
-                        string password = null;
-                        string nickname = null;
-                        string ident = "pidgeon";
-                        string realname = "http://pidgeonclient.org/wiki";
-                        if (Config.Rooted)
+                        SL("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString());
+                        foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                         {
-                            UserLevel = Account.UserLevel.Root;
-                        }
-                        foreach (XmlAttribute configitem in curr.Attributes)
-                        {
-                            switch (configitem.Name.ToLower())
+                            SystemUser.UserLevel UserLevel = SystemUser.UserLevel.User;
+                            bool locked = false;
+                            string name = null;
+                            string password = null;
+                            string nickname = null;
+                            string ident = "pidgeon";
+                            string realname = "http://pidgeonclient.org/wiki";
+                            if (Config.Rooted)
                             {
-                                case "name":
-                                    name = configitem.Value;
-                                    break;
-                                case "password":
-                                    password = configitem.Value;
-                                    break;
-                                case "locked":
-                                    locked = bool.Parse(configitem.Value);
-                                    break;
-                                case "nickname":
-                                    nickname = configitem.Value;
-                                    break;
-                                case "ident":
-                                    ident = configitem.Value;
-                                    break;
-                                case "realname":
-                                    realname = configitem.Value;
-                                    break;
-                                case "level":
-                                    switch (configitem.Value.ToLower())
-                                    {
-                                        case "root":
-                                            UserLevel = Account.UserLevel.Root;
-                                            break;
-                                        case "admin":
-                                            UserLevel = Account.UserLevel.Admin;
-                                            break;
-                                        case "user":
-                                            UserLevel = Account.UserLevel.User;
-                                            break;
-                                    }
-                                    break;
+                                UserLevel = SystemUser.UserLevel.Root;
+                            }
+                            foreach (XmlAttribute configitem in curr.Attributes)
+                            {
+                                switch (configitem.Name.ToLower())
+                                {
+                                    case "name":
+                                        name = configitem.Value;
+                                        break;
+                                    case "password":
+                                        password = configitem.Value;
+                                        break;
+                                    case "locked":
+                                        locked = bool.Parse(configitem.Value);
+                                        break;
+                                    case "nickname":
+                                        nickname = configitem.Value;
+                                        break;
+                                    case "ident":
+                                        ident = configitem.Value;
+                                        break;
+                                    case "realname":
+                                        realname = configitem.Value;
+                                        break;
+                                    case "level":
+                                        switch (configitem.Value.ToLower())
+                                        {
+                                            case "root":
+                                                UserLevel = SystemUser.UserLevel.Root;
+                                                break;
+                                            case "admin":
+                                                UserLevel = SystemUser.UserLevel.Admin;
+                                                break;
+                                            case "user":
+                                                UserLevel = SystemUser.UserLevel.User;
+                                                break;
+                                        }
+                                        break;
+                                }
+                            }
+                            if (name == null || password == null)
+                            {
+                                SL("Invalid record for some user, skipped");
+                                continue;
+                            }
+                            bool Nonexistent = false;
+                            SystemUser line = SystemUser.getUser(name);
+                            if (line == null)
+                            {
+                                Nonexistent = true;
+                                line = new SystemUser(name, password);
+                            }
+                            line.password = password;
+                            line.nickname = nickname;
+                            line.Locked = locked;
+                            line.ident = ident;
+                            line.realname = realname;
+                            line.Level = UserLevel;
+                            if (Nonexistent)
+                            {
+                                _accounts.Add(line);
                             }
                         }
-                        if (name == null || password == null)
-                        {
-                            SL("Invalid record for some user, skipped");
-                            continue;
-                        }
-                        Account line = new Account(name, password);
-                        line.nickname = nickname;
-                        line.Locked = locked;
-                        line.ident = ident;
-                        line.realname = realname;
-                        line.Level = UserLevel;
-                        _accounts.Add(line);
+                        SL("Loaded users: " + _accounts.Count.ToString());
                     }
-                    SL("Loaded users: " + _accounts.Count.ToString());
                 }
                 else
                 {
-                    SL("There is no userfile for this instance, create one using parameter --manage");
+                    SL("There is no userfile for this instance, create one using parameter -a");
                 }
             }
             catch (Exception fail)
@@ -126,6 +155,10 @@ namespace pidgeon_sv
         {
             try
             {
+                if (fs != null)
+                {
+                    fs.EnableRaisingEvents = false;
+                }
                 if (File.Exists(Config.UserFile))
                 {
                     File.Copy(Config.UserFile, Config.UserFile + "~", true);
@@ -136,7 +169,7 @@ namespace pidgeon_sv
 
                 lock (_accounts)
                 {
-                    foreach (Account user in _accounts)
+                    foreach (SystemUser user in _accounts)
                     {
                         XmlNode item = configuration.CreateElement("user");
                         XmlAttribute name = configuration.CreateAttribute("name");
@@ -167,6 +200,10 @@ namespace pidgeon_sv
                 configuration.AppendChild(xmlnode);
                 configuration.Save(Config.UserFile);
                 File.Delete(Config.UserFile + "~");
+                if (fs != null)
+                {
+                    fs.EnableRaisingEvents = true;
+                }
             }
             catch (Exception fail)
             {
@@ -205,14 +242,6 @@ namespace pidgeon_sv
                                 break;
                             }
                             Config.ChunkSize = value;
-                            break;
-                        case "mode":
-                            Config.Mode mode = Config.Mode.Core;
-                            if (curr.InnerText == "bouncer")
-                            {
-                                mode = Config.Mode.Bouncer;
-                            }
-                            Config.mode = mode;
                             break;
                         case "ssl":
                             Config.UsingSSL = bool.Parse(curr.InnerText);

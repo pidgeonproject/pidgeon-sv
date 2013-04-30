@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Threading;
+using System.IO;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
@@ -388,6 +389,11 @@ namespace pidgeon_sv
                     _writer.WriteLine(ms);
                     _writer.Flush();
                 }
+            }
+            catch (IOException fail)
+            {
+                Core.DebugLog("Error: connection " + Server + " was closed: " + fail.ToString());
+                Disconnect();
             }
             catch (Exception fail)
             {

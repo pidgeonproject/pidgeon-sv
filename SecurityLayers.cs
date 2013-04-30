@@ -23,22 +23,22 @@ namespace pidgeon_sv
 {
     public class SecurityRole
     {
-        public List<Account.UserLevel> AuthorizedLevels
+        public List<SystemUser.UserLevel> AuthorizedLevels
         {
             get
             {
                 lock (Authorized)
                 {
-                    List<Account.UserLevel> x = new List<Account.UserLevel>();
+                    List<SystemUser.UserLevel> x = new List<SystemUser.UserLevel>();
                     x.AddRange(Authorized);
                     return x;
                 }
             }
         }
 
-        private List<Account.UserLevel> Authorized = new List<Account.UserLevel>();
+        private List<SystemUser.UserLevel> Authorized = new List<SystemUser.UserLevel>();
 
-        public SecurityRole(Account.UserLevel level)
+        public SecurityRole(SystemUser.UserLevel level)
         {
             Authorized.Add(level);
         }
@@ -46,15 +46,15 @@ namespace pidgeon_sv
 
     public class SecurityLayers
     {
-        public static SecurityRole CreateUser = new SecurityRole(Account.UserLevel.Admin);
-        public static SecurityRole DeleteUser = new SecurityRole(Account.UserLevel.Admin);
-        public static SecurityRole RestartSystem = new SecurityRole(Account.UserLevel.Root);
-        public static SecurityRole ModifyUser = new SecurityRole(Account.UserLevel.Admin);
-        public static SecurityRole ReadUser = new SecurityRole(Account.UserLevel.Admin);
+        public static SecurityRole CreateUser = new SecurityRole(SystemUser.UserLevel.Admin);
+        public static SecurityRole DeleteUser = new SecurityRole(SystemUser.UserLevel.Admin);
+        public static SecurityRole RestartSystem = new SecurityRole(SystemUser.UserLevel.Root);
+        public static SecurityRole ModifyUser = new SecurityRole(SystemUser.UserLevel.Admin);
+        public static SecurityRole ReadUser = new SecurityRole(SystemUser.UserLevel.Admin);
 
-        public static bool isAuthorized(Account user, SecurityRole role)
+        public static bool isAuthorized(SystemUser user, SecurityRole role)
         {
-            if (user.Level == Account.UserLevel.Root)
+            if (user.Level == SystemUser.UserLevel.Root)
             {
                 return true;
             }

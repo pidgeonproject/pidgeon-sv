@@ -26,7 +26,7 @@ namespace pidgeon_sv
     {
         public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
         public int type = 0;
-        public Account owner = null;
+        public SystemUser owner = null;
         private bool Locked = false;
         private int Current_ID = 0;
 

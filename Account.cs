@@ -21,7 +21,7 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public class Account
+    public class SystemUser
     {
 		/// <summary>
 		/// List of active connections to services
@@ -62,7 +62,7 @@ namespace pidgeon_sv
         private int MessageCount = 0;
 		
 		/// <summary>
-		/// Initializes a new instance of the <see cref="pidgeon_sv.Account"/> class.
+		/// Initializes a new instance of the <see cref="pidgeon_sv.SystemUser"/> class.
 		/// </summary>
 		/// <param name='user'>
 		/// User
@@ -70,7 +70,7 @@ namespace pidgeon_sv
 		/// <param name='pw'>
 		/// Password
 		/// </param>
-        public Account(string user, string pw)
+        public SystemUser(string user, string pw)
         {
             username = user;
             password = pw;
@@ -220,10 +220,6 @@ namespace pidgeon_sv
         public void Message(ProtocolMain.SelfData data)
         {
             MessageCount++;
-            //while (Messages.Count > Config.MaxSM)
-            //{
-                
-            //}
             lock (Messages)
             {
                 Messages.Add(data);
@@ -236,9 +232,10 @@ namespace pidgeon_sv
 		/// <param name='user'>
 		/// User.
 		/// </param>
-        public static void KickUser(Account user)
+        public static void KickUser(SystemUser user)
         {
             user.Locked = true;
+            user.Messages.Clear();
             lock (user.ConnectedNetworks)
             {
                 List<Network> networks = new List<Network>();
@@ -265,7 +262,7 @@ namespace pidgeon_sv
             }
         }
 
-        public static void DeleteUser(Account user)
+        public static void DeleteUser(SystemUser user)
         {
             lock (Core._accounts)
             {
@@ -284,7 +281,7 @@ namespace pidgeon_sv
 
         public static void CreateEntry(string name, string password, string nick, UserLevel level, string realname, string ident)
         {
-            Account user = new Account(name, password);
+            SystemUser user = new SystemUser(name, password);
             user.Level = level;
             user.nickname = nick;
             user.realname = realname;
@@ -296,11 +293,11 @@ namespace pidgeon_sv
             Core.SaveUser();
         }
 
-        public static Account getUser(string name)
+        public static SystemUser getUser(string name)
         {
             lock (Core._accounts)
             {
-                foreach (Account account in Core._accounts)
+                foreach (SystemUser account in Core._accounts)
                 {
                     if (account.username == name)
                     {
@@ -314,27 +311,6 @@ namespace pidgeon_sv
         private static void CreateUser()
         { 
             
-        }
-
-        public static void Manage()
-        {
-            bool OK = true;
-            while (OK)
-            {
-                Console.WriteLine("Select one option:");
-                Console.WriteLine("1. Create new user");
-                Console.WriteLine("ctrl + c - quit");
-                ConsoleKeyInfo data = Console.ReadKey();
-                switch (data.Key)
-                { 
-                    case ConsoleKey.D1:
-                        CreateUser();
-                        break;
-                    default:
-                        Console.WriteLine("This is unknown option for me");
-                        break;
-                }
-            }
         }
 
         public bool containsNetwork(string network)

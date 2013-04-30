@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace pidgeon_sv
@@ -26,19 +27,32 @@ namespace pidgeon_sv
         public static List<string> data;
         static void Main(string[] args)
         {
-            Core.StartedTime = DateTime.Now;
-            data = new List<string>();
-            data.AddRange(args);
-            if (!Core.Init())
+            try
             {
+                Core.StartedTime = DateTime.Now;
+                Core.startup = args;
+                data = new List<string>();
+                data.AddRange(args);
+                Config.UserFile = Config.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+
+                if (!Directory.Exists("db"))
+                {
+                    Directory.CreateDirectory("db");
+                }
+                if (Terminal.Parameters())
+                {
+                    if (!Core.Init())
+                    {
+                        return;
+                    }
+                    Core.Listen();
+                }
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
                 return;
             }
-            if (data.Contains("--manage"))
-            {
-                Account.Manage();
-                return;
-            }
-            Core.Listen();
         }
     }
 }

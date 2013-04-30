@@ -27,7 +27,7 @@ namespace pidgeon_sv
         public string User = null;
         public bool Connected = false;
 
-        public DatabaseSQL(Account _client)
+        public DatabaseSQL(SystemUser _client)
         {
             this.client = _client;
         }

@@ -23,7 +23,7 @@ namespace pidgeon_sv
 {
     public class DB
     {
-        public Account client;
+        public SystemUser client;
         public Dictionary<string, int> MessageSize = new Dictionary<string, int>();
         public int SMessageSize = 0;
         public bool Running = false;

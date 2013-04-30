@@ -27,6 +27,7 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
+        public static string[] startup;
 		private static bool running = true;
 		/// <summary>
 		/// The running.
@@ -45,7 +46,7 @@ namespace pidgeon_sv
 		/// <summary>
 		/// List of all existing accounts in system
 		/// </summary>
-        public static List<Account> _accounts = new List<Account>();
+        public static List<SystemUser> _accounts = new List<SystemUser>();
         public static List<Thread> threads = new List<Thread>();
 
         public static void Quit()
@@ -101,13 +102,6 @@ namespace pidgeon_sv
                     certificate(Config.CertificatePath, "pidgeonclient.org");
                 }
 
-                Config.UserFile = Config.DatabaseFolder + Path.DirectorySeparatorChar + "users";
-
-                if (!Directory.Exists("db"))
-                {
-                    Directory.CreateDirectory("db");
-                }
-
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
                 SL("Port: " + Config.server_port.ToString());
@@ -119,7 +113,6 @@ namespace pidgeon_sv
                 {
                     SL("Maximum file chunk size: " + Config.MaxFileChunkSize.ToString());
                 }
-                SL("Mode: " + Config.mode.ToString());
                 SL("Minimum buffer size: " + Config.minbs.ToString());
                 SL("Minimum chunk size: " + Config.ChunkSize.ToString());
                 SL("SSL is enabled: " + Config.UsingSSL.ToString());

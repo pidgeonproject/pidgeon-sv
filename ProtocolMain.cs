@@ -182,6 +182,7 @@ namespace pidgeon_sv
 				return;
 			}
             Connected = false;
+
             if (connection != null)
             {
                 connection.Disconnect();
@@ -317,6 +318,10 @@ namespace pidgeon_sv
 
                 Send(datagram.InnerXml);
             }
+            catch (System.Threading.ThreadAbortException)
+            {
+                return;
+            }
             catch (Exception fail)
             {
                 Core.handleException(fail);
@@ -360,6 +365,16 @@ namespace pidgeon_sv
                         return true;
                     }
                 }
+            }
+            catch (System.Threading.ThreadAbortException)
+            {
+                return false;
+            }
+            catch (IOException fail)
+            {
+                Core.SL("Connection closed: " + fail.ToString());
+                Disconnect();
+                return false;
             }
             catch (Exception fail)
             {
