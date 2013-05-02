@@ -231,10 +231,10 @@ namespace pidgeon_sv
                         case "databasefolder":
                             Config.DatabaseFolder = curr.InnerText;
                             break;
-                        case "serverport":
-                            Config.server_port = int.Parse(curr.InnerText);
+						case "Config.Network.server_port":
+                            Config.Network.server_port = int.Parse(curr.InnerText);
                             break;
-                        case "chunksize":
+						case "Config.ChunkSize":
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
@@ -246,6 +246,9 @@ namespace pidgeon_sv
                         case "ssl":
                             Config.UsingSSL = bool.Parse(curr.InnerText);
                             break;
+						case "Config.Network.server_ssl":
+							Config.Network.server_ssl = int.Parse(curr.InnerText);
+							break;
                     }
                 }
             }

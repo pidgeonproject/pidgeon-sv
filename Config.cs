@@ -25,17 +25,18 @@ namespace pidgeon_sv
     {
 		public class Network
 		{
-			
+			/// <summary>
+	        /// Port
+	        /// </summary>
+	        public static int server_port = 64530;
+			public static int server_ssl = 22432;
 		}
 		
 		public class Debugging
 		{
 			public static int verbosity = 0;
 		}
-        /// <summary>
-        /// Port
-        /// </summary>
-        public static int server_port = 64530;
+        
         public static string UserFile = "users";
 
         public static readonly string File = "pidgeon.conf";

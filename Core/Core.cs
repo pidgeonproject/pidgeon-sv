@@ -28,6 +28,7 @@ namespace pidgeon_sv
     public partial class Core
     {
         public static string[] startup;
+		public static Thread SSL;
 		private static bool running = true;
 		/// <summary>
 		/// The running.
@@ -107,7 +108,7 @@ namespace pidgeon_sv
 
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
-                SL("Port: " + Config.server_port.ToString());
+                SL("Port: " + Config.Network.server_port.ToString());
                 if (Config.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");
@@ -119,6 +120,7 @@ namespace pidgeon_sv
                 SL("Minimum buffer size: " + Config.minbs.ToString());
                 SL("Minimum chunk size: " + Config.ChunkSize.ToString());
                 SL("SSL is enabled: " + Config.UsingSSL.ToString());
+				SL("Port: " + Config.Network.server_ssl.ToString());
 
                 SL("-----------------------------------------------------------");
 
@@ -148,14 +150,50 @@ namespace pidgeon_sv
             }
             return true;
         }
+		
+		public static void ListenS()
+		{
+			try
+			{
+				System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_ssl);
+                server.Start();
 
+                while (running)
+                {
+                    try
+                    {
+                        System.Net.Sockets.TcpClient connection = server.AcceptTcpClient();
+                        Thread _client = new Thread(Connection.InitialiseClient);
+                        threads.Add(_client);
+                        _client.Start(connection);
+                        System.Threading.Thread.Sleep(200);
+                    }
+					catch (ThreadAbortException)
+					{
+						return;
+					}
+                    catch (Exception fail)
+                    {
+                        Core.handleException(fail);
+                    }
+                }
+			}catch (ThreadAbortException)
+			{
+				return;
+			}
+			catch (Exception fail)
+			{
+				Core.handleException(fail);
+			}
+		}
+		
         public static void Listen()
         {
             try
             {
                 SL("Waiting for clients");
 
-                System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.server_port);
+                System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_port);
                 server.Start();
 
                 while (running)

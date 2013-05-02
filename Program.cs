@@ -45,6 +45,11 @@ namespace pidgeon_sv
                     {
                         return;
                     }
+					if (Config.UsingSSL)
+					{
+						Core.SSL = new System.Threading.Thread(Core.ListenS);
+						Core.SSL.Start();
+					}
                     Core.Listen();
                 }
             }

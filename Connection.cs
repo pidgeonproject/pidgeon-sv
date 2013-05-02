@@ -167,21 +167,9 @@ namespace pidgeon_sv
                     ActiveUsers.Add(connection);
                 }
 
-                if (Config.UsingSSL)
-                {
-                    X509Certificate cert = new X509Certificate2(Config.CertificatePath, "pidgeon");
-                    System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
-                        new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    _networkSsl.AuthenticateAsServer(cert);
-                    connection._w = new StreamWriter(_networkSsl);
-                    connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
-                }
-                else
-                {
                     System.Net.Sockets.NetworkStream ns = client.GetStream();
                     connection._w = new StreamWriter(ns);
                     connection._r = new StreamReader(ns, Encoding.UTF8);
-                }
 
                 string text = connection._r.ReadLine();
 
@@ -250,7 +238,103 @@ namespace pidgeon_sv
                 return;
             }
         }
+		
+		public static void InitialiseClientSSL(object data)
+        {
+            Connection connection = null;
+            try
+            {
+                System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
+                connection.main = Thread.CurrentThread;
+                connection = new Connection();
+                Core.SL("Opening a new connection to " + client.Client.RemoteEndPoint.ToString());
+                connection.client = client;
+                connection.IP = client.Client.RemoteEndPoint.ToString();
+                Thread checker = new Thread(ConnectionKiller);
+                checker.Name = "watcher";
+                connection.Connected = true;
+                checker.Start(connection);
 
+                lock (ActiveUsers)
+                {
+                    ActiveUsers.Add(connection);
+                }
+
+                    X509Certificate cert = new X509Certificate2(Config.CertificatePath, "pidgeon");
+                    System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
+                        new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    _networkSsl.AuthenticateAsServer(cert);
+                    connection._w = new StreamWriter(_networkSsl);
+                    connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
+
+                string text = connection._r.ReadLine();
+
+                connection.protocol = new ProtocolMain(connection);
+                while (connection.IsConnected && !connection._r.EndOfStream)
+                {
+                    try
+                    {
+                        text = connection._r.ReadLine();
+                        if (text == "")
+                        {
+                            continue;
+                        }
+
+                        if (ProtocolMain.Valid(text))
+                        {
+                            connection.protocol.parseCommand(text);
+                            continue;
+                        }
+                        else
+                        {
+                            Core.SL("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
+                            System.Threading.Thread.Sleep(800);
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        Core.SL("Connection closed: " + connection.IP);
+                        connection.protocol.Exit();
+                        connection.Connected = false;
+                        ConnectionClean(connection);
+                        return;
+
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        connection.protocol.Exit();
+                        connection.Connected = false;
+                        ConnectionClean(connection);
+                        return;
+                    }
+                    catch (Exception fail)
+                    {
+                        Core.handleException(fail);
+                    }
+                }
+                Core.SL("Connection closed by remote: " + connection.IP);
+                connection.protocol.Exit();
+                ConnectionClean(connection);
+            }
+            catch (System.IO.IOException)
+            {
+                Core.SL("Connection closed: " + connection.IP);
+                ConnectionClean(connection);
+                return;
+            }
+            catch (ThreadAbortException)
+            {
+                ConnectionClean(connection);
+                return;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+                ConnectionClean(connection);
+                return;
+            }
+        }
+		
         /// <summary>
         /// Remove all data associated with the connection
         /// </summary>
