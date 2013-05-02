@@ -532,7 +532,7 @@ namespace pidgeon_sv
                     {
                         foreach (Channel curr in b002.Channels)
                         {
-                            if (curr.ok)
+                            if (curr.ChannelWork)
                             {
                                 list += curr.Name + "!";
                             }

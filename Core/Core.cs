@@ -71,9 +71,12 @@ namespace pidgeon_sv
             SL("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
-        public static void DebugLog(string text)
+        public static void DebugLog(string text, int verbosity = 0)
         {
-            SL("DEBUG: " + text);
+			if (verbosity >= Config.Debugging.verbosity)
+			{
+            	SL("DEBUG: " + text);
+			}
         }
 		
 		/// <summary>

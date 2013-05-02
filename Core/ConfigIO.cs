@@ -62,7 +62,7 @@ namespace pidgeon_sv
                     }
                     lock (_accounts)
                     {
-                        SL("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString());
+                        Core.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
                         foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                         {
                             SystemUser.UserLevel UserLevel = SystemUser.UserLevel.User;
@@ -116,7 +116,7 @@ namespace pidgeon_sv
                             }
                             if (name == null || password == null)
                             {
-                                SL("Invalid record for some user, skipped");
+                                Core.DebugLog("Invalid record for some user, skipped");
                                 continue;
                             }
                             bool Nonexistent = false;

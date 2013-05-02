@@ -62,7 +62,8 @@ namespace pidgeon_sv
                               + "  -h (--help) display this help\n"
                               + "  -a (--add) insert user\n"
                               + "  -l (--list) display this help\n"
-                              + "  -d (--delete) remove user\n"
+                              + "  -v increase verbosity\n"
+			                  + "  -d (--delete) remove user\n"
                               + "\n"
                               + "for more information see http://pidgeonclient.org/wiki pidgeon is open source.");
         }
@@ -197,6 +198,9 @@ namespace pidgeon_sv
                     case "delete":
                         DeleteUser(parameter);
                         return true;
+					case "-v":
+						Config.Debugging.verbosity++;
+						break;
                 }
             }
 
@@ -250,6 +254,11 @@ namespace pidgeon_sv
                             id = "delete";
                             Read = true;
                             break;
+						case "-v":
+							parsed = id;
+							id = "-v";
+							Read = true;
+							break;
                     }
 
                     if (parsed != null)

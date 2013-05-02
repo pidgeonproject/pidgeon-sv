@@ -80,7 +80,7 @@ namespace pidgeon_sv
         public bool Connected = false;
         public List<User> PrivateChat = new List<User>();
         public string server = null;
-        public Protocol.UserMode usermode = new Protocol.UserMode();
+        public Protocol.NetworkMode usermode = new Protocol.NetworkMode();
         public string username = null;
         public List<Channel> Channels = new List<Channel>();
         public string nickname = null;
@@ -99,7 +99,15 @@ namespace pidgeon_sv
         private bool destroyed = false;
 
         public string channel_prefix = "#";
-
+		
+		public bool IsConnected
+		{
+			get
+			{
+				return Connected;
+			}
+		}
+		
         public Channel getChannel(string name)
         {
             lock (Channels)
@@ -160,6 +168,10 @@ namespace pidgeon_sv
             Disconnect();
             lock (Channels)
             {
+				foreach (Channel xx in Channels)
+                {
+                    xx.Destroy();
+                }
                 Channels.Clear();
             }
             _protocol = null;

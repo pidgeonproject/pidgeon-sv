@@ -26,7 +26,7 @@ namespace pidgeon_sv
         public string Host = null;
         public Network _Network = null;
         public string Ident = null;
-        public Protocol.Mode ChannelMode = new Protocol.Mode();
+        public Protocol.NetworkMode ChannelMode = new Protocol.NetworkMode();
         public string Nick = null;
 
         public User(string nick, string host, Network x, string ident)
@@ -40,7 +40,7 @@ namespace pidgeon_sv
                     int Mode = x.UChars.IndexOf(prefix);
                     if (x.CUModes.Count >= Mode + 1)
                     {
-                        ChannelMode.mode("+" + x.CUModes[Mode].ToString());
+                        ChannelMode.ChangeMode("+" + x.CUModes[Mode].ToString());
                         nick = nick.Substring(1);
                     }
                 }

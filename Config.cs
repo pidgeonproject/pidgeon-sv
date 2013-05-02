@@ -23,6 +23,15 @@ namespace pidgeon_sv
 {
     class Config
     {
+		public class Network
+		{
+			
+		}
+		
+		public class Debugging
+		{
+			public static int verbosity = 0;
+		}
         /// <summary>
         /// Port
         /// </summary>
