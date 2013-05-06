@@ -23,19 +23,19 @@ namespace pidgeon_sv
 {
     class Config
     {
-		public class Network
-		{
-			/// <summary>
-	        /// Port
-	        /// </summary>
-	        public static int server_port = 64530;
-			public static int server_ssl = 22432;
-		}
-		
-		public class Debugging
-		{
-			public static int verbosity = 0;
-		}
+        public class Network
+        {
+            /// <summary>
+            /// Port
+            /// </summary>
+            public static int server_port = 64530;
+            public static int server_ssl = 22432;
+        }
+        
+        public class Debugging
+        {
+            public static int verbosity = 0;
+        }
         
         public static string UserFile = "users";
 

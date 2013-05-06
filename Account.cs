@@ -23,63 +23,63 @@ namespace pidgeon_sv
 {
     public class SystemUser
     {
-		/// <summary>
-		/// List of active connections to services
-		/// </summary>
+        /// <summary>
+        /// List of active connections to services
+        /// </summary>
         public List<ProtocolMain> Clients = new List<ProtocolMain>();
-		/// <summary>
-		/// The username.
-		/// </summary>
+        /// <summary>
+        /// The username.
+        /// </summary>
         public string username = null;
-		/// <summary>
-		/// The password.
-		/// </summary>
+        /// <summary>
+        /// The password.
+        /// </summary>
         public string password = "";
-		/// <summary>
-		/// The nickname.
-		/// </summary>
+        /// <summary>
+        /// The nickname.
+        /// </summary>
         public string nickname = "PidgeonUser";
-		/// <summary>
-		/// The ident.
-		/// </summary>
+        /// <summary>
+        /// The ident.
+        /// </summary>
         public string ident = "pidgeon";
-		/// <summary>
-		/// The realname.
-		/// </summary>
+        /// <summary>
+        /// The realname.
+        /// </summary>
         public string realname = "http://pidgeonclient.org";
-		/// <summary>
-		/// The connected networks.
-		/// </summary>
+        /// <summary>
+        /// The connected networks.
+        /// </summary>
         public List<Network> ConnectedNetworks = new List<Network>();
-		/// <summary>
-		/// The messages.
-		/// </summary>
+        /// <summary>
+        /// The messages.
+        /// </summary>
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
         public DB data = null;
         public UserLevel Level = UserLevel.User;
         public bool Locked = false;
         // number of self messages of this user
         private int MessageCount = 0;
-		
-		/// <summary>
-		/// Initializes a new instance of the <see cref="pidgeon_sv.SystemUser"/> class.
-		/// </summary>
-		/// <param name='user'>
-		/// User
-		/// </param>
-		/// <param name='pw'>
-		/// Password
-		/// </param>
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="pidgeon_sv.SystemUser"/> class.
+        /// </summary>
+        /// <param name='user'>
+        /// User
+        /// </param>
+        /// <param name='pw'>
+        /// Password
+        /// </param>
         public SystemUser(string user, string pw, bool ro = false)
         {
             username = user;
             password = pw;
-			data = new DatabaseFile(this);
-			if (ro == false)
-			{
-	            Core.DebugLog("Cleaning DB for " + username);
-	            data.Clear();
-			}
+            data = new DatabaseFile(this);
+            if (ro == false)
+            {
+                Core.DebugLog("Cleaning DB for " + username);
+                data.Clear();
+            }
         }
 
         public void MessageBack(ProtocolMain.SelfData text, ProtocolMain connection = null)
@@ -228,13 +228,13 @@ namespace pidgeon_sv
                 Messages.Add(data);
             }
         }
-		
-		/// <summary>
-		/// Kicks the user
-		/// </summary>
-		/// <param name='user'>
-		/// User.
-		/// </param>
+        
+        /// <summary>
+        /// Kicks the user
+        /// </summary>
+        /// <param name='user'>
+        /// User.
+        /// </param>
         public static void KickUser(SystemUser user)
         {
             user.Locked = true;

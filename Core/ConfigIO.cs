@@ -45,17 +45,17 @@ namespace pidgeon_sv
                 SL("Loading users");
                 if (File.Exists(Config.UserFile))
                 {
-					if (!ro)
-					{
-	                    fs = new FileSystemWatcher();
-	                    fs.Path = Config.DatabaseFolder;
-	                    fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-	                    fs.Filter = "users";
-	                    fs.Changed += new FileSystemEventHandler(OnChanged);
-	                    fs.Created += new FileSystemEventHandler(OnChanged);
-	                    fs.Deleted += new FileSystemEventHandler(OnChanged);
-	                    fs.EnableRaisingEvents = true;
-					}
+                    if (!ro)
+                    {
+                        fs = new FileSystemWatcher();
+                        fs.Path = Config.DatabaseFolder;
+                        fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                        fs.Filter = "users";
+                        fs.Changed += new FileSystemEventHandler(OnChanged);
+                        fs.Created += new FileSystemEventHandler(OnChanged);
+                        fs.Deleted += new FileSystemEventHandler(OnChanged);
+                        fs.EnableRaisingEvents = true;
+                    }
                     XmlDocument configuration = new XmlDocument();
                     configuration.Load(Config.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
@@ -234,10 +234,10 @@ namespace pidgeon_sv
                         case "databasefolder":
                             Config.DatabaseFolder = curr.InnerText;
                             break;
-						case "server_port":
+                        case "server_port":
                             Config.Network.server_port = int.Parse(curr.InnerText);
                             break;
-						case "ChunkSize":
+                        case "ChunkSize":
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
@@ -249,9 +249,9 @@ namespace pidgeon_sv
                         case "ssl":
                             Config.UsingSSL = bool.Parse(curr.InnerText);
                             break;
-						case "server_ssl":
-							Config.Network.server_ssl = int.Parse(curr.InnerText);
-							break;
+                        case "server_ssl":
+                            Config.Network.server_ssl = int.Parse(curr.InnerText);
+                            break;
                     }
                 }
             }

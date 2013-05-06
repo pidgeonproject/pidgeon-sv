@@ -174,31 +174,31 @@ namespace pidgeon_sv
                 parseXml(curr);
             }
         }
-		
-		public void Disconnect()
-		{
-			if (!Connected)
-			{
-				return;
-			}
+        
+        public void Disconnect()
+        {
+            if (!Connected)
+            {
+                return;
+            }
             Connected = false;
 
             if (connection != null)
             {
                 connection.Disconnect();
             }
-		}
-		
+        }
+        
         public void Exit()
         {
             Disconnect();
-			lock (connection.account.Clients)
-			{
-				if (connection.account.Clients.Contains(this))
-				{
-					connection.account.Clients.Remove(this);
-				}
-			}
+            lock (connection.account.Clients)
+            {
+                if (connection.account.Clients.Contains(this))
+                {
+                    connection.account.Clients.Remove(this);
+                }
+            }
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace pidgeon_sv
 {
     public class Protocol
     {
-		public class NetworkMode
+        public class NetworkMode
     {
         /// <summary>
         /// Raw mode
@@ -168,7 +168,7 @@ namespace pidgeon_sv
             Network
         }
     }
-		
+        
         public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
         public int type = 0;
         public SystemUser owner = null;

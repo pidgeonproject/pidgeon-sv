@@ -29,38 +29,38 @@ namespace pidgeon_sv
 {
     public class Connection
     {
-		/// <summary>
-		/// The active users.
-		/// </summary>
+        /// <summary>
+        /// The active users.
+        /// </summary>
         public static List<Connection> ActiveUsers = new List<Connection>();
-		/// <summary>
-		/// The account.
-		/// </summary>
+        /// <summary>
+        /// The account.
+        /// </summary>
         public SystemUser account = null;
-		/// <summary>
-		/// The status.
-		/// </summary>
+        /// <summary>
+        /// The status.
+        /// </summary>
         public Status status = Status.WaitingPW;
-		/// <summary>
-		/// The client.
-		/// </summary>
+        /// <summary>
+        /// The client.
+        /// </summary>
         public System.Net.Sockets.TcpClient client = null;
-		/// <summary>
-		/// The _r.
-		/// </summary>
+        /// <summary>
+        /// The _r.
+        /// </summary>
         public System.IO.StreamReader _r = null;
-		/// <summary>
-		/// The _w.
-		/// </summary>
+        /// <summary>
+        /// The _w.
+        /// </summary>
         public System.IO.StreamWriter _w = null;
-		public bool SSL = true;
-		/// <summary>
-		/// The main.
-		/// </summary>
+        public bool SSL = true;
+        /// <summary>
+        /// The main.
+        /// </summary>
         public Thread main = null;
-		/// <summary>
-		/// The IP
-		/// </summary>
+        /// <summary>
+        /// The IP
+        /// </summary>
         public string IP;
         private ProtocolMain protocol;
         private bool Connected = false;
@@ -123,9 +123,9 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
         }
-		
-		public void Disconnect()
-		{
+        
+        public void Disconnect()
+        {
             lock (this)
             {
                 if (Connected)
@@ -145,27 +145,27 @@ namespace pidgeon_sv
                     }
                 }
             }
-		}
-		
-		public static void InitialiseClient(object data, bool SSL)
-		{
-			Connection connection = null;
+        }
+        
+        public static void InitialiseClient(object data, bool SSL)
+        {
+            Connection connection = null;
             try
-			{
-				string ssl = "";
-				if (SSL)
-				{
-					ssl = "SSL ";
-				}
+            {
+                string ssl = "";
+                if (SSL)
+                {
+                    ssl = "SSL ";
+                }
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
                 connection = new Connection();
                 Core.SL("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
-				connection.main = Thread.CurrentThread;
+                connection.main = Thread.CurrentThread;
                 connection.client = client;
                 connection.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
                 checker.Name = "watcher";
-				connection.SSL = SSL;
+                connection.SSL = SSL;
                 connection.Connected = true;
                 checker.Start(connection);
 
@@ -173,21 +173,21 @@ namespace pidgeon_sv
                 {
                     ActiveUsers.Add(connection);
                 }
-				
-				if (SSL)
-				{
+                
+                if (SSL)
+                {
                     X509Certificate cert = new X509Certificate2(Config.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
                     connection._w = new StreamWriter(_networkSsl);
                     connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
-				} else
-				{
-					System.Net.Sockets.NetworkStream ns = client.GetStream();
+                } else
+                {
+                    System.Net.Sockets.NetworkStream ns = client.GetStream();
                     connection._w = new StreamWriter(ns);
                     connection._r = new StreamReader(ns, Encoding.UTF8);
-				}
+                }
 
                 string text = connection._r.ReadLine();
 
@@ -246,33 +246,33 @@ namespace pidgeon_sv
             }
             catch (ThreadAbortException)
             {
-				if (connection != null)
-				{
-                	ConnectionClean(connection);
-				}
+                if (connection != null)
+                {
+                    ConnectionClean(connection);
+                }
                 return;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-				if (connection != null)
-				{
-                	ConnectionClean(connection);
-				}
+                if (connection != null)
+                {
+                    ConnectionClean(connection);
+                }
                 return;
             }
-		}
-		
+        }
+        
         public static void InitialiseClient(object data)
         {
             InitialiseClient (data, false);
         }
-		
-		public static void InitialiseClientSSL(object data)
+        
+        public static void InitialiseClientSSL(object data)
         {
             InitialiseClient (data, true);
         }
-		
+        
         /// <summary>
         /// Remove all data associated with the connection
         /// </summary>
@@ -282,7 +282,7 @@ namespace pidgeon_sv
             try
             {
                 Core.SL("Cleaning data for connection: " + connection.IP);
-				connection.Disconnect();
+                connection.Disconnect();
                 lock (ActiveUsers)
                 {
                     if (ActiveUsers.Contains(connection))
@@ -306,8 +306,8 @@ namespace pidgeon_sv
         {
             return true;
         }
-		
-		public enum Status
+        
+        public enum Status
         {
             WaitingPW,
             Connected,

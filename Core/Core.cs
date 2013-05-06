@@ -28,25 +28,25 @@ namespace pidgeon_sv
     public partial class Core
     {
         public static string[] startup;
-		public static Thread SSL;
-		private static bool running = true;
-		/// <summary>
-		/// The running.
-		/// </summary>
+        public static Thread SSL;
+        private static bool running = true;
+        /// <summary>
+        /// The running.
+        /// </summary>
         public static bool IsRunning
-		{
-			get
-			{
-				return true;
-			}
-		}
-		/// <summary>
-		/// Uptime
-		/// </summary>
+        {
+            get
+            {
+                return true;
+            }
+        }
+        /// <summary>
+        /// Uptime
+        /// </summary>
         public static DateTime StartedTime;
-		/// <summary>
-		/// List of all existing accounts in system
-		/// </summary>
+        /// <summary>
+        /// List of all existing accounts in system
+        /// </summary>
         public static List<SystemUser> _accounts = new List<SystemUser>();
         public static List<Thread> threads = new List<Thread>();
 
@@ -55,14 +55,14 @@ namespace pidgeon_sv
             SL("Killing all connections and running processes");
             foreach (Thread curr in threads)
             {
-				if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
-				{
-                	curr.Abort();
-				}
+                if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
+                {
+                    curr.Abort();
+                }
             }
             SL("Exiting");
         }
-		
+        
         public static void handleException(Exception reason, bool ThreadOK = false)
         {
             if (reason.GetType() == typeof(ThreadAbortException) && ThreadOK)
@@ -74,23 +74,23 @@ namespace pidgeon_sv
 
         public static void DebugLog(string text, int verbosity = 1)
         {
-			if (verbosity >= Config.Debugging.verbosity)
-			{
-            	SL("DEBUG: " + text);
-			}
+            if (verbosity >= Config.Debugging.verbosity)
+            {
+                SL("DEBUG: " + text);
+            }
         }
-		
-		/// <summary>
-		/// System log
-		/// </summary>
-		/// <param name='text'>
-		/// Text
-		/// </param>
+        
+        /// <summary>
+        /// System log
+        /// </summary>
+        /// <param name='text'>
+        /// Text
+        /// </param>
         public static void SL(string text)
         {
             Console.WriteLine(DateTime.Now.ToString() + ": " + text);
         }
-		
+        
         public static bool Init()
         {
             try
@@ -120,7 +120,7 @@ namespace pidgeon_sv
                 SL("Minimum buffer size: " + Config.minbs.ToString());
                 SL("Minimum chunk size: " + Config.ChunkSize.ToString());
                 SL("SSL is enabled: " + Config.UsingSSL.ToString());
-				SL("Port: " + Config.Network.server_ssl.ToString());
+                SL("Port: " + Config.Network.server_ssl.ToString());
 
                 SL("-----------------------------------------------------------");
 
@@ -150,13 +150,13 @@ namespace pidgeon_sv
             }
             return true;
         }
-		
-		public static void ListenS()
-		{
-			try
-			{
-				SL("Listening (SSL)");
-				System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_ssl);
+        
+        public static void ListenS()
+        {
+            try
+            {
+                SL("Listening (SSL)");
+                System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_ssl);
                 server.Start();
 
                 while (running)
@@ -169,25 +169,25 @@ namespace pidgeon_sv
                         _client.Start(connection);
                         System.Threading.Thread.Sleep(200);
                     }
-					catch (ThreadAbortException)
-					{
-						return;
-					}
+                    catch (ThreadAbortException)
+                    {
+                        return;
+                    }
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
                     }
                 }
-			}catch (ThreadAbortException)
-			{
-				return;
-			}
-			catch (Exception fail)
-			{
-				Core.handleException(fail);
-			}
-		}
-		
+            }catch (ThreadAbortException)
+            {
+                return;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+            }
+        }
+        
         public static void Listen()
         {
             try
