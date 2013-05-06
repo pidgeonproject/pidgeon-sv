@@ -95,19 +95,19 @@ namespace pidgeon_sv
         public List<char> SModes = new List<char> { 'k', 'L' };
         public List<char> XModes = new List<char> { 'l' };
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
-		public string id = null;
+        public string id = null;
         private bool destroyed = false;
 
         public string channel_prefix = "#";
-		
-		public bool IsConnected
-		{
-			get
-			{
-				return Connected;
-			}
-		}
-		
+        
+        public bool IsConnected
+        {
+            get
+            {
+                return Connected;
+            }
+        }
+        
         public Channel getChannel(string name)
         {
             lock (Channels)
@@ -168,7 +168,7 @@ namespace pidgeon_sv
             Disconnect();
             lock (Channels)
             {
-				foreach (Channel xx in Channels)
+                foreach (Channel xx in Channels)
                 {
                     xx.Destroy();
                 }
@@ -187,7 +187,7 @@ namespace pidgeon_sv
         {
             server = Server;
             _protocol = sv;
-			id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
+            id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
             quit = "Pidgeon service - http://pidgeonclient.org";
             CreateChat("!system", true);
         }

@@ -192,15 +192,15 @@ namespace pidgeon_sv
                 return destroyed;
             }
         }
-		
-		/// <summary>
-		/// Initializes a new instance of the <see cref="pidgeon_sv.Channel"/> class.
-		/// </summary>
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="pidgeon_sv.Channel"/> class.
+        /// </summary>
         public Channel()
         {
             ChannelWork = true;
         }
-		
+        
         public bool containsUser(string user)
         {
             lock (UserList)
@@ -230,8 +230,8 @@ namespace pidgeon_sv
             }
             return false;
         }
-		
-		public void Destroy()
+        
+        public void Destroy()
         {
             if (IsDestroyed)
             {
@@ -273,7 +273,7 @@ namespace pidgeon_sv
                 }
             }
         }
-		
+        
         public User userFromName(string name)
         {
             foreach (User item in UserList)

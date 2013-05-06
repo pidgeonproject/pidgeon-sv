@@ -133,11 +133,11 @@ namespace pidgeon_sv
                 keep.Start();
 
             }
-			catch (ThreadAbortException)
-			{
-				// shutting down
-				return;	
-			}
+            catch (ThreadAbortException)
+            {
+                // shutting down
+                return; 
+            }
             catch (Exception b)
             {
                 ProtocolMain.Datagram dt = new ProtocolMain.Datagram("CONNECTION", "PROBLEM");
