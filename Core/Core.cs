@@ -72,7 +72,7 @@ namespace pidgeon_sv
             SL("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
-        public static void DebugLog(string text, int verbosity = 0)
+        public static void DebugLog(string text, int verbosity = 1)
         {
 			if (verbosity >= Config.Debugging.verbosity)
 			{
@@ -155,6 +155,7 @@ namespace pidgeon_sv
 		{
 			try
 			{
+				SL("Listening (SSL)");
 				System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_ssl);
                 server.Start();
 
@@ -163,7 +164,7 @@ namespace pidgeon_sv
                     try
                     {
                         System.Net.Sockets.TcpClient connection = server.AcceptTcpClient();
-                        Thread _client = new Thread(Connection.InitialiseClient);
+                        Thread _client = new Thread(Connection.InitialiseClientSSL);
                         threads.Add(_client);
                         _client.Start(connection);
                         System.Threading.Thread.Sleep(200);

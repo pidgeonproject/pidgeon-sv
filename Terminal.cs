@@ -61,7 +61,7 @@ namespace pidgeon_sv
                               + "\n"
                               + "  -h (--help) display this help\n"
                               + "  -a (--add) insert user\n"
-                              + "  -l (--list) display this help\n"
+                              + "  -l (--list) list user\n"
                               + "  -v increase verbosity\n"
 			                  + "  -d (--delete) remove user\n"
                               + "\n"
@@ -95,7 +95,7 @@ namespace pidgeon_sv
 
         private static void CreateUser(Parameter parameter)
         {
-            Core.LoadUser();
+            Core.LoadUser(true);
             Console.Write("Enter username: ");
             string username;
             username = Console.ReadLine();
@@ -150,7 +150,7 @@ namespace pidgeon_sv
 
         private static void DeleteUser(Parameter parameter)
         {
-            Core.LoadUser();
+            Core.LoadUser(true);
             string username;
             Console.WriteLine("Enter user to delete: ");
             username = Console.ReadLine();
@@ -167,7 +167,7 @@ namespace pidgeon_sv
 
         private static void ListUser()
         {
-            Core.LoadUser();
+            Core.LoadUser(true);
             if (Core._accounts.Count == 0)
             {
                 return;

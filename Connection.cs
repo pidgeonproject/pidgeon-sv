@@ -53,6 +53,7 @@ namespace pidgeon_sv
 		/// The _w.
 		/// </summary>
         public System.IO.StreamWriter _w = null;
+		public bool SSL = true;
 		/// <summary>
 		/// The main.
 		/// </summary>
@@ -146,19 +147,25 @@ namespace pidgeon_sv
             }
 		}
 		
-        public static void InitialiseClient(object data)
-        {
-            Connection connection = null;
+		public static void InitialiseClient(object data, bool SSL)
+		{
+			Connection connection = null;
             try
-            {
+			{
+				string ssl = "";
+				if (SSL)
+				{
+					ssl = "SSL ";
+				}
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
-                connection.main = Thread.CurrentThread;
                 connection = new Connection();
-                Core.SL("Opening a new connection to " + client.Client.RemoteEndPoint.ToString());
+                Core.SL("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
+				connection.main = Thread.CurrentThread;
                 connection.client = client;
                 connection.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
                 checker.Name = "watcher";
+				connection.SSL = SSL;
                 connection.Connected = true;
                 checker.Start(connection);
 
@@ -166,106 +173,21 @@ namespace pidgeon_sv
                 {
                     ActiveUsers.Add(connection);
                 }
-
-                    System.Net.Sockets.NetworkStream ns = client.GetStream();
-                    connection._w = new StreamWriter(ns);
-                    connection._r = new StreamReader(ns, Encoding.UTF8);
-
-                string text = connection._r.ReadLine();
-
-                connection.protocol = new ProtocolMain(connection);
-                while (connection.IsConnected && !connection._r.EndOfStream)
-                {
-                    try
-                    {
-                        text = connection._r.ReadLine();
-                        if (text == "")
-                        {
-                            continue;
-                        }
-
-                        if (ProtocolMain.Valid(text))
-                        {
-                            connection.protocol.parseCommand(text);
-                            continue;
-                        }
-                        else
-                        {
-                            Core.SL("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
-                            System.Threading.Thread.Sleep(800);
-                        }
-                    }
-                    catch (IOException)
-                    {
-                        Core.SL("Connection closed: " + connection.IP);
-                        connection.protocol.Exit();
-                        connection.Connected = false;
-                        ConnectionClean(connection);
-                        return;
-
-                    }
-                    catch (ThreadAbortException)
-                    {
-                        connection.protocol.Exit();
-                        connection.Connected = false;
-                        ConnectionClean(connection);
-                        return;
-                    }
-                    catch (Exception fail)
-                    {
-                        Core.handleException(fail);
-                    }
-                }
-                Core.SL("Connection closed by remote: " + connection.IP);
-                connection.protocol.Exit();
-                ConnectionClean(connection);
-            }
-            catch (System.IO.IOException)
-            {
-                Core.SL("Connection closed: " + connection.IP);
-                ConnectionClean(connection);
-                return;
-            }
-            catch (ThreadAbortException)
-            {
-                ConnectionClean(connection);
-                return;
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-                ConnectionClean(connection);
-                return;
-            }
-        }
-		
-		public static void InitialiseClientSSL(object data)
-        {
-            Connection connection = null;
-            try
-            {
-                System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
-                connection.main = Thread.CurrentThread;
-                connection = new Connection();
-                Core.SL("Opening a new connection to " + client.Client.RemoteEndPoint.ToString());
-                connection.client = client;
-                connection.IP = client.Client.RemoteEndPoint.ToString();
-                Thread checker = new Thread(ConnectionKiller);
-                checker.Name = "watcher";
-                connection.Connected = true;
-                checker.Start(connection);
-
-                lock (ActiveUsers)
-                {
-                    ActiveUsers.Add(connection);
-                }
-
+				
+				if (SSL)
+				{
                     X509Certificate cert = new X509Certificate2(Config.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
                     connection._w = new StreamWriter(_networkSsl);
                     connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
+				} else
+				{
+					System.Net.Sockets.NetworkStream ns = client.GetStream();
+                    connection._w = new StreamWriter(ns);
+                    connection._r = new StreamReader(ns, Encoding.UTF8);
+				}
 
                 string text = connection._r.ReadLine();
 
@@ -324,15 +246,31 @@ namespace pidgeon_sv
             }
             catch (ThreadAbortException)
             {
-                ConnectionClean(connection);
+				if (connection != null)
+				{
+                	ConnectionClean(connection);
+				}
                 return;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                ConnectionClean(connection);
+				if (connection != null)
+				{
+                	ConnectionClean(connection);
+				}
                 return;
             }
+		}
+		
+        public static void InitialiseClient(object data)
+        {
+            InitialiseClient (data, false);
+        }
+		
+		public static void InitialiseClientSSL(object data)
+        {
+            InitialiseClient (data, true);
         }
 		
         /// <summary>

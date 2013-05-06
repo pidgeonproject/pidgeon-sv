@@ -38,21 +38,24 @@ namespace pidgeon_sv
         /// <summary>
         /// Load all user data and info
         /// </summary>
-        public static void LoadUser()
+        public static void LoadUser(bool ro = false)
         {
             try
             {
                 SL("Loading users");
                 if (File.Exists(Config.UserFile))
                 {
-                    fs = new FileSystemWatcher();
-                    fs.Path = Config.DatabaseFolder;
-                    fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                    fs.Filter = "users";
-                    fs.Changed += new FileSystemEventHandler(OnChanged);
-                    fs.Created += new FileSystemEventHandler(OnChanged);
-                    fs.Deleted += new FileSystemEventHandler(OnChanged);
-                    fs.EnableRaisingEvents = true;
+					if (!ro)
+					{
+	                    fs = new FileSystemWatcher();
+	                    fs.Path = Config.DatabaseFolder;
+	                    fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+	                    fs.Filter = "users";
+	                    fs.Changed += new FileSystemEventHandler(OnChanged);
+	                    fs.Created += new FileSystemEventHandler(OnChanged);
+	                    fs.Deleted += new FileSystemEventHandler(OnChanged);
+	                    fs.EnableRaisingEvents = true;
+					}
                     XmlDocument configuration = new XmlDocument();
                     configuration.Load(Config.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
@@ -124,7 +127,7 @@ namespace pidgeon_sv
                             if (line == null)
                             {
                                 Nonexistent = true;
-                                line = new SystemUser(name, password);
+                                line = new SystemUser(name, password, ro);
                             }
                             line.password = password;
                             line.nickname = nickname;
@@ -231,10 +234,10 @@ namespace pidgeon_sv
                         case "databasefolder":
                             Config.DatabaseFolder = curr.InnerText;
                             break;
-						case "Config.Network.server_port":
+						case "server_port":
                             Config.Network.server_port = int.Parse(curr.InnerText);
                             break;
-						case "Config.ChunkSize":
+						case "ChunkSize":
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
@@ -246,7 +249,7 @@ namespace pidgeon_sv
                         case "ssl":
                             Config.UsingSSL = bool.Parse(curr.InnerText);
                             break;
-						case "Config.Network.server_ssl":
+						case "server_ssl":
 							Config.Network.server_ssl = int.Parse(curr.InnerText);
 							break;
                     }

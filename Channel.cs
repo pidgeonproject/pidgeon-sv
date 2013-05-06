@@ -153,7 +153,7 @@ namespace pidgeon_sv
         /// Channel mode
         /// </summary>
         //[NonSerialized]
-        public Protocol.NetworkMode _mode = null;
+        public Protocol.NetworkMode _mode = new Protocol.NetworkMode();
         /// <summary>
         /// If true the window is considered usable, in case it's false, the window is flagged as parted channel
         /// </summary>

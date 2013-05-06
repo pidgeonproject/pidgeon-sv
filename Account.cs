@@ -70,13 +70,16 @@ namespace pidgeon_sv
 		/// <param name='pw'>
 		/// Password
 		/// </param>
-        public SystemUser(string user, string pw)
+        public SystemUser(string user, string pw, bool ro = false)
         {
             username = user;
             password = pw;
-            data = new DatabaseFile(this);
-            Core.DebugLog("Cleaning DB for " + username);
-            data.Clear();
+			data = new DatabaseFile(this);
+			if (ro == false)
+			{
+	            Core.DebugLog("Cleaning DB for " + username);
+	            data.Clear();
+			}
         }
 
         public void MessageBack(ProtocolMain.SelfData text, ProtocolMain connection = null)
