@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ "`id pidgeonsv | wc -l`" -eq 0 ];then
+	echo "Creating a service account for pidgeon services"
+	useradd -r pidgeonsv || exit 1
+fi
+
+if [ ! -d "/usr/share/pidgeonsv/data" ];
+	mkdir "/usr/share/pidgeonsv/data" || exit 1
+fi
+
+if [ ! -d "/usr/share/pidgeonsv/db" ];
+	mkdir "/usr/share/pidgeonsv/db" || exit 1
+fi
+
+chown -R pidgeonsv "/usr/share/pidgeonsv/"
+
+exit 0
