@@ -152,7 +152,8 @@ namespace pidgeon_sv
         {
             Core.LoadUser(true);
             string username;
-            Console.WriteLine("Enter user to delete: ");
+            Console.Write("WARNING: if you delete a user, the running process will not recognize it, if you want to delete the user on-line, you must lock it and remove it before restarting the daemon\n\n");
+            Console.Write("Enter user to delete: ");
             username = Console.ReadLine();
             SystemUser user = SystemUser.getUser(username);
             if (user != null)

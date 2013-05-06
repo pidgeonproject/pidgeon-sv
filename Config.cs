@@ -30,63 +30,64 @@ namespace pidgeon_sv
 	        /// </summary>
 	        public static int server_port = 64530;
 			public static int server_ssl = 22432;
+            public static bool UsingSSL = true;
 		}
 		
 		public class Debugging
 		{
 			public static int verbosity = 0;
 		}
-        
-        public static string UserFile = "users";
 
-        public static readonly string File = "pidgeon.conf";
-
-        /// <summary>
-        /// This is a minimal size of one chunk before it's written to storage, to free a memory
-        /// </summary>
-        public static int ChunkSize = 200;
-
-        /// <summary>
-        /// This is a maximal size of one chunk. If it's not 0 system will freeze in case that current buffer - minbs will be more than this value.
-        /// </summary>
-        public static int MaxFileChunkSize = 0;
-
-        /// <summary>
-        /// If this is true all users with unknown user level will be considered as root
-        /// </summary>
-        public static bool Rooted = true;
-
-        public static bool UsingSSL = true;
-
-        public static int MaxSM = 100;
-
-        /// <summary>
-        /// Maximum buffer size before flush
-        /// </summary>
-        public static int maxbs
+        public class _System
         {
-            get
+            public static string UserFile = "users";
+
+            public static readonly string File = "pidgeon.conf";
+
+            /// <summary>
+            /// This is a minimal size of one chunk before it's written to storage, to free a memory
+            /// </summary>
+            public static int ChunkSize = 200;
+
+            /// <summary>
+            /// This is a maximal size of one chunk. If it's not 0 system will freeze in case that current buffer - minbs will be more than this value.
+            /// </summary>
+            public static int MaxFileChunkSize = 0;
+
+            /// <summary>
+            /// If this is true all users with unknown user level will be considered as root
+            /// </summary>
+            public static bool Rooted = false;
+
+            public static int MaxSM = 100;
+
+            /// <summary>
+            /// Maximum buffer size before flush
+            /// </summary>
+            public static int maxbs
             {
-                return minbs + ChunkSize;
+                get
+                {
+                    return minbs + ChunkSize;
+                }
             }
-        }
+            public static string DatabaseFolder = "db";
 
-        public static string DatabaseFolder = "db";
+            public static string FileDBDefaultFolder = "data";
 
-        public static string FileDBDefaultFolder = "data";
+            public static string CertificatePath = "server.pfx";
 
-        public static string CertificatePath = "server.pfx";
+            /// <summary>
+            /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
+            /// </summary>
+            public static int minbs = 800;
 
-        /// <summary>
-        /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
-        /// </summary>
-        public static int minbs = 800;
-
-        public static string version
-        {
-            get
+            public static string version
             {
-                return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                get
+                {
+                    return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                }
             }
         }
     }

@@ -74,7 +74,7 @@ namespace pidgeon_sv
 
         public static void DebugLog(string text, int verbosity = 1)
         {
-			if (verbosity >= Config.Debugging.verbosity)
+			if (verbosity <= Config.Debugging.verbosity)
 			{
             	SL("DEBUG: " + text);
 			}
@@ -100,26 +100,26 @@ namespace pidgeon_sv
 
                 LoadConf();
 
-                if (!File.Exists(Config.CertificatePath) && Config.UsingSSL)
+                if (!File.Exists(Config._System.CertificatePath) && Config.Network.UsingSSL)
                 {
                     SL("There is no certificate file, creating one now");
-                    certificate(Config.CertificatePath, "pidgeonclient.org");
+                    certificate(Config._System.CertificatePath, "pidgeonclient.org");
                 }
 
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
                 SL("Port: " + Config.Network.server_port.ToString());
-                if (Config.MaxFileChunkSize == 0)
+                if (Config._System.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");
                 }
                 else
                 {
-                    SL("Maximum file chunk size: " + Config.MaxFileChunkSize.ToString());
+                    SL("Maximum file chunk size: " + Config._System.MaxFileChunkSize.ToString());
                 }
-                SL("Minimum buffer size: " + Config.minbs.ToString());
-                SL("Minimum chunk size: " + Config.ChunkSize.ToString());
-                SL("SSL is enabled: " + Config.UsingSSL.ToString());
+                SL("Minimum buffer size: " + Config._System.minbs.ToString());
+                SL("Minimum chunk size: " + Config._System.ChunkSize.ToString());
+                SL("SSL is enabled: " + Config.Network.UsingSSL.ToString());
 				SL("Port: " + Config.Network.server_ssl.ToString());
 
                 SL("-----------------------------------------------------------");
@@ -178,7 +178,8 @@ namespace pidgeon_sv
                         Core.handleException(fail);
                     }
                 }
-			}catch (ThreadAbortException)
+			}
+            catch (ThreadAbortException)
 			{
 				return;
 			}

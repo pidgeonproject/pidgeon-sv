@@ -39,7 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Account.cs" />
+    <Compile Include="SystemUser.cs" />
     <Compile Include="Certificate.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="Config.cs" />

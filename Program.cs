@@ -33,7 +33,7 @@ namespace pidgeon_sv
                 Core.startup = args;
                 data = new List<string>();
                 data.AddRange(args);
-                Config.UserFile = Config.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+                Config._System.UserFile = Config._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
                 if (!Directory.Exists("db"))
                 {
@@ -45,7 +45,7 @@ namespace pidgeon_sv
                     {
                         return;
                     }
-					if (Config.UsingSSL)
+					if (Config.Network.UsingSSL)
 					{
 						Core.SSL = new System.Threading.Thread(Core.ListenS);
 						Core.SSL.Start();
