@@ -93,7 +93,7 @@ namespace pidgeon_sv
                 }
                 ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);
                 data.Parameters.Add("nick", text.nick);
-                data.Parameters.Add("network", text.network.server);
+                data.Parameters.Add("network", text.network.ServerName);
                 data.Parameters.Add("time", text.time.ToBinary().ToString());
                 data.Parameters.Add("target", text.target);
                 data.Parameters.Add("MQID", text.MQID.ToString());
@@ -130,7 +130,7 @@ namespace pidgeon_sv
             {
                 foreach (Network servername in ConnectedNetworks)
                 {
-                    if (servername.server == name)
+                    if (servername.ServerName == name)
                     {
                         return servername;
                     }
@@ -182,9 +182,9 @@ namespace pidgeon_sv
                 server.SSL = ssl;
                 Network networkid = new Network(network, server);
                 networkid.nickname = nickname;
-                networkid.ident = ident;
-                networkid.username = realname;
-                networkid.quit = "http://pidgeonclient.org";
+                networkid.Ident = ident;
+                networkid.UserName = realname;
+                networkid.Quit = "http://pidgeonclient.org";
                 lock (ConnectedNetworks)
                 {
                     ConnectedNetworks.Add(networkid);
@@ -211,7 +211,7 @@ namespace pidgeon_sv
                 {
                     if (xx.MQID > mqid)
                     {
-                        if (xx.network.server == _protocol.Server)
+                        if (xx.network.ServerName == _protocol.Server)
                         {
                             MessageBack(xx, protocol);
                         }
@@ -246,7 +246,7 @@ namespace pidgeon_sv
                 foreach (Network network in networks)
                 {
                     // disconnect from all irc networks
-                    network._protocol.Exit();
+                    network._Protocol.Exit();
                 }
             }
 
@@ -322,7 +322,7 @@ namespace pidgeon_sv
             {
                 foreach (Network curr in ConnectedNetworks)
                 {
-                    if (network == curr.server)
+                    if (network == curr.ServerName)
                     {
                         return true;
                     }

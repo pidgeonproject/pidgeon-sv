@@ -68,43 +68,147 @@ namespace pidgeon_sv
             return "+" + _char.ToString();
         }
     }
-
-    public class WindowObject
-    {
-        public string name = null;
-        public bool writable = false;
-    }
     
     public class Network
     {
-        public bool Connected = false;
-        public List<User> PrivateChat = new List<User>();
-        public string server = null;
-        public Protocol.NetworkMode usermode = new Protocol.NetworkMode();
-        public string username = null;
-        public List<Channel> Channels = new List<Channel>();
-        public string nickname = null;
-        public string ident = null;
-        public string quit;
-        public Protocol _protocol = null;
-        public List<WindowObject> windows = new List<WindowObject>();
+        /// <summary>
+        /// Message that is shown to users when you are away
+        /// </summary>
+        public string AwayMessage = null;
+        /// <summary>
+        /// User modes
+        /// </summary>
         public List<char> UModes = new List<char> { 'i', 'w', 'o', 'Q', 'r', 'A' };
+        /// <summary>
+        /// Channel user symbols (oper and such)
+        /// </summary>
         public List<char> UChars = new List<char> { '~', '&', '@', '%', '+' };
+        /// <summary>
+        /// Channel user modes
+        /// </summary>
         public List<char> CUModes = new List<char> { 'q', 'a', 'o', 'h', 'v' };
+        /// <summary>
+        /// Channel modes
+        /// </summary>
         public List<char> CModes = new List<char> { 'n', 'r', 't', 'm' };
+        /// <summary>
+        /// Special channel modes with parameter as a string
+        /// </summary>
         public List<char> SModes = new List<char> { 'k', 'L' };
+        /// <summary>
+        /// Special channel modes with parameter as a number
+        /// </summary>
         public List<char> XModes = new List<char> { 'l' };
+        /// <summary>
+        /// Special channel user modes with parameters as a string
+        /// </summary>
         public List<char> PModes = new List<char> { 'b', 'I', 'e' };
-        public string id = null;
-        private bool destroyed = false;
-
+        /// <summary>
+        /// Descriptions for channel and user modes
+        /// </summary>
+        public Dictionary<char, string> Descriptions = new Dictionary<char, string>();
+        /// <summary>
+        /// Check if the info is parsed
+        /// </summary>
+        public bool parsed_info = false;
+        /// <summary>
+        /// Symbol prefix of channels
+        /// </summary>
         public string channel_prefix = "#";
-        
+        /// <summary>
+        /// List of private message windows
+        /// </summary>
+        public List<User> PrivateChat = new List<User>();
+        /// <summary>
+        /// Host name of server
+        /// </summary>
+        public string ServerName = null;
+        /// <summary>
+        /// User mode of current user
+        /// </summary>
+        public Protocol.NetworkMode usermode = new Protocol.NetworkMode();
+        /// <summary>
+        /// User name (real name)
+        /// </summary>
+        public string UserName = null;
+        /// <summary>
+        /// Randomly generated ID for this network to make it unique in case some other network would share the name
+        /// </summary>
+        public string randomuqid = null;
+        /// <summary>
+        /// List of all channels on network
+        /// </summary>
+        public List<Channel> Channels = new List<Channel>();
+        /// <summary>
+        /// Currently rendered channel on main window
+        /// </summary>
+        public Channel RenderedChannel = null;
+        /// <summary>
+        /// Nickname of this user
+        /// </summary>
+        public string nickname = null;
+        /// <summary>
+        /// Identification of user
+        /// </summary>
+        public string Ident = "pidgeon";
+        /// <summary>
+        /// Quit message
+        /// </summary>
+        public string Quit = null;
+        /// <summary>
+        /// Protocol
+        /// </summary>
+        public Protocol _Protocol = null;
+        /// <summary>
+        /// Specifies whether this network is using SSL connection
+        /// </summary>
+        public bool isSecure = false;
+        /// <summary>
+        /// If true, the channel data will be suppressed in system window
+        /// </summary>
+        public bool SuppressData = false;
+        /// <summary>
+        /// This is true when network is just parsing the list of all channels
+        /// </summary>
+        public bool DownloadingList = false;
+        /// <summary>
+        /// If the system already attempted to change the nick
+        /// </summary>
+        public bool usingNick2 = false;
+        /// <summary>
+        /// Whether user is away
+        /// </summary>
+        public bool IsAway = false;
+        /// <summary>
+        /// Whether this network is fully loaded
+        /// </summary>
+        public bool isLoaded = false;
+        /// <summary>
+        /// Version of ircd running on this network
+        /// </summary>
+        public string IrcdVersion = null;
+        public string id = null;
+        public bool Connected = false;
+        /// <summary>
+        /// Specifies if you are connected to network
+        /// </summary>
         public bool IsConnected
         {
             get
             {
                 return Connected;
+            }
+        }
+        private bool isDestroyed = false;
+        /// <summary>
+        /// This will return true in case object was requested to be disposed
+        /// you should never work with objects that return true here
+        /// </summary>
+        public bool IsDestroyed
+        {
+            get
+            {
+                return isDestroyed;
             }
         }
         
@@ -123,17 +227,6 @@ namespace pidgeon_sv
             return null;
         }
 
-        public void CreateChat(string _name, bool _Focus, bool _writable = false, bool channelw = false)
-        {
-            WindowObject w = new WindowObject();
-            w.name = _name;
-            w.writable = _writable;
-            lock (windows)
-            {
-                windows.Add(w);
-            }
-        }
-
         /// <summary>
         /// Create pm
         /// </summary>
@@ -142,7 +235,6 @@ namespace pidgeon_sv
         {
             User u = new User(user, "", this, "");
             PrivateChat.Add(u);
-            CreateChat(user, true, true);
             return;
         }
 
@@ -155,13 +247,12 @@ namespace pidgeon_sv
             {
                 Channels.Add(_channel);
             }
-            CreateChat(channel, true, true, true);
             return _channel;
         }
 
         public void Destroy()
         {
-            if (destroyed)
+            if (IsDestroyed)
             {
                 return;
             }
@@ -174,8 +265,8 @@ namespace pidgeon_sv
                 }
                 Channels.Clear();
             }
-            _protocol = null;
-            destroyed = true;
+            _Protocol = null;
+            isDestroyed = true;
         }
 
         public bool ShowChat(string name)
@@ -185,24 +276,20 @@ namespace pidgeon_sv
 
         public Network(string Server, Protocol sv)
         {
-            server = Server;
-            _protocol = sv;
+            ServerName = Server;
+            _Protocol = sv;
             id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
-            quit = "Pidgeon service - http://pidgeonclient.org";
-            CreateChat("!system", true);
+            Quit = "Pidgeon service - http://pidgeonclient.org";
         }
 
         ~Network()
         {
-            Core.DebugLog("Destructor called for network " + server);
+            Core.DebugLog("Destructor called for network " + ServerName);
         }
 
         public void Disconnect()
         {
-            lock (windows)
-            {
-                windows.Clear();
-            }
+            Connected = false;
         }
     }
 }

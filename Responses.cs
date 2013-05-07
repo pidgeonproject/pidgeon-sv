@@ -62,11 +62,6 @@ namespace pidgeon_sv
             {
                 string server = node.Attributes[0].Value;
                 string priority = "Normal";
-                int depth = 0;
-                if (node.Attributes.Count > 2)
-                {
-                    depth = int.Parse(node.Attributes[2].Value);
-                }
                 ProtocolIrc.Priority Priority = ProtocolIrc.Priority.Normal;
                 if (node.Attributes.Count > 1)
                 {
@@ -84,11 +79,7 @@ namespace pidgeon_sv
                 if (protocol.connection.account.containsNetwork(server))
                 {
                     Network network = protocol.connection.account.retrieveServer(server);
-                    if (depth > 0)
-                    {
-
-                    }
-                    network._protocol.Transfer(node.InnerText, Priority);
+                    network._Protocol.Transfer(node.InnerText, Priority);
                 }
             }
         }
@@ -98,16 +89,16 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             if (node.Attributes.Count > 0)
             {
-                Network b008 = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
-                if (b008 != null)
+                Network network = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
+                if (network != null)
                 {
-                    response = new ProtocolMain.Datagram("NICK", b008.nickname);
-                    response.Parameters.Add("network", b008.server);
+                    response = new ProtocolMain.Datagram("NICK", network.nickname);
+                    response.Parameters.Add("network", network.ServerName);
                     protocol.Deliver(response);
                     return;
                 }
                 response = new ProtocolMain.Datagram("NICK", "UNKNOWN");
-                response.Parameters.Add("network", b008.server);
+                response.Parameters.Add("network", network.ServerName);
                 response.Parameters.Add("failure", "failure");
                 protocol.Deliver(response);
             }
@@ -122,7 +113,7 @@ namespace pidgeon_sv
                 {
                     int from = int.Parse(node.Attributes[1].Value);
                     int to = int.Parse(node.Attributes[2].Value);
-                    ProtocolIrc _protocol = (ProtocolIrc)network._protocol;
+                    ProtocolIrc _protocol = (ProtocolIrc)network._Protocol;
                     _protocol.getRange(protocol, from, to);
                 }
                 else
@@ -148,7 +139,7 @@ namespace pidgeon_sv
                     {
                         mqid = int.Parse(node.Attributes[2].Value);
                     }
-                    ProtocolIrc _protocol = (ProtocolIrc)network._protocol;
+                    ProtocolIrc _protocol = (ProtocolIrc)network._Protocol;
                     _protocol.getDepth(int.Parse(node.Attributes[1].Value), protocol, mqid);
                     protocol.connection.account.MessageBacklog(mqid, _protocol, protocol);
                 }
@@ -166,7 +157,12 @@ namespace pidgeon_sv
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config._System.version + " supported mode=ns I have " + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() + "kb private and " + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config._System.version + " I have " 
+                + Connection.ActiveUsers.Count.ToString() + " connections, process info: memory usage " 
+                + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
+                + "kb private and " 
+                + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() 
+                + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
 
             protocol.Deliver(response);
         }
@@ -224,7 +220,7 @@ namespace pidgeon_sv
                 protocol.Deliver(response);
                 return;
             }
-            ProtocolIrc IRC = (ProtocolIrc)network._protocol;
+            ProtocolIrc IRC = (ProtocolIrc)network._Protocol;
             IRC.Exit();
             lock (protocol.connection.account.ConnectedNetworks)
             {
@@ -266,10 +262,10 @@ namespace pidgeon_sv
                             Priority = ProtocolIrc.Priority.High;
                             break;
                     }
-                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._protocol.getMQID());
+                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._Protocol.getMQID());
                     protocol.connection.account.Message(data);
                     protocol.connection.account.MessageBack(data);
-                    network._protocol.Message(node.InnerText, target, Priority);
+                    network._Protocol.Message(node.InnerText, target, Priority);
                 }
                 else
                 {
@@ -331,7 +327,7 @@ namespace pidgeon_sv
             {
                 foreach (Network current_net in protocol.connection.account.ConnectedNetworks)
                 {
-                    networks += current_net.server + "|";
+                    networks += current_net.ServerName + "|";
                     id += current_net.id + "|";
                 }
             }

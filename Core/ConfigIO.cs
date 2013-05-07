@@ -239,7 +239,7 @@ namespace pidgeon_sv
 
         public static void LoadConf()
         {
-            if (!File.Exists(Config._System.File))
+            if (!File.Exists(Config._System.ConfigurationFile))
             {
                 SL("WARNING: there is no configuration file");
                 return;
@@ -247,7 +247,7 @@ namespace pidgeon_sv
             else
             {
                 XmlDocument config = new XmlDocument();
-                config.Load(Config._System.File);
+                config.Load(Config._System.ConfigurationFile);
                 foreach (XmlNode curr in config.ChildNodes[0].ChildNodes)
                 {
                     int value = 0;

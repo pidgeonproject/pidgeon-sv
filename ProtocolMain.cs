@@ -27,6 +27,10 @@ namespace pidgeon_sv
     {
         public class Datagram
         {
+            public string _InnerText;
+            public string _Datagram;
+            public Dictionary<string, string> Parameters = new Dictionary<string, string>();
+
             /// <summary>
             /// Constructor
             /// </summary>
@@ -73,10 +77,6 @@ namespace pidgeon_sv
 
                 return datagram;
             }
-
-            public string _InnerText;
-            public string _Datagram;
-            public Dictionary<string, string> Parameters = new Dictionary<string, string>();
         }
 
         public class SelfData
@@ -113,7 +113,7 @@ namespace pidgeon_sv
                 Time.Value = time.ToBinary().ToString();
                 b1.Attributes.Append(Time);
                 XmlAttribute nw = datagram.CreateAttribute("network");
-                nw.Value = network.server;
+                nw.Value = network.ServerName;
                 b1.Attributes.Append(nw);
                 XmlAttribute Target = datagram.CreateAttribute("tg");
                 Target.Value = target;
@@ -337,17 +337,17 @@ namespace pidgeon_sv
             }
             try
             {
-                lock (connection._w)
+                lock (connection._StreamWriter)
                 {
                     if (!TrafficChunks)
                     {
-                        connection._w.WriteLine(text);
+                        connection._StreamWriter.WriteLine(text);
                         if (TrafficChunk != "")
                         {
-                            connection._w.WriteLine(TrafficChunk);
+                            connection._StreamWriter.WriteLine(TrafficChunk);
                             TrafficChunk = "";
                         }
-                        connection._w.Flush();
+                        connection._StreamWriter.Flush();
                         return true;
                     }
                     else
@@ -357,8 +357,8 @@ namespace pidgeon_sv
                             TrafficChunk += text + "\n";
                             if (TrafficChunk.Length > 2000 || Enforced)
                             {
-                                connection._w.WriteLine(TrafficChunk);
-                                connection._w.Flush();
+                                connection._StreamWriter.WriteLine(TrafficChunk);
+                                connection._StreamWriter.Flush();
                                 TrafficChunk = "";
                             }
                         }

@@ -761,7 +761,7 @@ namespace pidgeon_sv
         public ProcessorIRC(Network _network, string _text, ref DateTime _pong, long _date = 0, bool updated = true)
         {
             _Network = _network;
-            _Protocol = _network._protocol;
+            _Protocol = _network._Protocol;
             text = _text;
             pong = _pong;
             date = _date;

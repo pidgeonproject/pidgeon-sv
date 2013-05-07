@@ -117,7 +117,7 @@ namespace pidgeon_sv
                 {
                     SL("Maximum file chunk size: " + Config._System.MaxFileChunkSize.ToString());
                 }
-                SL("Minimum buffer size: " + Config._System.minbs.ToString());
+                SL("Minimum buffer size: " + Config._System.MinimumBufferSize.ToString());
                 SL("Minimum chunk size: " + Config._System.ChunkSize.ToString());
                 SL("SSL is enabled: " + Config.Network.UsingSSL.ToString());
 				SL("Port: " + Config.Network.server_ssl.ToString());

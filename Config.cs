@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace pidgeon_sv
 {
@@ -42,7 +41,7 @@ namespace pidgeon_sv
         {
             public static string UserFile = "users";
 
-            public static readonly string File = "pidgeon.conf";
+            public static readonly string ConfigurationFile = "pidgeon.conf";
 
             /// <summary>
             /// This is a minimal size of one chunk before it's written to storage, to free a memory
@@ -59,16 +58,14 @@ namespace pidgeon_sv
             /// </summary>
             public static bool Rooted = false;
 
-            public static int MaxSM = 100;
-
             /// <summary>
             /// Maximum buffer size before flush
             /// </summary>
-            public static int maxbs
+            public static int MaximumBufferSize
             {
                 get
                 {
-                    return minbs + ChunkSize;
+                    return MinimumBufferSize + ChunkSize;
                 }
             }
             public static string DatabaseFolder = "db";
@@ -80,7 +77,7 @@ namespace pidgeon_sv
             /// <summary>
             /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
             /// </summary>
-            public static int minbs = 800;
+            public static int MinimumBufferSize = 800;
 
             public static string version
             {

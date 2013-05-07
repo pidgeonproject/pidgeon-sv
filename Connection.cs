@@ -45,19 +45,16 @@ namespace pidgeon_sv
 		/// The client.
 		/// </summary>
         public System.Net.Sockets.TcpClient client = null;
-		/// <summary>
-		/// The _r.
-		/// </summary>
-        public System.IO.StreamReader _r = null;
-		/// <summary>
-		/// The _w.
-		/// </summary>
-        public System.IO.StreamWriter _w = null;
+        private System.IO.StreamReader _StreamReader = null;
+        public System.IO.StreamWriter _StreamWriter = null;
+        /// <summary>
+        /// Using SSL
+        /// </summary>
 		public bool SSL = true;
 		/// <summary>
 		/// The main.
 		/// </summary>
-        public Thread main = null;
+        private Thread main = null;
 		/// <summary>
 		/// The IP
 		/// </summary>
@@ -133,15 +130,16 @@ namespace pidgeon_sv
                     Connected = false;
                     if (protocol != null)
                     {
-                        protocol.Disconnect();
+                        protocol.Exit();
+                        protocol = null;
                     }
-                    if (_r != null)
+                    if (_StreamReader != null)
                     {
-                        _r.Close();
+                        _StreamReader.Close();
                     }
-                    if (_w != null)
+                    if (_StreamWriter != null)
                     {
-                        _w.Close();
+                        _StreamWriter.Close();
                     }
                 }
             }
@@ -180,23 +178,23 @@ namespace pidgeon_sv
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
-                    connection._w = new StreamWriter(_networkSsl);
-                    connection._r = new StreamReader(_networkSsl, Encoding.UTF8);
+                    connection._StreamWriter = new StreamWriter(_networkSsl);
+                    connection._StreamReader = new StreamReader(_networkSsl, Encoding.UTF8);
 				} else
 				{
 					System.Net.Sockets.NetworkStream ns = client.GetStream();
-                    connection._w = new StreamWriter(ns);
-                    connection._r = new StreamReader(ns, Encoding.UTF8);
+                    connection._StreamWriter = new StreamWriter(ns);
+                    connection._StreamReader = new StreamReader(ns, Encoding.UTF8);
 				}
 
-                string text = connection._r.ReadLine();
+                string text = connection._StreamReader.ReadLine();
 
                 connection.protocol = new ProtocolMain(connection);
-                while (connection.IsConnected && !connection._r.EndOfStream)
+                while (connection.IsConnected && !connection._StreamReader.EndOfStream)
                 {
                     try
                     {
-                        text = connection._r.ReadLine();
+                        text = connection._StreamReader.ReadLine();
                         if (text == "")
                         {
                             continue;
@@ -279,22 +277,28 @@ namespace pidgeon_sv
         /// <param name="connection"></param>
         public static void ConnectionClean(Connection connection)
         {
+            // there is a high possibility of some network exception here
             try
             {
-                Core.SL("Cleaning data for connection: " + connection.IP);
+                Core.SL("Disconnecting connection: " + connection.IP);
 				connection.Disconnect();
+                connection.protocol = null;
+                GC.Collect();
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+            }
+
+            try
+            {
                 lock (ActiveUsers)
                 {
                     if (ActiveUsers.Contains(connection))
                     {
                         ActiveUsers.Remove(connection);
-                        Core.SL("Data for connection were cleaned: " + connection.IP);
-                        connection.client.Client.Close();
-                        connection.client.Close();
                     }
                 }
-                connection.protocol = null;
-                GC.Collect();
             }
             catch (Exception fail)
             {

@@ -87,7 +87,7 @@ namespace pidgeon_sv
             {
                 while (_server.Connected)
                 {
-                    Transfer("PING :" + _server._protocol.Server, Priority.High);
+                    Transfer("PING :" + _server._Protocol.Server, Priority.High);
                     System.Threading.Thread.Sleep(24000);
                 }
             }
@@ -124,7 +124,7 @@ namespace pidgeon_sv
                     _reader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
                 }
 
-                _writer.WriteLine("USER " + _server.ident + " 8 * :" + _server.username);
+                _writer.WriteLine("USER " + _server.Ident + " 8 * :" + _server.UserName);
                 _writer.WriteLine("NICK " + _server.nickname);
                 _writer.Flush();
 
@@ -462,7 +462,7 @@ namespace pidgeon_sv
             }
             try
             {
-                _writer.WriteLine("QUIT :" + _server.quit);
+                _writer.WriteLine("QUIT :" + _server.Quit);
                 _writer.Flush();
             }
             catch (Exception fail)
