@@ -94,14 +94,7 @@ namespace pidgeon_sv
                     if (conn.status == Connection.Status.WaitingPW)
                     {
                         Core.SL("Failed to authenticate in time - killing connection " + conn.IP);
-                        if (conn.main.ThreadState == ThreadState.WaitSleepJoin || conn.main.ThreadState == ThreadState.Running)
-                        {
-                            conn.main.Abort();
-                        }
-                        else
-                        {
-                            Core.SL("DEBUG: The thread is aborted " + conn.IP);
-                        }
+                        Core.DisableThread(conn.main);
                         ConnectionClean(conn);
                         return;
                     }

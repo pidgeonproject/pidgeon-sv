@@ -50,6 +50,27 @@ namespace pidgeon_sv
         public static List<SystemUser> _accounts = new List<SystemUser>();
         public static List<Thread> threads = new List<Thread>();
 
+        public static void DisableThread(Thread thread)
+        {
+            if (thread == null)
+            {
+                return;
+            }
+            if (thread.ThreadState == ThreadState.Running ||
+                thread.ThreadState == ThreadState.WaitSleepJoin ||
+                thread.ThreadState == ThreadState.Background)
+            {
+                thread.Abort();
+            }
+            lock (threads)
+            {
+                if (threads.Contains(thread))
+                {
+                    threads.Remove(thread);
+                }
+            }
+        }
+
         public static void Quit()
         {
             SL("Killing all connections and running processes");

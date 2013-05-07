@@ -29,11 +29,11 @@ namespace pidgeon_sv
 {
     public partial class ProtocolIrc : Protocol
     {
-        private System.Net.Sockets.NetworkStream _network;
-        private System.IO.StreamReader _reader;
+        private System.Net.Sockets.NetworkStream _network = null;
+        private System.IO.StreamReader _reader = null;
         public Network _server;
-        private System.IO.StreamWriter _writer;
-        private SslStream _networkSsl;
+        private System.IO.StreamWriter _writer = null;
+        private SslStream _networkSsl = null;
         private Messages _messages = new Messages();
         public System.Threading.Thread main = null;
         public System.Threading.Thread deliveryqueue = null;
@@ -42,6 +42,7 @@ namespace pidgeon_sv
         public Buffer buffer = null;
         public DateTime pong = DateTime.Now;
         private bool destroyed = false;
+
         public bool IsConnected
         {
             get
@@ -71,17 +72,7 @@ namespace pidgeon_sv
             _messages.DeliverMessage(text, Pr);
         }
 
-        public string convertUNIX(string time)
-        {
-            long baseTicks = 621355968000000000;
-            long tickResolution = 10000000;
-
-            long epoch = (DateTime.Now.ToUniversalTime().Ticks - baseTicks) / tickResolution;
-            long epochTicks = (epoch * tickResolution) + baseTicks;
-            return new DateTime(epochTicks, DateTimeKind.Utc).ToString();
-        }
-
-        public void _Ping()
+        private void _Ping()
         {
             try
             {
@@ -101,7 +92,7 @@ namespace pidgeon_sv
             }
         }
 
-        public void Start()
+        private void Start()
         {
             _messages.protocol = this;
             try
@@ -174,7 +165,7 @@ namespace pidgeon_sv
             }
         }
 
-        public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true;
         }
@@ -462,6 +453,7 @@ namespace pidgeon_sv
             }
             try
             {
+                Core.DisableThread(keep);
                 _writer.WriteLine("QUIT :" + _server.Quit);
                 _writer.Flush();
             }
@@ -482,11 +474,11 @@ namespace pidgeon_sv
             ClearBuffers();
             destroyed = true;
             Disconnect();
-            deliveryqueue.Abort();
-            keep.Abort();
-            if (Thread.CurrentThread != main && (main.ThreadState == System.Threading.ThreadState.Running || main.ThreadState == ThreadState.WaitSleepJoin))
+            Core.DisableThread(deliveryqueue);
+            Core.DisableThread(keep);
+            if (Thread.CurrentThread != main)
             {
-                main.Abort();
+                Core.DisableThread(main);
             }
             _server.Destroy();
             return;
