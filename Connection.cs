@@ -220,10 +220,6 @@ namespace pidgeon_sv
                         ConnectionClean(connection);
                         return;
                     }
-                    catch (Exception fail)
-                    {
-                        Core.handleException(fail);
-                    }
                 }
                 Core.SL("Connection closed by remote: " + connection.IP);
                 connection.protocol.Exit();
