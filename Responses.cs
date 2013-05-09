@@ -318,6 +318,47 @@ namespace pidgeon_sv
             protocol.Deliver(response);
         }
 
+        public static void UserList(XmlNode node, ProtocolMain protocol)
+        {
+            ProtocolMain.Datagram response;
+            Network nw = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
+            if (nw == null)
+            {
+                response = new ProtocolMain.Datagram("FAIL", "USERLIST");
+                response.Parameters.Add("code", "3");
+                response.Parameters.Add("description", "invalid network");
+                protocol.Deliver(response);
+                return;
+            }
+            Channel xx = nw.getChannel(node.Attributes[1].Value);
+            if (xx == null)
+            {
+                response = new ProtocolMain.Datagram("FAIL", "USERLIST");
+                response.Parameters.Add("code", "3");
+                response.Parameters.Add("description", "invalid channel");
+                protocol.Deliver(response);
+                return;
+            }
+            response = new ProtocolMain.Datagram("USERLIST");
+            lock (xx.UserList)
+            {
+                response.Parameters.Add("network", node.Attributes[0].Value);
+                response.Parameters.Add("channel", node.Attributes[1].Value);
+                response.Parameters.Add("uc", xx.UserList.Count.ToString());
+                int id = 0;
+            
+                foreach (User i in xx.UserList)
+                {
+                    response.Parameters.Add("nickname" + id.ToString(), i.Nick);
+                    response.Parameters.Add("realname" + id.ToString(), i.RealName);
+                    response.Parameters.Add("away" + id.ToString(), i.Away.ToString());
+                    response.Parameters.Add("awaymessage" + id.ToString(), i.AwayMessage);
+                    id++;
+                }
+            }
+            protocol.Deliver(response);
+        }
+
         public static void NetworkList(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
@@ -514,19 +555,19 @@ namespace pidgeon_sv
         public static void ChannelInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network b002 = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
+            Network nw = protocol.connection.account.retrieveServer(node.Attributes[0].Value);
             switch (node.InnerText)
             {
                 case "LIST":
-                    if (b002 == null)
+                    if (nw == null)
                     {
                         protocol.Deliver(new ProtocolMain.Datagram("CHANNELINFO", "EMPTY"));
                         return;
                     }
                     string list = "";
-                    lock (b002.Channels)
+                    lock (nw.Channels)
                     {
-                        foreach (Channel curr in b002.Channels)
+                        foreach (Channel curr in nw.Channels)
                         {
                             if (curr.ChannelWork)
                             {
@@ -540,17 +581,17 @@ namespace pidgeon_sv
                     protocol.Deliver(response);
                     break;
                 case "INFO":
-                    if (b002 == null)
+                    if (nw == null)
                     {
                         protocol.Deliver(new ProtocolMain.Datagram("CHANNELINFO", "EMPTY"));
                         return;
                     }
                     if (node.Attributes.Count > 1)
                     {
-                        Channel channel = b002.getChannel(node.Attributes[1].Value);
+                        Channel channel = nw.getChannel(node.Attributes[1].Value);
                         if (channel == null)
                         {
-                            Console.WriteLine(b002.Channels.Count.ToString());
+                            Console.WriteLine(nw.Channels.Count.ToString());
                             response = new ProtocolMain.Datagram("CHANNELINFO", "EMPTY");
                             response.Parameters.Add("network", node.Attributes[0].Value);
                             response.Parameters.Add("channel", node.Attributes[1].Value);

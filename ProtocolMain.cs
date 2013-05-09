@@ -284,6 +284,9 @@ namespace pidgeon_sv
                 case "BACKLOGRANGE":
                     Responses.BacklogRange(node, this);
                     return;
+                case "USERLIST":
+                    Responses.UserList(node, this);
+                    break;
                 case "FAIL":
                     return;
                 case "PING":

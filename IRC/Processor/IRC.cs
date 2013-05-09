@@ -164,13 +164,19 @@ namespace pidgeon_sv
                 string host = code[5];
                 string nick = code[7];
                 string server = code[6];
-                string mode = "";
+                char mode = '\0';
+                bool IsAway = false;
                 if (code[8].Length > 0)
                 {
-                    mode = code[8][code[8].Length - 1].ToString();
-                    if (mode == "G" || mode == "H")
+                    // if user is away we flag him
+                    if (code[8].StartsWith("G"))
                     {
-                        mode = "";
+                        IsAway = true;
+                    }
+                    mode = code[8][code[8].Length - 1];
+                    if (!_Network.UChars.Contains(mode))
+                    {
+                        mode = '\0';
                     }
                 }
                 if (channel != null)
@@ -179,17 +185,44 @@ namespace pidgeon_sv
                     {
                         if (!channel.containsUser(nick))
                         {
-                            User _user = new User(mode + nick, host, _Network, ident);
-                            channel.UserList.Add(_user);
+                            User _user = null;
+                            if (mode != '\0')
+                            {
+                                _user = new User(mode.ToString() + nick, host, _Network, ident, server);
+                            }
+                            else
+                            {
+                                _user = new User(nick, host, _Network, ident, server);
+                            }
+                            _user.LastAwayCheck = DateTime.Now;
+                            if (IsAway)
+                            {
+                                _user.AwayTime = DateTime.Now;
+                            }
+                            _user.Away = IsAway;
+                            lock (channel.UserList)
+                            {
+                                channel.UserList.Add(_user);
+                            }
                             return true;
                         }
-                        foreach (User u in channel.UserList)
+                        lock (channel.UserList)
                         {
-                            if (u.Nick == nick)
+                            foreach (User u in channel.UserList)
                             {
-                                u.Ident = ident;
-                                u.Host = host;
-                                break;
+                                if (u.Nick == nick)
+                                {
+                                    u.Ident = ident;
+                                    u.Host = host;
+                                    u.Server = server;
+                                    u.LastAwayCheck = DateTime.Now;
+                                    if (!u.Away && IsAway)
+                                    {
+                                        u.AwayTime = DateTime.Now;
+                                    }
+                                    u.Away = IsAway;
+                                    break;
+                                }
                             }
                         }
                     }
