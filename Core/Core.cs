@@ -123,8 +123,17 @@ namespace pidgeon_sv
 
                 if (!File.Exists(Config._System.CertificatePath) && Config.Network.UsingSSL)
                 {
-                    SL("There is no certificate file, creating one now");
-                    certificate(Config._System.CertificatePath, "pidgeonclient.org");
+                    try
+                    {
+                        SL("There is no certificate file, creating one now");
+                        certificate(Config._System.CertificatePath, "pidgeonclient.org");
+                    }
+                    catch (Exception fail)
+                    {
+                        Core.handleException(fail);
+                        SL("Unable to create cert file, ssl disabled");
+                        Config.Network.UsingSSL = false;
+                    }
                 }
 
                 SL("This instance of pidgeon services has following parameters:");
