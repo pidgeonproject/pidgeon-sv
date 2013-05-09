@@ -286,7 +286,7 @@ namespace pidgeon_sv
                     return;
                 case "USERLIST":
                     Responses.UserList(node, this);
-                    break;
+                    return;
                 case "FAIL":
                     return;
                 case "PING":
