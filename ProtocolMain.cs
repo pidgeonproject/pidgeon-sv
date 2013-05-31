@@ -87,6 +87,7 @@ namespace pidgeon_sv
             public Network network = null;
             public string target = null;
             public int MQID;
+
             public SelfData(Network _network, string _text, DateTime date, string _target, int curr)
             {
                 if (_network == null)
@@ -129,6 +130,7 @@ namespace pidgeon_sv
 
         public bool TrafficChunks = false;
         private string TrafficChunk = "";
+        private bool isDestroyed = false;
 
         /// <summary>
         /// Pointer to client
@@ -174,7 +176,7 @@ namespace pidgeon_sv
                 parseXml(curr);
             }
         }
-        
+
         public void Disconnect()
         {
             if (!Connected)
@@ -188,17 +190,23 @@ namespace pidgeon_sv
                 connection.Disconnect();
             }
         }
-        
+
         public void Exit()
         {
-            Disconnect();
-            lock (connection.account.Clients)
+            if (isDestroyed)
             {
-                if (connection.account.Clients.Contains(this))
+                return;
+            }
+            Disconnect();
+            lock (connection.User.Clients)
+            {
+                if (connection.User.Clients.Contains(this))
                 {
-                    connection.account.Clients.Remove(this);
+                    connection.User.Clients.Remove(this);
                 }
             }
+            isDestroyed = true;
+            connection = null;
         }
 
         /// <summary>
@@ -233,102 +241,101 @@ namespace pidgeon_sv
                         return;
                 }
             }
-
-            switch (node.Name.ToUpper())
+            try
             {
-                case "STATUS":
-                    Responses.Status(node, this);
-                    return;
-                case "NETWORKINFO":
-                    Responses.NetworkInfo(node, this);
-                    return;
-                case "RAW":
-                    Responses.Raw(node, this);
-                    return;
-                case "NICK":
-                    Responses.Nick(node, this);
-                    return;
-                case "CHANNELINFO":
-                    Responses.ChannelInfo(node, this);
-                    return;
-                case "NETWORKLIST":
-                    Responses.NetworkList(node, this);
-                    return;
-                case "LOAD":
-                    Responses.Load(node, this);
-                    return;
-                case "BACKLOGSV":
-                    Responses.BacklogSv(node, this);
-                    return;
-                case "CONNECT":
-                    Responses.Connect(node, this);
-                    return;
-                case "GLOBALIDENT":
-                    Responses.GlobalIdent(node, this);
-                    return;
-                case "MESSAGE":
-                    Responses.Message(node, this);
-                    return;
-                case "GLOBALNICK":
-                    Responses.GlobalNick(node, this);
-                    return;
-                case "AUTH":
-                    Responses.Auth(node, this);
-                    return;
-                case "SYSTEM":
-                    Responses.Manage(node, this);
-                    return;
-                case "REMOVE":
-                    Responses.DiscNw(node, this);
-                    return;
-                case "BACKLOGRANGE":
-                    Responses.BacklogRange(node, this);
-                    return;
-                case "USERLIST":
-                    Responses.UserList(node, this);
-                    return;
-                case "FAIL":
-                    return;
-                case "PING":
-                    return;
-            }
+                switch (node.Name.ToUpper())
+                {
+                    case "STATUS":
+                        Responses.Status(node, this);
+                        return;
+                    case "NETWORKINFO":
+                        Responses.NetworkInfo(node, this);
+                        return;
+                    case "RAW":
+                        Responses.Raw(node, this);
+                        return;
+                    case "NICK":
+                        Responses.Nick(node, this);
+                        return;
+                    case "CHANNELINFO":
+                        Responses.ChannelInfo(node, this);
+                        return;
+                    case "NETWORKLIST":
+                        Responses.NetworkList(node, this);
+                        return;
+                    case "LOAD":
+                        Responses.Load(node, this);
+                        return;
+                    case "BACKLOGSV":
+                        Responses.BacklogSv(node, this);
+                        return;
+                    case "CONNECT":
+                        Responses.Connect(node, this);
+                        return;
+                    case "GLOBALIDENT":
+                        Responses.GlobalIdent(node, this);
+                        return;
+                    case "MESSAGE":
+                        Responses.Message(node, this);
+                        return;
+                    case "GLOBALNICK":
+                        Responses.GlobalNick(node, this);
+                        return;
+                    case "AUTH":
+                        Responses.Auth(node, this);
+                        return;
+                    case "SYSTEM":
+                        Responses.Manage(node, this);
+                        return;
+                    case "REMOVE":
+                        Responses.DiscNw(node, this);
+                        return;
+                    case "BACKLOGRANGE":
+                        Responses.BacklogRange(node, this);
+                        return;
+                    case "USERLIST":
+                        Responses.UserList(node, this);
+                        return;
+                    case "FAIL":
+                        return;
+                    case "PING":
+                        return;
+                }
 
-            response = new ProtocolMain.Datagram("FAIL", "GENERIC");
-            response.Parameters.Add("code", "4");
-            response.Parameters.Add("description", "invalid data: " + node.Name);
-            Deliver(response);
+                response = new ProtocolMain.Datagram("FAIL", "GENERIC");
+                response.Parameters.Add("code", "4");
+                response.Parameters.Add("description", "invalid data: " + node.Name);
+                Deliver(response);
+            }
+            catch (Exception fail)
+            {
+                Core.DebugLog(fail.ToString());
+                response = new ProtocolMain.Datagram("FAIL", "GENERIC");
+                response.Parameters.Add("code", "6");
+                response.Parameters.Add("description", "internal error: " + fail.Message.ToString());
+                Deliver(response);
+            }
         }
 
         public void Deliver(Datagram message)
         {
-            try
+            if (!Connected)
             {
-                if (!Connected)
-                {
-                    Core.SL("Error: sending a text to closed connection " + connection.IP);
-                    return;
-                }
-                XmlDocument datagram = new XmlDocument();
-                XmlNode b1 = datagram.CreateElement("S" + message._Datagram.ToUpper());
-                foreach (KeyValuePair<string, string> curr in message.Parameters)
-                {
-                    XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
-                    b2.Value = curr.Value;
-                    b1.Attributes.Append(b2);
-                }
-                b1.InnerText = message._InnerText;
-                datagram.AppendChild(b1);
-
-                Send(datagram.InnerXml);
-            }
-            catch (System.Threading.ThreadAbortException)
-            {
+                Core.SL("Error: sending a text to closed connection " + connection.IP);
                 return;
             }
-            catch (Exception fail)
+            XmlDocument datagram = new XmlDocument();
+            XmlNode b1 = datagram.CreateElement("S" + message._Datagram.ToUpper());
+            foreach (KeyValuePair<string, string> curr in message.Parameters)
             {
-                Core.handleException(fail);
+                XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
+                b2.Value = curr.Value;
+                b1.Attributes.Append(b2);
             }
+            b1.InnerText = message._InnerText;
+            datagram.AppendChild(b1);
+
+            Send(datagram.InnerXml);
         }
 
         public bool Send(string text, bool Enforced = false)

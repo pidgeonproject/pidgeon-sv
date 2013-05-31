@@ -37,6 +37,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IRC\Processor\channel.cs" />
     <Compile Include="SystemUser.cs" />
     <Compile Include="Certificate.cs" />
     <Compile Include="Channel.cs" />

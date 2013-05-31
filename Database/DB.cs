@@ -23,19 +23,27 @@ namespace pidgeon_sv
 {
     public class DB
     {
-        public SystemUser client;
+        /// <summary>
+        /// Owner of this
+        /// </summary>
+        public SystemUser systemUser = null;
+        /// <summary>
+        /// Cache of message size
+        /// </summary>
         public Dictionary<string, int> MessageSize = new Dictionary<string, int>();
-        public int SMessageSize = 0;
+        /// <summary>
+        /// If database engine is still running
+        /// </summary>
         public bool Running = false;
 
         public virtual void Clear()
         {
-
+            Core.DebugLog("Clear() not implemented");
         }
 
         public virtual void DeleteCache(string network)
         {
-            
+            Core.DebugLog("DeleteCache(string network) not implemented");
         }
 
         public int GetMessageSize(string network)
@@ -60,7 +68,7 @@ namespace pidgeon_sv
         /// <param name="MQID">Initial MQID</param>
         public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
-
+            Core.DebugLog("MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID) not implemented");
         }
 
         public virtual int MessagePool_Backlog(int size, int mqid, string network)
@@ -70,7 +78,7 @@ namespace pidgeon_sv
 
         public virtual void Store_SM(ProtocolMain.SelfData message)
         {
-            
+            Core.DebugLog("Store_SM(ProtocolMain.SelfData message) not implemented");
         }
 
         public virtual int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)
@@ -80,7 +88,7 @@ namespace pidgeon_sv
 
         public virtual void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
-
+            Core.DebugLog("MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network) not implemented");
         }
     }
 }

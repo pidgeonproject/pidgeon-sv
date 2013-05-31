@@ -59,6 +59,7 @@ namespace pidgeon_sv
                     return datagram.InnerXml;
                 }
             }
+
             public SystemUser parent = null;
             public string Network = null;
             public List<Message> messages = new List<Message>();

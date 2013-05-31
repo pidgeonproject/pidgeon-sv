@@ -99,6 +99,10 @@ namespace pidgeon_sv
             Console.Write("Enter username: ");
             string username;
             username = Console.ReadLine();
+            if (username == "")
+            {
+                username = "http://pidgeonclient.org";
+            }
             Console.Write("Enter password: ");
             string password;
             password = ReadPw();
@@ -139,10 +143,9 @@ namespace pidgeon_sv
                 return;
             }
             user = new SystemUser(username, password);
-            user.Locked = false;
             user.ident = ident;
             user.Level = ul;
-            user.realname = realname;
+            user.RealName = realname;
             Core._accounts.Add(user);
             Core.SaveUser();
             Console.WriteLine("\n User created");
@@ -177,7 +180,7 @@ namespace pidgeon_sv
             Console.WriteLine("List of all users:\n=========================================\n");
             foreach (SystemUser user in Core._accounts)
             {
-                Console.WriteLine(user.username + " locked: " + user.Locked.ToString() + " name: " + user.realname);
+                Console.WriteLine(user.UserName + " locked: " + user.IsLocked.ToString() + " name: " + user.RealName);
             }
         }
 
@@ -214,7 +217,7 @@ namespace pidgeon_sv
         public static bool Parameters()
         {
             List<string> args = new List<string>();
-            foreach (string xx in Core.startup)
+            foreach (string xx in Core.Parameters)
             {
                 args.Add(xx);
             }

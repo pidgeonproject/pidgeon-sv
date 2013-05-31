@@ -134,22 +134,24 @@ namespace pidgeon_sv
                             }
                             else
                             {
-                                if (line.Locked != locked)
+                                if (line.IsLocked != locked)
                                 {
                                     if (locked)
                                     {
                                         // we need to lock this user
                                         Core.DebugLog("Locking user: " + name);
-                                        line.Locked = locked;
-                                        SystemUser.KickUser(line);
+                                        line.Lock();
+                                    }
+                                    else
+                                    {
+                                        line.Unlock();
                                     }
                                 }
                             }
                             line.password = password;
-                            line.nickname = nickname;
-                            line.Locked = locked;
+                            line.Nickname = nickname;
                             line.ident = ident;
-                            line.realname = realname;
+                            line.RealName = realname;
                             line.Level = UserLevel;
                             if (Nonexistent)
                             {
@@ -204,12 +206,12 @@ namespace pidgeon_sv
                         XmlAttribute realname = configuration.CreateAttribute("realname");
                         XmlAttribute locked = configuration.CreateAttribute("locked");
                         XmlAttribute level = configuration.CreateAttribute("level");
-                        name.Value = user.username;
+                        name.Value = user.UserName;
                         password.Value = user.password;
-                        nick.Value = user.nickname;
+                        nick.Value = user.Nickname;
                         ident.Value = user.ident;
-                        realname.Value = user.realname;
-                        locked.Value = user.Locked.ToString();
+                        realname.Value = user.RealName;
+                        locked.Value = user.IsLocked.ToString();
                         level.Value = user.Level.ToString();
                         item.Attributes.Append(name);
                         item.Attributes.Append(password);

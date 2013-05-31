@@ -27,7 +27,7 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
-        public static string[] startup;
+        public static string[] Parameters = null;
         public static Thread SSL;
         private static bool running = true;
         /// <summary>
@@ -56,14 +56,15 @@ namespace pidgeon_sv
             {
                 return;
             }
-            if (thread.ThreadState == ThreadState.Running ||
-                thread.ThreadState == ThreadState.WaitSleepJoin ||
-                thread.ThreadState == ThreadState.Background)
-            {
-                thread.Abort();
-            }
             lock (threads)
             {
+                if (thread.ThreadState == ThreadState.Running ||
+                    thread.ThreadState == ThreadState.WaitSleepJoin ||
+                    thread.ThreadState == ThreadState.Background)
+                {
+                    thread.Abort();
+                }
+
                 if (threads.Contains(thread))
                 {
                     threads.Remove(thread);
@@ -83,7 +84,7 @@ namespace pidgeon_sv
             }
             SL("Exiting");
         }
-        
+
         public static void handleException(Exception reason, bool ThreadOK = false)
         {
             if (reason.GetType() == typeof(ThreadAbortException) && ThreadOK)
@@ -100,7 +101,7 @@ namespace pidgeon_sv
                 SL("DEBUG: " + text);
             }
         }
-        
+
         /// <summary>
         /// System log
         /// </summary>
@@ -111,7 +112,11 @@ namespace pidgeon_sv
         {
             Console.WriteLine(DateTime.Now.ToString() + ": " + text);
         }
-        
+
+        /// <summary>
+        /// This function load the services
+        /// </summary>
+        /// <returns></returns>
         public static bool Init()
         {
             try
@@ -150,7 +155,14 @@ namespace pidgeon_sv
                 SL("Minimum buffer size: " + Config._System.MinimumBufferSize.ToString());
                 SL("Minimum chunk size: " + Config._System.ChunkSize.ToString());
                 SL("SSL is enabled: " + Config.Network.UsingSSL.ToString());
-                SL("Port: " + Config.Network.server_ssl.ToString());
+                if (Config.Network.UsingSSL)
+                {
+                    SL("SSL port: " + Config.Network.server_ssl.ToString());
+                }
+                else
+                {
+                    SL("SSL port: none");
+                }
 
                 SL("-----------------------------------------------------------");
 
@@ -166,6 +178,12 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// This function create a new certificate it is basically called only once
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="host"></param>
+        /// <returns></returns>
         public static bool certificate(string name, string host)
         {
             byte[] c = Certificate.CreateSelfSignCertificatePfx(
@@ -180,7 +198,10 @@ namespace pidgeon_sv
             }
             return true;
         }
-        
+
+        /// <summary>
+        /// Listen SSL
+        /// </summary>
         public static void ListenS()
         {
             try
@@ -218,7 +239,7 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
         }
-        
+
         public static void Listen()
         {
             try

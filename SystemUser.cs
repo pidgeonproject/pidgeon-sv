@@ -24,43 +24,59 @@ namespace pidgeon_sv
     public class SystemUser
     {
         /// <summary>
-        /// List of active connections to services
+        /// List of active connections to services that are logged in as this user
         /// </summary>
         public List<ProtocolMain> Clients = new List<ProtocolMain>();
         /// <summary>
-        /// The username.
+        /// The username
         /// </summary>
-        public string username = null;
+        public string UserName = null;
         /// <summary>
-        /// The password.
+        /// The password
         /// </summary>
         public string password = "";
         /// <summary>
-        /// The nickname.
+        /// The nickname
         /// </summary>
-        public string nickname = "PidgeonUser";
+        public string Nickname = "PidgeonUser";
         /// <summary>
-        /// The ident.
+        /// The ident
         /// </summary>
         public string ident = "pidgeon";
         /// <summary>
-        /// The realname.
+        /// The realname
         /// </summary>
-        public string realname = "http://pidgeonclient.org";
+        public string RealName = "http://pidgeonclient.org";
         /// <summary>
-        /// The connected networks.
+        /// List of networks this user is connected to
         /// </summary>
         public List<Network> ConnectedNetworks = new List<Network>();
         /// <summary>
-        /// The messages.
+        /// The messages
         /// </summary>
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
+        /// <summary>
+        /// Pointer to database engine used by this user
+        /// </summary>
         public DB data = null;
+        /// <summary>
+        /// Level of this user
+        /// </summary>
         public UserLevel Level = UserLevel.User;
-        public bool Locked = false;
+        /// <summary>
+        /// Whether this user is locked
+        /// </summary>
+        public bool IsLocked
+        {
+            get
+            {
+                return Locked;
+            }
+        }
+        private bool Locked = false;
         // number of self messages of this user
         private int MessageCount = 0;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="pidgeon_sv.SystemUser"/> class.
         /// </summary>
@@ -72,16 +88,44 @@ namespace pidgeon_sv
         /// </param>
         public SystemUser(string user, string pw, bool ro = false)
         {
-            username = user;
+            UserName = user;
             password = pw;
             data = new DatabaseFile(this);
             if (ro == false)
             {
-                Core.DebugLog("Cleaning DB for " + username);
+                Core.DebugLog("Cleaning DB for " + UserName);
                 data.Clear();
             }
         }
 
+        /// <summary>
+        /// Lock the user
+        /// </summary>
+        public void Lock()
+        {
+            if (!IsLocked)
+            {
+                Locked = true;
+                KickUser(this);
+            }
+        }
+
+        /// <summary>
+        /// Unlock the user
+        /// </summary>
+        public void Unlock()
+        {
+            if (IsLocked)
+            {
+                Locked = false;
+            }
+        }
+
+        /// <summary>
+        /// Send message back to user
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="connection"></param>
         public void MessageBack(ProtocolMain.SelfData text, ProtocolMain connection = null)
         {
             try
@@ -143,20 +187,9 @@ namespace pidgeon_sv
         {
             lock (Clients)
             {
-                try
+                foreach (ProtocolMain client in Clients)
                 {
-                    if (Clients.Count == 0)
-                    {
-                        return true;
-                    }
-                    foreach (ProtocolMain ab in Clients)
-                    {
-                        ab.Deliver(text);
-                    }
-                }
-                catch (Exception fail)
-                {
-                    Core.handleException(fail);
+                    client.Deliver(text);
                 }
             }
             return true;
@@ -174,52 +207,62 @@ namespace pidgeon_sv
             return true;
         }
 
+        /// <summary>
+        /// Connect to irc network
+        /// </summary>
+        /// <param name="network"></param>
+        /// <param name="port"></param>
+        /// <param name="ssl"></param>
+        /// <returns></returns>
         public bool ConnectIRC(string network, int port = 6667, bool ssl = false)
         {
-            try
+            ProtocolIrc server = new ProtocolIrc();
+            server.SSL = ssl;
+            Network networkid = new Network(network, server);
+            networkid.nickname = Nickname;
+            networkid.Ident = ident;
+            networkid.UserName = RealName;
+            networkid.Quit = "http://pidgeonclient.org";
+            lock (ConnectedNetworks)
             {
-                ProtocolIrc server = new ProtocolIrc();
-                server.SSL = ssl;
-                Network networkid = new Network(network, server);
-                networkid.nickname = nickname;
-                networkid.Ident = ident;
-                networkid.UserName = realname;
-                networkid.Quit = "http://pidgeonclient.org";
-                lock (ConnectedNetworks)
-                {
-                    ConnectedNetworks.Add(networkid);
-                }
-                server.Server = network;
-                server.Port = port;
-                server._server = networkid;
-                server.owner = this;
-                server.buffer = new ProtocolIrc.Buffer(this, network);
-                server.Open();
+                ConnectedNetworks.Add(networkid);
             }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
+            server.Server = network;
+            server.Port = port;
+            server._server = networkid;
+            server.owner = this;
+            server.buffer = new ProtocolIrc.Buffer(this, network);
+            server.Open();
             return true;
         }
 
+        /// <summary>
+        /// Retrieve all messages that were sent somewhere by this user
+        /// </summary>
+        /// <param name="mqid"></param>
+        /// <param name="_protocol"></param>
+        /// <param name="protocol"></param>
         public void MessageBacklog(int mqid, Protocol _protocol, ProtocolMain protocol)
         {
             lock (Messages)
             {
-                foreach (ProtocolMain.SelfData xx in Messages)
+                foreach (ProtocolMain.SelfData message in Messages)
                 {
-                    if (xx.MQID > mqid)
+                    if (message.MQID > mqid)
                     {
-                        if (xx.network.ServerName == _protocol.Server)
+                        if (message.network.ServerName == _protocol.Server)
                         {
-                            MessageBack(xx, protocol);
+                            MessageBack(message, protocol);
                         }
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Send a message to some irc network
+        /// </summary>
+        /// <param name="data"></param>
         public void Message(ProtocolMain.SelfData data)
         {
             MessageCount++;
@@ -228,17 +271,19 @@ namespace pidgeon_sv
                 Messages.Add(data);
             }
         }
-        
+
         /// <summary>
         /// Kicks the user
         /// </summary>
         /// <param name='user'>
-        /// User.
+        /// User
         /// </param>
         public static void KickUser(SystemUser user)
         {
-            user.Locked = true;
-            user.Messages.Clear();
+            lock (user.Messages)
+            {
+                user.Messages.Clear();
+            }
             lock (user.ConnectedNetworks)
             {
                 List<Network> networks = new List<Network>();
@@ -271,7 +316,7 @@ namespace pidgeon_sv
             {
                 if (Core._accounts.Contains(user))
                 {
-                    KickUser(user);
+                    user.Lock();
                     user.data.Clear();
                     user.ConnectedNetworks.Clear();
                     user.Clients.Clear();
@@ -286,8 +331,8 @@ namespace pidgeon_sv
         {
             SystemUser user = new SystemUser(name, password);
             user.Level = level;
-            user.nickname = nick;
-            user.realname = realname;
+            user.Nickname = nick;
+            user.RealName = realname;
             user.ident = ident;
             lock (Core._accounts)
             {
@@ -302,18 +347,13 @@ namespace pidgeon_sv
             {
                 foreach (SystemUser account in Core._accounts)
                 {
-                    if (account.username == name)
+                    if (account.UserName == name)
                     {
                         return account;
                     }
                 }
             }
             return null;
-        }
-
-        private static void CreateUser()
-        { 
-            
         }
 
         public bool containsNetwork(string network)

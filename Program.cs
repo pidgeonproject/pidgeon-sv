@@ -24,20 +24,17 @@ namespace pidgeon_sv
 {
     class Program
     {
-        public static List<string> data;
         static void Main(string[] args)
         {
             try
             {
                 Core.StartedTime = DateTime.Now;
-                Core.startup = args;
-                data = new List<string>();
-                data.AddRange(args);
+                Core.Parameters = args;
                 Config._System.UserFile = Config._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
-                if (!Directory.Exists("db"))
+                if (!Directory.Exists(Config._System.DatabaseFolder))
                 {
-                    Directory.CreateDirectory("db");
+                    Directory.CreateDirectory(Config._System.DatabaseFolder);
                 }
                 if (Terminal.Parameters())
                 {

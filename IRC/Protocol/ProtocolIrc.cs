@@ -216,7 +216,7 @@ namespace pidgeon_sv
         {
             try
             {
-                Core.DebugLog("User " + owner.nickname + " requested a backlog of data starting from " + mqid.ToString());
+                Core.DebugLog("User " + owner.Nickname + " requested a backlog of data starting from " + mqid.ToString());
                 user.TrafficChunks = true;
                 int total_count = RequestedSize;
                 int total_requested_size = RequestedSize;
@@ -227,7 +227,7 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count == 0)
                     {
                         // we don't need to deliver any backlog
-                        Core.DebugLog("User " + owner.nickname + " requested a backlog, there are no data");
+                        Core.DebugLog("User " + owner.Nickname + " requested a backlog, there are no data");
                         ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
                         size.Parameters.Add("network", Server);
                         user.Deliver(size);
@@ -236,12 +236,12 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count < RequestedSize)
                     {
                         // the backlog needs to be parsed from file
-                        Core.DebugLog("User " + owner.nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
+                        Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
                         // we get the total size of memory and disk
                         total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
                         if (total_count < RequestedSize)
                         {
-                            Core.DebugLog("User " + owner.nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
+                            Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
                         }
                         // we get a backlog size in case that user has some mqid
                         if (mqid > 0)
@@ -323,7 +323,7 @@ namespace pidgeon_sv
 
         public void getRange(ProtocolMain user, int from, int last)
         {
-            Core.DebugLog("User " + owner.nickname + " requested a range of data starting from " + from.ToString());
+            Core.DebugLog("User " + owner.Nickname + " requested a range of data starting from " + from.ToString());
             int index = 0;
             lock (buffer.oldmessages)
             {

@@ -31,7 +31,7 @@ namespace pidgeon_sv
             public static int server_ssl = 22432;
             public static bool UsingSSL = true;
         }
-        
+
         public class Debugging
         {
             public static int verbosity = 0;

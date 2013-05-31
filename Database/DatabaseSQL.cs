@@ -29,7 +29,7 @@ namespace pidgeon_sv
 
         public DatabaseSQL(SystemUser _client)
         {
-            this.client = _client;
+            this.systemUser = _client;
         }
     }
 }
