@@ -36,11 +36,18 @@ namespace pidgeon_sv
         /// </summary>
         public bool Running = false;
 
+        /// <summary>
+        /// Remove all data from DB
+        /// </summary>
         public virtual void Clear()
         {
             Core.DebugLog("Clear() not implemented");
         }
 
+        /// <summary>
+        /// Delete cache
+        /// </summary>
+        /// <param name="network"></param>
         public virtual void DeleteCache(string network)
         {
             Core.DebugLog("DeleteCache(string network) not implemented");
@@ -83,6 +90,7 @@ namespace pidgeon_sv
 
         public virtual int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)
         {
+            Core.DebugLog("MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol) not implemented");
             return 0;
         }
 

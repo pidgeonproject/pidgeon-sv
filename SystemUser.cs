@@ -229,7 +229,7 @@ namespace pidgeon_sv
             }
             server.Server = network;
             server.Port = port;
-            server._server = networkid;
+            server._network = networkid;
             server.owner = this;
             server.buffer = new ProtocolIrc.Buffer(this, network);
             server.Open();

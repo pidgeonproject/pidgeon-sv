@@ -34,9 +34,10 @@ namespace pidgeon_sv
         {
             try
             {
-                SL("Listening (SSL)");
+                SL("Opening SSL listener");
                 System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Configuration.Network.ServerSSL);
                 server.Start();
+                SL("Listener of SSL is up!!");
 
                 while (isRunning)
                 {
@@ -50,6 +51,7 @@ namespace pidgeon_sv
                     }
                     catch (ThreadAbortException)
                     {
+                        SL("Aborted SSL listener");
                         return;
                     }
                     catch (Exception fail)
@@ -60,11 +62,13 @@ namespace pidgeon_sv
             }
             catch (ThreadAbortException)
             {
+                SL("Aborted SSL listener");
                 return;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
+                SL("Aborted SSL listener");
             }
         }
 
@@ -75,10 +79,12 @@ namespace pidgeon_sv
         {
             try
             {
-                SL("Waiting for clients");
+                SL("Opening listener");
 
                 System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Configuration.Network.ServerPort);
                 server.Start();
+
+                SL("Listener is up!!");
 
                 while (isRunning)
                 {
@@ -90,6 +96,11 @@ namespace pidgeon_sv
                         _client.Start(connection);
                         System.Threading.Thread.Sleep(200);
                     }
+                    catch (ThreadAbortException)
+                    {
+                        SL("Aborted listener");
+                        return;
+                    }
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
@@ -99,7 +110,7 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 handleException(fail);
-                SL("Terminating");
+                SL("Aborted listener");
                 return;
             }
         }

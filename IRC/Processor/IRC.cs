@@ -54,7 +54,7 @@ namespace pidgeon_sv
         {
             ProtocolMain.Datagram p = new ProtocolMain.Datagram("DATA", text);
             //p.Parameters.Add("network", Server);
-            _Protocol.info.Add(p);
+            _Protocol.NetworkInfo.Add(p);
             return true;
         }
 

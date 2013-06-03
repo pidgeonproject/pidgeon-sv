@@ -29,9 +29,9 @@ namespace pidgeon_sv
 {
     public partial class ProtocolIrc : Protocol
     {
-        private System.Net.Sockets.NetworkStream _network = null;
+        private System.Net.Sockets.NetworkStream _networkStream = null;
         private System.IO.StreamReader _reader = null;
-        public Network _server;
+        public Network _network;
         private System.IO.StreamWriter _writer = null;
         private SslStream _networkSsl = null;
         private Messages _messages = new Messages();
@@ -47,20 +47,13 @@ namespace pidgeon_sv
         {
             get
             {
-                if (_server != null)
+                if (_network != null)
                 {
-                    return (_server.Connected);
+                    return (_network.Connected);
                 }
                 return false;
             }
         }
-
-        public enum Priority
-        {
-            High = 8,
-            Normal = 2,
-            Low = 1
-        }  
 
         public override void Part(string name, Network network = null)
         {
@@ -76,9 +69,9 @@ namespace pidgeon_sv
         {
             try
             {
-                while (_server.Connected)
+                while (_network.Connected)
                 {
-                    Transfer("PING :" + _server._Protocol.Server, Priority.High);
+                    Transfer("PING :" + _network._Protocol.Server, Priority.High);
                     System.Threading.Thread.Sleep(24000);
                 }
             }
@@ -97,12 +90,12 @@ namespace pidgeon_sv
             _messages.protocol = this;
             try
             {
-                _server.Connected = true;
+                _network.Connected = true;
                 if (!SSL)
                 {
-                    _network = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
-                    _writer = new System.IO.StreamWriter(_network);
-                    _reader = new System.IO.StreamReader(_network, Encoding.UTF8);
+                    _networkStream = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
+                    _writer = new System.IO.StreamWriter(_networkStream);
+                    _reader = new System.IO.StreamReader(_networkStream, Encoding.UTF8);
                 }
 
                 if (SSL)
@@ -115,39 +108,23 @@ namespace pidgeon_sv
                     _reader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
                 }
 
-                _writer.WriteLine("USER " + _server.Ident + " 8 * :" + _server.UserName);
-                _writer.WriteLine("NICK " + _server.nickname);
+                _writer.WriteLine("USER " + _network.Ident + " 8 * :" + _network.UserName);
+                _writer.WriteLine("NICK " + _network.nickname);
                 _writer.Flush();
 
                 keep = new System.Threading.Thread(_Ping);
                 keep.Name = "pinger thread";
                 keep.Start();
 
-            }
-            catch (ThreadAbortException)
-            {
-                // shutting down
-                return; 
-            }
-            catch (Exception b)
-            {
-                ProtocolMain.Datagram dt = new ProtocolMain.Datagram("CONNECTION", "PROBLEM");
-                dt.Parameters.Add("network", Server);
-                dt.Parameters.Add("info", b.Message);
-                owner.Deliver(dt);
-                Console.WriteLine(b.Message);
-                return;
-            }
-            string text = "";
-            try
-            {
+                string text = "";
+
                 deliveryqueue = new System.Threading.Thread(_messages.Run);
                 deliveryqueue.Start();
 
-                while (_server.Connected && !_reader.EndOfStream)
+                while (_network.Connected && !_reader.EndOfStream)
                 {
                     text = _reader.ReadLine();
-                    ProcessorIRC parser = new ProcessorIRC(_server, text, ref pong);
+                    ProcessorIRC parser = new ProcessorIRC(_network, text, ref pong);
                     parser.Result();
                 }
             }
@@ -251,7 +228,7 @@ namespace pidgeon_sv
                 List<ProtocolMain.SelfData> delete = new List<ProtocolMain.SelfData>();
                 foreach (ProtocolMain.SelfData ms in owner.Messages)
                 {
-                    if (ms.network == _server)
+                    if (ms.network == _network)
                     {
                         delete.Add(ms);
                     }
@@ -269,21 +246,21 @@ namespace pidgeon_sv
             {
                 return;
             }
-            if (!_server.Connected)
+            if (!_network.Connected)
             {
                 return;
             }
             try
             {
                 Core.DisableThread(keep);
-                _writer.WriteLine("QUIT :" + _server.Quit);
+                _writer.WriteLine("QUIT :" + _network.Quit);
                 _writer.Flush();
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
             }
-            _server.Connected = false;
+            _network.Connected = false;
         }
         
         public override void Exit()
@@ -302,7 +279,7 @@ namespace pidgeon_sv
             {
                 Core.DisableThread(main);
             }
-            _server.Destroy();
+            _network.Destroy();
             return;
         }
 
@@ -315,5 +292,12 @@ namespace pidgeon_sv
             BufferTh.Start();
             return true;
         }
+
+        public enum Priority
+        {
+            High = 8,
+            Normal = 2,
+            Low = 1
+        }  
     }
 }

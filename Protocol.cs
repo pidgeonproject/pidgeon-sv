@@ -169,8 +169,7 @@ namespace pidgeon_sv
             }
         }
 
-        public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
-        public int type = 0;
+        public List<ProtocolMain.Datagram> NetworkInfo = new List<ProtocolMain.Datagram>();
         public SystemUser owner = null;
         private bool Locked = false;
         private int Current_ID = 0;
