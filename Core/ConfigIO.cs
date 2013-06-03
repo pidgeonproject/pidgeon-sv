@@ -27,6 +27,9 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
+        /// <summary>
+        /// Filesystem watcher
+        /// </summary>
         public static FileSystemWatcher fs;
 
         private static void OnChanged(object source, FileSystemEventArgs e)
@@ -46,12 +49,12 @@ namespace pidgeon_sv
                 {
                     SL("Loading users");
                 }
-                if (File.Exists(Config._System.UserFile))
+                if (File.Exists(Configuration._System.UserFile))
                 {
                     if (!ro)
                     {
                         fs = new FileSystemWatcher();
-                        fs.Path = Config._System.DatabaseFolder;
+                        fs.Path = Configuration._System.DatabaseFolder;
                         fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
                         fs.Filter = "users";
                         fs.Changed += new FileSystemEventHandler(OnChanged);
@@ -60,13 +63,13 @@ namespace pidgeon_sv
                         fs.EnableRaisingEvents = true;
                     }
                     XmlDocument configuration = new XmlDocument();
-                    configuration.Load(Config._System.UserFile);
+                    configuration.Load(Configuration._System.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
                         Core.DebugLog("There is no proper information about users in config file");
                         return;
                     }
-                    lock (_accounts)
+                    lock (UserList)
                     {
                         Core.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
                         foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
@@ -78,7 +81,7 @@ namespace pidgeon_sv
                             string nickname = null;
                             string ident = "pidgeon";
                             string realname = "http://pidgeonclient.org/wiki";
-                            if (Config._System.Rooted)
+                            if (Configuration._System.Rooted)
                             {
                                 UserLevel = SystemUser.UserLevel.Root;
                             }
@@ -155,12 +158,12 @@ namespace pidgeon_sv
                             line.Level = UserLevel;
                             if (Nonexistent)
                             {
-                                _accounts.Add(line);
+                                UserList.Add(line);
                             }
                         }
                         if (!ro)
                         {
-                            SL("Loaded users: " + _accounts.Count.ToString());
+                            SL("Loaded users: " + UserList.Count.ToString());
                         }
                     }
                 }
@@ -186,17 +189,17 @@ namespace pidgeon_sv
                 {
                     fs.EnableRaisingEvents = false;
                 }
-                if (File.Exists(Config._System.UserFile))
+                if (File.Exists(Configuration._System.UserFile))
                 {
-                    File.Copy(Config._System.UserFile, Config._System.UserFile + "~", true);
+                    File.Copy(Configuration._System.UserFile, Configuration._System.UserFile + "~", true);
                 }
                 XmlDocument configuration = new XmlDocument();
 
                 XmlNode xmlnode = configuration.CreateElement("users");
 
-                lock (_accounts)
+                lock (UserList)
                 {
-                    foreach (SystemUser user in _accounts)
+                    foreach (SystemUser user in UserList)
                     {
                         XmlNode item = configuration.CreateElement("user");
                         XmlAttribute name = configuration.CreateAttribute("name");
@@ -225,8 +228,8 @@ namespace pidgeon_sv
                 }
 
                 configuration.AppendChild(xmlnode);
-                configuration.Save(Config._System.UserFile);
-                File.Delete(Config._System.UserFile + "~");
+                configuration.Save(Configuration._System.UserFile);
+                File.Delete(Configuration._System.UserFile + "~");
                 if (fs != null)
                 {
                     fs.EnableRaisingEvents = true;
@@ -235,13 +238,13 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                File.Copy(Config._System.UserFile + "~", Config._System.UserFile, true);
+                File.Copy(Configuration._System.UserFile + "~", Configuration._System.UserFile, true);
             }
         }
 
         public static void LoadConf()
         {
-            if (!File.Exists(Config._System.ConfigurationFile))
+            if (!File.Exists(Configuration._System.ConfigurationFile))
             {
                 SL("WARNING: there is no configuration file");
                 return;
@@ -249,32 +252,32 @@ namespace pidgeon_sv
             else
             {
                 XmlDocument config = new XmlDocument();
-                config.Load(Config._System.ConfigurationFile);
+                config.Load(Configuration._System.ConfigurationFile);
                 foreach (XmlNode curr in config.ChildNodes[0].ChildNodes)
                 {
                     int value = 0;
                     switch (curr.Name.ToLower())
                     {
                         case "databasefolder":
-                            Config._System.DatabaseFolder = curr.InnerText;
+                            Configuration._System.DatabaseFolder = curr.InnerText;
                             break;
                         case "server_port":
-                            Config.Network.server_port = int.Parse(curr.InnerText);
+                            Configuration.Network.ServerPort = int.Parse(curr.InnerText);
                             break;
-                        case "ChunkSize":
+                        case "chunksize":
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
-                                SL("Invalid chunk size, using default: " + Config._System.ChunkSize);
+                                SL("Invalid chunk size, using default: " + Configuration._System.ChunkSize);
                                 break;
                             }
-                            Config._System.ChunkSize = value;
+                            Configuration._System.ChunkSize = value;
                             break;
                         case "ssl":
-                            Config.Network.UsingSSL = bool.Parse(curr.InnerText);
+                            Configuration.Network.UsingSSL = bool.Parse(curr.InnerText);
                             break;
                         case "server_ssl":
-                            Config.Network.server_ssl = int.Parse(curr.InnerText);
+                            Configuration.Network.ServerSSL = int.Parse(curr.InnerText);
                             break;
                     }
                 }

@@ -157,7 +157,7 @@ namespace pidgeon_sv
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Config._System.version + " I have " 
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.version + " I have " 
                 + Connection.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
                 + "kb private and " 
@@ -291,9 +291,9 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             string username = node.Attributes[0].Value;
             string pw = node.Attributes[1].Value;
-            lock (Core._accounts)
+            lock (Core.UserList)
             {
-                foreach (SystemUser curr_user in Core._accounts)
+                foreach (SystemUser curr_user in Core.UserList)
                 {
                     if (curr_user.UserName == username)
                     {
@@ -389,9 +389,9 @@ namespace pidgeon_sv
                         break;
                     }
                     string users = "";
-                    lock (Core._accounts)
+                    lock (Core.UserList)
                     {
-                        foreach (SystemUser curr in Core._accounts)
+                        foreach (SystemUser curr in Core.UserList)
                         {
                             users += curr.UserName + ":" + curr.Nickname + ":" + curr.IsLocked.ToString() + "&";
                         }

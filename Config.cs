@@ -20,25 +20,46 @@ using System.Collections.Generic;
 
 namespace pidgeon_sv
 {
-    class Config
+    /// <summary>
+    /// Configuration of application
+    /// </summary>
+    public class Configuration
     {
+        /// <summary>
+        /// Network
+        /// </summary>
         public class Network
         {
             /// <summary>
             /// Port
             /// </summary>
-            public static int server_port = 64530;
-            public static int server_ssl = 22432;
+            public static int ServerPort = 64530;
+            /// <summary>
+            /// Port SSL
+            /// </summary>
+            public static int ServerSSL = 22432;
             public static bool UsingSSL = true;
         }
 
+        /// <summary>
+        /// Debugging
+        /// </summary>
         public class Debugging
         {
-            public static int verbosity = 0;
+            /// <summary>
+            /// Verbosity
+            /// </summary>
+            public static int Verbosity = 0;
         }
 
+        /// <summary>
+        /// _System
+        /// </summary>
         public class _System
         {
+            /// <summary>
+            /// Name of file where user information is stored
+            /// </summary>
             public static string UserFile = "users";
 
             public static readonly string ConfigurationFile = "pidgeon.conf";
@@ -68,17 +89,35 @@ namespace pidgeon_sv
                     return MinimumBufferSize + ChunkSize;
                 }
             }
+
+            /// <summary>
+            /// Database folder (where the user database is located)
+            /// </summary>
             public static string DatabaseFolder = "db";
 
+            /// <summary>
+            /// Default folder where the user temporary data are stored
+            /// </summary>
             public static string FileDBDefaultFolder = "data";
 
+            /// <summary>
+            /// Certificate path
+            /// </summary>
             public static string CertificatePath = "server.pfx";
+
+            /// <summary>
+            /// Running as a daemon
+            /// </summary>
+            public static bool Daemon = false;
 
             /// <summary>
             /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
             /// </summary>
             public static int MinimumBufferSize = 800;
 
+            /// <summary>
+            /// Version of application
+            /// </summary>
             public static string version
             {
                 get

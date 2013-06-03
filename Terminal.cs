@@ -57,6 +57,7 @@ namespace pidgeon_sv
             Console.WriteLine("Usage: pidgeon-sv [options]\n"
                               + "********************************\n"
                               + "This is pidgeon services daemon, bellow is a list of available options:\n"
+                              + "if this program is started with no parameters, it will start in interactive service mode\n"
                               + "\n"
                               + "\n"
                               + "  -h (--help) display this help\n"
@@ -64,6 +65,8 @@ namespace pidgeon_sv
                               + "  -l (--list) list user\n"
                               + "  -v increase verbosity\n"
                               + "  -d (--delete) remove user\n"
+                              + "  -p (--pid) <file> write a process id to file in parameter\n"
+                              + "  -s (--daemon) will start as a system daemon"
                               + "\n"
                               + "for more information see http://pidgeonclient.org/wiki pidgeon is open source.");
         }
@@ -146,7 +149,7 @@ namespace pidgeon_sv
             user.ident = ident;
             user.Level = ul;
             user.RealName = realname;
-            Core._accounts.Add(user);
+            Core.UserList.Add(user);
             Core.SaveUser();
             Console.WriteLine("\n User created");
         }
@@ -161,7 +164,7 @@ namespace pidgeon_sv
             SystemUser user = SystemUser.getUser(username);
             if (user != null)
             {
-                Core._accounts.Remove(user);
+                Core.UserList.Remove(user);
                 Console.WriteLine("User deleted");
                 Core.SaveUser();
                 return;
@@ -172,16 +175,28 @@ namespace pidgeon_sv
         private static void ListUser()
         {
             Core.LoadUser(true);
-            if (Core._accounts.Count == 0)
+            if (Core.UserList.Count == 0)
             {
                 return;
             }
 
             Console.WriteLine("List of all users:\n=========================================\n");
-            foreach (SystemUser user in Core._accounts)
+            foreach (SystemUser user in Core.UserList)
             {
                 Console.WriteLine(user.UserName + " locked: " + user.IsLocked.ToString() + " name: " + user.RealName);
             }
+        }
+
+        private static void WritePid(Parameter p)
+        {
+            if (p.parm == null)
+            {
+                throw new Exception("Parameter --pid (-p) requires argument");
+            }
+
+            string file = p.parm[0];
+
+            System.IO.File.WriteAllText(file, System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
         }
 
         private static bool Process(List<Parameter> ls)
@@ -202,8 +217,14 @@ namespace pidgeon_sv
                     case "delete":
                         DeleteUser(parameter);
                         return true;
+                    case "pid":
+                        WritePid(parameter);
+                        return true;
                     case "-v":
-                        Config.Debugging.verbosity++;
+                        Configuration.Debugging.Verbosity++;
+                        break;
+                    case "daemon":
+                        Configuration._System.Daemon = true;
                         break;
                 }
             }
@@ -259,8 +280,20 @@ namespace pidgeon_sv
                             Read = true;
                             break;
                         case "-v":
+                        case "--verbose":
                             parsed = id;
                             id = "-v";
+                            Read = true;
+                            break;
+                        case "-p":
+                        case "--pid":
+                            parsed = id;
+                            id = "pid";
+                            Read = true;
+                            break;
+                        case "--daemon":
+                            parsed = id;
+                            id = "daemon";
                             Read = true;
                             break;
                     }

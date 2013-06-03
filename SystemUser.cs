@@ -312,16 +312,16 @@ namespace pidgeon_sv
 
         public static void DeleteUser(SystemUser user)
         {
-            lock (Core._accounts)
+            lock (Core.UserList)
             {
-                if (Core._accounts.Contains(user))
+                if (Core.UserList.Contains(user))
                 {
                     user.Lock();
                     user.data.Clear();
                     user.ConnectedNetworks.Clear();
                     user.Clients.Clear();
                     user.Messages.Clear();
-                    Core._accounts.Remove(user);
+                    Core.UserList.Remove(user);
                 }
             }
             Core.SaveUser();
@@ -334,18 +334,18 @@ namespace pidgeon_sv
             user.Nickname = nick;
             user.RealName = realname;
             user.ident = ident;
-            lock (Core._accounts)
+            lock (Core.UserList)
             {
-                Core._accounts.Add(user);
+                Core.UserList.Add(user);
             }
             Core.SaveUser();
         }
 
         public static SystemUser getUser(string name)
         {
-            lock (Core._accounts)
+            lock (Core.UserList)
             {
-                foreach (SystemUser account in Core._accounts)
+                foreach (SystemUser account in Core.UserList)
                 {
                     if (account.UserName == name)
                     {

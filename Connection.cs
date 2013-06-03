@@ -94,21 +94,7 @@ namespace pidgeon_sv
             try
             {
                 Connection conn = (Connection)data;
-                if (conn.main != null)
-                {
-                    Thread.Sleep(60000);
-                    if (conn.status == Connection.Status.WaitingPW)
-                    {
-                        Core.SL("Failed to authenticate in time - killing connection " + conn.IP);
-                        Core.DisableThread(conn.main);
-                        conn.Clean();
-                        return;
-                    }
-                }
-                else
-                {
-                    Core.SL("DEBUG: NULL " + conn.IP);
-                }
+                conn.Timeout();
             }
             catch (ThreadAbortException)
             {
@@ -117,6 +103,25 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 Core.handleException(fail);
+            }
+        }
+
+        public void Timeout()
+        {
+            if (main != null)
+            {
+                Thread.Sleep(60000);
+                if (status == Connection.Status.WaitingPW)
+                {
+                    Core.SL("Failed to authenticate in time - killing connection " + IP);
+                    Core.DisableThread(main);
+                    Clean();
+                    return;
+                }
+            }
+            else
+            {
+                Core.DebugLog("Invalid main of " + IP);
             }
         }
 
@@ -178,7 +183,7 @@ namespace pidgeon_sv
 
                 if (SSL)
                 {
-                    X509Certificate cert = new X509Certificate2(Config._System.CertificatePath, "pidgeon");
+                    X509Certificate cert = new X509Certificate2(Configuration._System.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);

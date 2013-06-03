@@ -30,11 +30,11 @@ namespace pidgeon_sv
             {
                 Core.StartedTime = DateTime.Now;
                 Core.Parameters = args;
-                Config._System.UserFile = Config._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
-                if (!Directory.Exists(Config._System.DatabaseFolder))
+                if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {
-                    Directory.CreateDirectory(Config._System.DatabaseFolder);
+                    Directory.CreateDirectory(Configuration._System.DatabaseFolder);
                 }
                 if (Terminal.Parameters())
                 {
@@ -42,10 +42,10 @@ namespace pidgeon_sv
                     {
                         return;
                     }
-                    if (Config.Network.UsingSSL)
+                    if (Configuration.Network.UsingSSL)
                     {
-                        Core.SSL = new System.Threading.Thread(Core.ListenS);
-                        Core.SSL.Start();
+                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
+                        Core.SSLListenerTh.Start();
                     }
                     Core.Listen();
                 }
