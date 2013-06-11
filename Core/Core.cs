@@ -52,7 +52,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Uptime
         /// </summary>
-        public static DateTime StartedTime;
+        public static DateTime StartTime;
         /// <summary>
         /// List of all existing accounts in system
         /// </summary>
@@ -63,7 +63,8 @@ namespace pidgeon_sv
         public static List<Thread> ThreadDB = new List<Thread>();
 
         /// <summary>
-        /// Remove a thread from system
+        /// Remove a thread from system, in case it's running it will also abort it - in case you call this function
+        /// on a same thread as which you are in, it will only remove the thread from the list but it won't abort it
         /// </summary>
         /// <param name="thread"></param>
         public static void DisableThread(Thread thread)

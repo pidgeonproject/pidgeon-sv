@@ -212,7 +212,7 @@ namespace pidgeon_sv
 
                         if (ProtocolMain.Valid(text))
                         {
-                            connection.protocol.parseCommand(text);
+                            connection.protocol.ParseCommand(text);
                             continue;
                         }
                         else

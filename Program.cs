@@ -24,11 +24,11 @@ namespace pidgeon_sv
 {
     class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             try
             {
-                Core.StartedTime = DateTime.Now;
+                Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
                 Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
@@ -36,6 +36,8 @@ namespace pidgeon_sv
                 {
                     Directory.CreateDirectory(Configuration._System.DatabaseFolder);
                 }
+
+                // Check the parameters and if we can continue, launch the core
                 if (Terminal.Parameters())
                 {
                     if (!Core.Init())

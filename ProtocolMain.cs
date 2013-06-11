@@ -167,13 +167,13 @@ namespace pidgeon_sv
             return false;
         }
 
-        public void parseCommand(string data)
+        public void ParseCommand(string data)
         {
             XmlDocument datagram = new XmlDocument();
             datagram.LoadXml(data);
             foreach (System.Xml.XmlNode curr in datagram.ChildNodes)
             {
-                parseXml(curr);
+                ParseXml(curr);
             }
         }
 
@@ -213,7 +213,7 @@ namespace pidgeon_sv
         /// Process the request
         /// </summary>
         /// <param name="node"></param>
-        public void parseXml(XmlNode node)
+        public void ParseXml(XmlNode node)
         {
             Datagram response = null;
             if (connection.status == Connection.Status.WaitingPW)

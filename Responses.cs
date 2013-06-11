@@ -162,7 +162,7 @@ namespace pidgeon_sv
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
                 + "kb private and " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() 
-                + "kb virtual, uptime: " + (DateTime.Now - Core.StartedTime).ToString());
+                + "kb virtual, uptime: " + (DateTime.Now - Core.StartTime).ToString());
 
             protocol.Deliver(response);
         }
