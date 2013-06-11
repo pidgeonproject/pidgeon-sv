@@ -219,7 +219,7 @@ namespace pidgeon_sv
                         return true;
                     case "pid":
                         WritePid(parameter);
-                        return true;
+                        break;
                     case "-v":
                         Configuration.Debugging.Verbosity++;
                         break;
