@@ -27,22 +27,25 @@ using System.Text;
 
 namespace pidgeon_sv
 {
+    /// <summary>
+    /// Connection of pidgeon to services
+    /// </summary>
     public class Connection
     {
         /// <summary>
         /// The active users.
         /// </summary>
-        public static List<Connection> ActiveUsers = new List<Connection>();
+        public static List<Connection> ConnectedUsers = new List<Connection>();
         /// <summary>
-        /// The account.
+        /// The system user
         /// </summary>
-        public SystemUser account = null;
+        public SystemUser User = null;
         /// <summary>
-        /// The status.
+        /// The status
         /// </summary>
         public Status status = Status.WaitingPW;
         /// <summary>
-        /// The client.
+        /// The client
         /// </summary>
         public System.Net.Sockets.TcpClient client = null;
         private System.IO.StreamReader _StreamReader = null;
@@ -52,14 +55,17 @@ namespace pidgeon_sv
         /// </summary>
         public bool SSL = true;
         /// <summary>
-        /// The main.
+        /// The main
         /// </summary>
         private Thread main = null;
         /// <summary>
         /// The IP
         /// </summary>
         public string IP;
-        private ProtocolMain protocol;
+        /// <summary>
+        /// Protocol
+        /// </summary>
+        private ProtocolMain protocol = null;
         private bool Connected = false;
         /// <summary>
         /// Connected
@@ -88,21 +94,7 @@ namespace pidgeon_sv
             try
             {
                 Connection conn = (Connection)data;
-                if (conn.main != null)
-                {
-                    Thread.Sleep(60000);
-                    if (conn.status == Connection.Status.WaitingPW)
-                    {
-                        Core.SL("Failed to authenticate in time - killing connection " + conn.IP);
-                        Core.DisableThread(conn.main);
-                        ConnectionClean(conn);
-                        return;
-                    }
-                }
-                else
-                {
-                    Core.SL("DEBUG: NULL " + conn.IP);
-                }
+                conn.Timeout();
             }
             catch (ThreadAbortException)
             {
@@ -113,14 +105,35 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
         }
-        
+
+        public void Timeout()
+        {
+            if (main != null)
+            {
+                Thread.Sleep(60000);
+                if (status == Connection.Status.WaitingPW)
+                {
+                    Core.SL("Failed to authenticate in time - killing connection " + IP);
+                    Core.DisableThread(main);
+                    Clean();
+                    return;
+                }
+            }
+            else
+            {
+                Core.DebugLog("Invalid main of " + IP);
+            }
+        }
+
+        /// <summary>
+        /// Disconnect from client and close all underlying objects
+        /// </summary>
         public void Disconnect()
         {
             lock (this)
             {
                 if (Connected)
                 {
-                    Connected = false;
                     if (protocol != null)
                     {
                         protocol.Exit();
@@ -129,15 +142,18 @@ namespace pidgeon_sv
                     if (_StreamReader != null)
                     {
                         _StreamReader.Close();
+                        _StreamReader = null;
                     }
                     if (_StreamWriter != null)
                     {
                         _StreamWriter.Close();
+                        _StreamWriter = null;
                     }
+                    Connected = false;
                 }
             }
         }
-        
+
         public static void InitialiseClient(object data, bool SSL)
         {
             Connection connection = null;
@@ -160,20 +176,21 @@ namespace pidgeon_sv
                 connection.Connected = true;
                 checker.Start(connection);
 
-                lock (ActiveUsers)
+                lock (ConnectedUsers)
                 {
-                    ActiveUsers.Add(connection);
+                    ConnectedUsers.Add(connection);
                 }
-                
+
                 if (SSL)
                 {
-                    X509Certificate cert = new X509Certificate2(Config._System.CertificatePath, "pidgeon");
+                    X509Certificate cert = new X509Certificate2(Configuration._System.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
                     connection._StreamWriter = new StreamWriter(_networkSsl);
                     connection._StreamReader = new StreamReader(_networkSsl, Encoding.UTF8);
-                } else
+                }
+                else
                 {
                     System.Net.Sockets.NetworkStream ns = client.GetStream();
                     connection._StreamWriter = new StreamWriter(ns);
@@ -195,7 +212,7 @@ namespace pidgeon_sv
 
                         if (ProtocolMain.Valid(text))
                         {
-                            connection.protocol.parseCommand(text);
+                            connection.protocol.ParseCommand(text);
                             continue;
                         }
                         else
@@ -207,91 +224,58 @@ namespace pidgeon_sv
                     catch (IOException)
                     {
                         Core.SL("Connection closed: " + connection.IP);
-                        connection.protocol.Exit();
-                        connection.Connected = false;
-                        ConnectionClean(connection);
+                        connection.Clean();
                         return;
-
                     }
                     catch (ThreadAbortException)
                     {
-                        connection.protocol.Exit();
-                        connection.Connected = false;
-                        ConnectionClean(connection);
+                        connection.Clean();
                         return;
                     }
                 }
                 Core.SL("Connection closed by remote: " + connection.IP);
-                connection.protocol.Exit();
-                ConnectionClean(connection);
+                connection.Clean();
             }
             catch (System.IO.IOException)
             {
                 Core.SL("Connection closed: " + connection.IP);
-                ConnectionClean(connection);
-                return;
             }
             catch (ThreadAbortException)
             {
-                if (connection != null)
-                {
-                    ConnectionClean(connection);
-                }
-                return;
+                Core.DebugLog("Connection thread was aborted");
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                if (connection != null)
-                {
-                    ConnectionClean(connection);
-                }
-                return;
+            }
+            if (connection != null)
+            {
+                connection.Clean();
             }
         }
-        
+
         public static void InitialiseClient(object data)
         {
-            InitialiseClient (data, false);
+            InitialiseClient(data, false);
         }
-        
+
         public static void InitialiseClientSSL(object data)
         {
-            InitialiseClient (data, true);
+            InitialiseClient(data, true);
         }
-        
-        /// <summary>
-        /// Remove all data associated with the connection
-        /// </summary>
-        /// <param name="connection"></param>
-        public static void ConnectionClean(Connection connection)
-        {
-            // there is a high possibility of some network exception here
-            try
-            {
-                Core.SL("Disconnecting connection: " + connection.IP);
-                connection.Disconnect();
-                connection.protocol = null;
-                GC.Collect();
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
 
-            try
+        public void Clean()
+        {
+            Core.SL("Disconnecting connection: " + IP);
+            Disconnect();
+            GC.Collect();
+
+            lock (ConnectedUsers)
             {
-                lock (ActiveUsers)
+                if (ConnectedUsers.Contains(this))
                 {
-                    if (ActiveUsers.Contains(connection))
-                    {
-                        ActiveUsers.Remove(connection);
-                    }
+                    ConnectedUsers.Remove(this);
                 }
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
             }
         }
 
@@ -299,7 +283,7 @@ namespace pidgeon_sv
         {
             return true;
         }
-        
+
         public enum Status
         {
             WaitingPW,

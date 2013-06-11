@@ -24,31 +24,30 @@ namespace pidgeon_sv
 {
     class Program
     {
-        public static List<string> data;
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             try
             {
-                Core.StartedTime = DateTime.Now;
-                Core.startup = args;
-                data = new List<string>();
-                data.AddRange(args);
-                Config._System.UserFile = Config._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+                Core.StartTime = DateTime.Now;
+                Core.Parameters = args;
+                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
 
-                if (!Directory.Exists("db"))
+                if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {
-                    Directory.CreateDirectory("db");
+                    Directory.CreateDirectory(Configuration._System.DatabaseFolder);
                 }
+
+                // Check the parameters and if we can continue, launch the core
                 if (Terminal.Parameters())
                 {
                     if (!Core.Init())
                     {
                         return;
                     }
-                    if (Config.Network.UsingSSL)
+                    if (Configuration.Network.UsingSSL)
                     {
-                        Core.SSL = new System.Threading.Thread(Core.ListenS);
-                        Core.SSL.Start();
+                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
+                        Core.SSLListenerTh.Start();
                     }
                     Core.Listen();
                 }

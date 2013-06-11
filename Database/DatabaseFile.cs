@@ -46,8 +46,8 @@ namespace pidgeon_sv
 
         public DatabaseFile(SystemUser _client)
         {
-            this.client = _client;
-            db = Config._System.FileDBDefaultFolder + System.IO.Path.DirectorySeparatorChar + _client.username;
+            this.systemUser = _client;
+            db = Configuration._System.FileDBDefaultFolder + System.IO.Path.DirectorySeparatorChar + _client.UserName;
         }
 
         public override void Clear()

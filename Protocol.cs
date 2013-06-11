@@ -25,152 +25,151 @@ namespace pidgeon_sv
     public class Protocol
     {
         public class NetworkMode
-    {
-        /// <summary>
-        /// Raw mode
-        /// </summary>
-        public List<string> _Mode = new List<string>();
-        /// <summary>
-        /// Optional parameters for each mode
-        /// </summary>
-        public string Parameters = null;
-        /// <summary>
-        /// Network associated with mode
-        /// </summary>
-        [NonSerialized]
-        public Network network = null;
-        /// <summary>
-        /// Type
-        /// </summary>
-        public ModeType _ModeType = ModeType.Network;
-
-        public override string ToString()
         {
-            string _val = "";
-            int curr = 0;
-            lock (_Mode)
+            /// <summary>
+            /// Raw mode
+            /// </summary>
+            public List<string> _Mode = new List<string>();
+            /// <summary>
+            /// Optional parameters for each mode
+            /// </summary>
+            public string Parameters = null;
+            /// <summary>
+            /// Network associated with mode
+            /// </summary>
+            [NonSerialized]
+            public Network network = null;
+            /// <summary>
+            /// Type
+            /// </summary>
+            public ModeType _ModeType = ModeType.Network;
+
+            public override string ToString()
             {
-                while (curr < _Mode.Count)
+                string _val = "";
+                int curr = 0;
+                lock (_Mode)
                 {
-                    _val += _Mode[curr];
-                    curr++;
-                }
-            }
-            return "+" + _val;
-        }
-
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="MT"></param>
-        /// <param name="_Network"></param>
-        public NetworkMode(ModeType MT, Network _Network)
-        {
-            _ModeType = MT;
-            network = _Network;
-        }
-
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="DefaultMode"></param>
-        public NetworkMode(string DefaultMode)
-        {
-            ChangeMode(DefaultMode);
-        }
-
-        /// <summary>
-        /// This needs to be there for serialization to work
-        /// </summary>
-        public NetworkMode()
-        {
-            // place holder :)
-            network = null;
-        }
-
-        /// <summary>
-        /// Change mode
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        public bool ChangeMode(string text)
-        {
-            char prefix = ' ';
-            foreach (char _x in text)
-            {
-                if (network != null && _ModeType != ModeType.Network)
-                {
-                    switch (_ModeType)
+                    while (curr < _Mode.Count)
                     {
-                        case ModeType.User:
-                            if (network.CModes.Contains(_x))
-                            {
-                                continue;
-                            }
-                            break;
-                        case ModeType.Channel:
-                            if (network.CUModes.Contains(_x) || network.PModes.Contains(_x))
-                            {
-                                continue;
-                            }
-                            break;
+                        _val += _Mode[curr];
+                        curr++;
                     }
                 }
-                if (_x == ' ')
-                {
-                    return true;
-                }
-                if (_x == '-')
-                {
-                    prefix = _x;
-                    continue;
-                }
-                if (_x == '+')
-                {
-                    prefix = _x;
-                    continue;
-                }
-                switch (prefix)
-                {
-                    case '+':
-                        if (!_Mode.Contains(_x.ToString()))
-                        {
-                            this._Mode.Add(_x.ToString());
-                        }
-                        continue;
-                    case '-':
-                        if (_Mode.Contains(_x.ToString()))
-                        {
-                            this._Mode.Remove(_x.ToString());
-                        }
-                        continue;
-                } continue;
+                return "+" + _val;
             }
-            return false;
+
+            /// <summary>
+            /// Creates a new instance
+            /// </summary>
+            /// <param name="MT"></param>
+            /// <param name="_Network"></param>
+            public NetworkMode(ModeType MT, Network _Network)
+            {
+                _ModeType = MT;
+                network = _Network;
+            }
+
+            /// <summary>
+            /// Creates a new instance
+            /// </summary>
+            /// <param name="DefaultMode"></param>
+            public NetworkMode(string DefaultMode)
+            {
+                ChangeMode(DefaultMode);
+            }
+
+            /// <summary>
+            /// This needs to be there for serialization to work
+            /// </summary>
+            public NetworkMode()
+            {
+                // place holder :)
+                network = null;
+            }
+
+            /// <summary>
+            /// Change mode
+            /// </summary>
+            /// <param name="text"></param>
+            /// <returns></returns>
+            public bool ChangeMode(string text)
+            {
+                char prefix = ' ';
+                foreach (char _x in text)
+                {
+                    if (network != null && _ModeType != ModeType.Network)
+                    {
+                        switch (_ModeType)
+                        {
+                            case ModeType.User:
+                                if (network.CModes.Contains(_x))
+                                {
+                                    continue;
+                                }
+                                break;
+                            case ModeType.Channel:
+                                if (network.CUModes.Contains(_x) || network.PModes.Contains(_x))
+                                {
+                                    continue;
+                                }
+                                break;
+                        }
+                    }
+                    if (_x == ' ')
+                    {
+                        return true;
+                    }
+                    if (_x == '-')
+                    {
+                        prefix = _x;
+                        continue;
+                    }
+                    if (_x == '+')
+                    {
+                        prefix = _x;
+                        continue;
+                    }
+                    switch (prefix)
+                    {
+                        case '+':
+                            if (!_Mode.Contains(_x.ToString()))
+                            {
+                                this._Mode.Add(_x.ToString());
+                            }
+                            continue;
+                        case '-':
+                            if (_Mode.Contains(_x.ToString()))
+                            {
+                                this._Mode.Remove(_x.ToString());
+                            }
+                            continue;
+                    } continue;
+                }
+                return false;
+            }
+
+            /// <summary>
+            /// Mode type
+            /// </summary>
+            public enum ModeType
+            {
+                /// <summary>
+                /// Channel mode
+                /// </summary>
+                Channel,
+                /// <summary>
+                /// User mode
+                /// </summary>
+                User,
+                /// <summary>
+                /// Network
+                /// </summary>
+                Network
+            }
         }
 
-        /// <summary>
-        /// Mode type
-        /// </summary>
-        public enum ModeType
-        {
-            /// <summary>
-            /// Channel mode
-            /// </summary>
-            Channel,
-            /// <summary>
-            /// User mode
-            /// </summary>
-            User,
-            /// <summary>
-            /// Network
-            /// </summary>
-            Network
-        }
-    }
-        
-        public List<ProtocolMain.Datagram> info = new List<ProtocolMain.Datagram>();
-        public int type = 0;
+        public List<ProtocolMain.Datagram> NetworkInfo = new List<ProtocolMain.Datagram>();
         public SystemUser owner = null;
         private bool Locked = false;
         private int Current_ID = 0;
@@ -250,7 +249,8 @@ namespace pidgeon_sv
                 int id = Current_ID;
                 Locked = false;
                 return id;
-            } catch (Exception fail)
+            }
+            catch (Exception fail)
             {
                 Locked = false;
                 Core.handleException(fail);

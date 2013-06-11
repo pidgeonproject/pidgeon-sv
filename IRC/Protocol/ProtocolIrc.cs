@@ -29,9 +29,9 @@ namespace pidgeon_sv
 {
     public partial class ProtocolIrc : Protocol
     {
-        private System.Net.Sockets.NetworkStream _network = null;
+        private System.Net.Sockets.NetworkStream _networkStream = null;
         private System.IO.StreamReader _reader = null;
-        public Network _server;
+        public Network _network;
         private System.IO.StreamWriter _writer = null;
         private SslStream _networkSsl = null;
         private Messages _messages = new Messages();
@@ -47,20 +47,13 @@ namespace pidgeon_sv
         {
             get
             {
-                if (_server != null)
+                if (_network != null)
                 {
-                    return (_server.Connected);
+                    return (_network.Connected);
                 }
                 return false;
             }
         }
-
-        public enum Priority
-        {
-            High = 8,
-            Normal = 2,
-            Low = 1
-        }  
 
         public override void Part(string name, Network network = null)
         {
@@ -76,9 +69,9 @@ namespace pidgeon_sv
         {
             try
             {
-                while (_server.Connected)
+                while (_network.Connected)
                 {
-                    Transfer("PING :" + _server._Protocol.Server, Priority.High);
+                    Transfer("PING :" + _network._Protocol.Server, Priority.High);
                     System.Threading.Thread.Sleep(24000);
                 }
             }
@@ -97,12 +90,12 @@ namespace pidgeon_sv
             _messages.protocol = this;
             try
             {
-                _server.Connected = true;
+                _network.Connected = true;
                 if (!SSL)
                 {
-                    _network = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
-                    _writer = new System.IO.StreamWriter(_network);
-                    _reader = new System.IO.StreamReader(_network, Encoding.UTF8);
+                    _networkStream = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
+                    _writer = new System.IO.StreamWriter(_networkStream);
+                    _reader = new System.IO.StreamReader(_networkStream, Encoding.UTF8);
                 }
 
                 if (SSL)
@@ -115,39 +108,23 @@ namespace pidgeon_sv
                     _reader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
                 }
 
-                _writer.WriteLine("USER " + _server.Ident + " 8 * :" + _server.UserName);
-                _writer.WriteLine("NICK " + _server.nickname);
+                _writer.WriteLine("USER " + _network.Ident + " 8 * :" + _network.UserName);
+                _writer.WriteLine("NICK " + _network.nickname);
                 _writer.Flush();
 
                 keep = new System.Threading.Thread(_Ping);
                 keep.Name = "pinger thread";
                 keep.Start();
 
-            }
-            catch (ThreadAbortException)
-            {
-                // shutting down
-                return; 
-            }
-            catch (Exception b)
-            {
-                ProtocolMain.Datagram dt = new ProtocolMain.Datagram("CONNECTION", "PROBLEM");
-                dt.Parameters.Add("network", Server);
-                dt.Parameters.Add("info", b.Message);
-                owner.Deliver(dt);
-                Console.WriteLine(b.Message);
-                return;
-            }
-            string text = "";
-            try
-            {
+                string text = "";
+
                 deliveryqueue = new System.Threading.Thread(_messages.Run);
                 deliveryqueue.Start();
 
-                while (_server.Connected && !_reader.EndOfStream)
+                while (_network.Connected && !_reader.EndOfStream)
                 {
                     text = _reader.ReadLine();
-                    ProcessorIRC parser = new ProcessorIRC(_server, text, ref pong);
+                    ProcessorIRC parser = new ProcessorIRC(_network, text, ref pong);
                     parser.Result();
                 }
             }
@@ -168,184 +145,6 @@ namespace pidgeon_sv
         private static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true;
-        }
-
-        public void ClientData(string content)
-        {
-            ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", content);
-            dt.Parameters.Add("network", Server);
-            buffer.DeliverMessage(dt);
-        }
-
-        /// <summary>
-        /// Get a size of backlog that starts from given id and has a specific maximal size
-        /// </summary>
-        /// <param name="mqid"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public int getBacklogSize(int mqid, int size)
-        {
-            // check memory first (quickly)
-            Core.DebugLog("Retrieving size of backlog for " + Server);
-            DateTime start_time = DateTime.Now;
-            bool FoundNewer = false;
-            int backlog_size = 0;
-            lock (buffer.oldmessages)
-            {
-                foreach (Buffer.Message message in buffer.oldmessages)
-                {
-                    if (int.Parse(message.message.Parameters["MQID"]) > mqid)
-                    {
-                        FoundNewer = true;
-                        backlog_size++;
-                    }
-                }
-            }
-            if (!FoundNewer)
-            {
-                Core.DebugLog("No backlog data");
-                return 0;
-            }
-            // now search the disk
-            backlog_size = backlog_size + owner.data.MessagePool_Backlog(size, mqid, Server);
-            Core.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
-            return backlog_size;
-        }
-
-        public void getDepth(int RequestedSize, ProtocolMain user, int mqid)
-        {
-            try
-            {
-                Core.DebugLog("User " + owner.nickname + " requested a backlog of data starting from " + mqid.ToString());
-                user.TrafficChunks = true;
-                int total_count = RequestedSize;
-                int total_requested_size = RequestedSize;
-                int index = 0;
-                int backlog_size = 0;
-                lock (buffer.oldmessages)
-                {
-                    if (buffer.oldmessages.Count == 0)
-                    {
-                        // we don't need to deliver any backlog
-                        Core.DebugLog("User " + owner.nickname + " requested a backlog, there are no data");
-                        ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
-                        size.Parameters.Add("network", Server);
-                        user.Deliver(size);
-                        return;
-                    }
-                    if (buffer.oldmessages.Count < RequestedSize)
-                    {
-                        // the backlog needs to be parsed from file
-                        Core.DebugLog("User " + owner.nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
-                        // we get the total size of memory and disk
-                        total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
-                        if (total_count < RequestedSize)
-                        {
-                            Core.DebugLog("User " + owner.nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
-                        }
-                        // we get a backlog size in case that user has some mqid
-                        if (mqid > 0)
-                        {
-                            backlog_size = getBacklogSize(mqid, RequestedSize);
-                        }
-                        else
-                        {
-                            backlog_size = total_count;
-                        }
-
-                        // in case that user should get more messages than he requested we fix it
-                        if (backlog_size > total_requested_size)
-                        {
-                            backlog_size = total_requested_size;
-                        }
-                        Core.DebugLog("Delivering backlog messages to peer: " + backlog_size.ToString());
-                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
-                        count.Parameters.Add("network", Server);
-                        user.Deliver(count);
-                        // we send the data using the storage
-                        owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
-                        if (index < 0)
-                        {
-                            // this makes no sense, the datafile was probably corrupted
-                            Core.DebugLog("Something went wrong");
-                            return;
-                        }
-                        backlog_size = buffer.oldmessages.Count;
-                    }
-                    else
-                    {
-                        // backlog doesn't need to be parsed from file
-                        backlog_size = getBacklogSize(mqid, RequestedSize);
-                        if (backlog_size > total_requested_size)
-                        {
-                            backlog_size = total_requested_size;
-                        }
-                        
-                        ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
-                        count.Parameters.Add("network", Server);
-                        user.Deliver(count);
-                    }
-
-                    int i = 0;
-                    // now we need to deliver the remaining data from memory
-                    if (backlog_size > buffer.oldmessages.Count)
-                    {
-                        Core.DebugLog("For some reason the backlog size was bigger than number of all messages in memory");
-                        backlog_size = buffer.oldmessages.Count;
-                    }
-
-                    while (i < backlog_size)
-                    {
-                        if (int.Parse(buffer.oldmessages[i].message.Parameters["MQID"]) > mqid)
-                        {
-                            ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
-                            text._InnerText = buffer.oldmessages[i].message._InnerText;
-                            foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
-                            {
-                                text.Parameters.Add(current.Key, current.Value);
-                            }
-                            index++;
-                            text.Parameters.Add("buffer", index.ToString());
-                            user.Deliver(text);
-                        }
-                        i++;
-                    }
-                    user.TrafficChunks = false;
-                    user.Deliver(new ProtocolMain.Datagram("PING"));    
-                }
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-                user.TrafficChunks = false;
-            }
-        }
-
-        public void getRange(ProtocolMain user, int from, int last)
-        {
-            Core.DebugLog("User " + owner.nickname + " requested a range of data starting from " + from.ToString());
-            int index = 0;
-            lock (buffer.oldmessages)
-            {
-                foreach (Buffer.Message curr in buffer.oldmessages)
-                {
-                    int mq =int.Parse(curr.message.Parameters["MQID"]);
-                    if (from >= mq && last <= mq)
-                    {
-                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(curr.message._Datagram);
-                        text._InnerText = curr.message._InnerText;
-                        foreach (KeyValuePair<string, string> current in curr.message.Parameters)
-                        {
-                            text.Parameters.Add(current.Key, current.Value);
-                        }
-                        text.Parameters.Add("range", index.ToString());
-                        index++;
-                        user.Deliver(text);
-                    }
-                }
-            }
-
-            owner.data.MessagePool_Range(from, last, Server, ref index, user);
         }
 
         public override bool Command(string cm)
@@ -429,7 +228,7 @@ namespace pidgeon_sv
                 List<ProtocolMain.SelfData> delete = new List<ProtocolMain.SelfData>();
                 foreach (ProtocolMain.SelfData ms in owner.Messages)
                 {
-                    if (ms.network == _server)
+                    if (ms.network == _network)
                     {
                         delete.Add(ms);
                     }
@@ -447,21 +246,21 @@ namespace pidgeon_sv
             {
                 return;
             }
-            if (!_server.Connected)
+            if (!_network.Connected)
             {
                 return;
             }
             try
             {
                 Core.DisableThread(keep);
-                _writer.WriteLine("QUIT :" + _server.Quit);
+                _writer.WriteLine("QUIT :" + _network.Quit);
                 _writer.Flush();
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
             }
-            _server.Connected = false;
+            _network.Connected = false;
         }
         
         public override void Exit()
@@ -480,7 +279,7 @@ namespace pidgeon_sv
             {
                 Core.DisableThread(main);
             }
-            _server.Destroy();
+            _network.Destroy();
             return;
         }
 
@@ -493,5 +292,12 @@ namespace pidgeon_sv
             BufferTh.Start();
             return true;
         }
+
+        public enum Priority
+        {
+            High = 8,
+            Normal = 2,
+            Low = 1
+        }  
     }
 }

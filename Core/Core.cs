@@ -27,9 +27,18 @@ namespace pidgeon_sv
 {
     public partial class Core
     {
-        public static string[] startup;
-        public static Thread SSL;
-        private static bool running = true;
+        /// <summary>
+        /// Parameters of the application
+        /// </summary>
+        public static string[] Parameters = null;
+        /// <summary>
+        /// SSL listener thread
+        /// </summary>
+        public static Thread SSLListenerTh = null;
+        /// <summary>
+        /// Whether system is running
+        /// </summary>
+        private static bool isRunning = true;
         /// <summary>
         /// The running.
         /// </summary>
@@ -37,44 +46,63 @@ namespace pidgeon_sv
         {
             get
             {
-                return true;
+                return isRunning;
             }
         }
         /// <summary>
         /// Uptime
         /// </summary>
-        public static DateTime StartedTime;
+        public static DateTime StartTime;
         /// <summary>
         /// List of all existing accounts in system
         /// </summary>
-        public static List<SystemUser> _accounts = new List<SystemUser>();
-        public static List<Thread> threads = new List<Thread>();
+        public static List<SystemUser> UserList = new List<SystemUser>();
+        /// <summary>
+        /// List of all threads in core
+        /// </summary>
+        public static List<Thread> ThreadDB = new List<Thread>();
 
+        /// <summary>
+        /// Remove a thread from system, in case it's running it will also abort it - in case you call this function
+        /// on a same thread as which you are in, it will only remove the thread from the list but it won't abort it
+        /// </summary>
+        /// <param name="thread"></param>
         public static void DisableThread(Thread thread)
         {
             if (thread == null)
             {
                 return;
             }
+
+            lock (ThreadDB)
+            {
+                if (ThreadDB.Contains(thread))
+                {
+                    ThreadDB.Remove(thread);
+                }
+            }
+
+            if (Thread.CurrentThread == thread)
+            {
+                DebugLog("Attempt of thread to kill self: " + thread.Name);
+                return;
+            }
+
             if (thread.ThreadState == ThreadState.Running ||
                 thread.ThreadState == ThreadState.WaitSleepJoin ||
                 thread.ThreadState == ThreadState.Background)
             {
                 thread.Abort();
             }
-            lock (threads)
-            {
-                if (threads.Contains(thread))
-                {
-                    threads.Remove(thread);
-                }
-            }
         }
 
+        /// <summary>
+        /// Quit
+        /// </summary>
         public static void Quit()
         {
             SL("Killing all connections and running processes");
-            foreach (Thread curr in threads)
+            foreach (Thread curr in ThreadDB)
             {
                 if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
                 {
@@ -83,7 +111,7 @@ namespace pidgeon_sv
             }
             SL("Exiting");
         }
-        
+
         public static void handleException(Exception reason, bool ThreadOK = false)
         {
             if (reason.GetType() == typeof(ThreadAbortException) && ThreadOK)
@@ -95,12 +123,12 @@ namespace pidgeon_sv
 
         public static void DebugLog(string text, int verbosity = 1)
         {
-            if (verbosity <= Config.Debugging.verbosity)
+            if (verbosity <= Configuration.Debugging.Verbosity)
             {
                 SL("DEBUG: " + text);
             }
         }
-        
+
         /// <summary>
         /// System log
         /// </summary>
@@ -109,9 +137,16 @@ namespace pidgeon_sv
         /// </param>
         public static void SL(string text)
         {
-            Console.WriteLine(DateTime.Now.ToString() + ": " + text);
+            if (!Configuration._System.Daemon)
+            {
+                Console.WriteLine(DateTime.Now.ToString() + ": " + text);
+            }
         }
-        
+
+        /// <summary>
+        /// This function load the services
+        /// </summary>
+        /// <returns></returns>
         public static bool Init()
         {
             try
@@ -121,36 +156,43 @@ namespace pidgeon_sv
 
                 LoadConf();
 
-                if (!File.Exists(Config._System.CertificatePath) && Config.Network.UsingSSL)
+                if (!File.Exists(Configuration._System.CertificatePath) && Configuration.Network.UsingSSL)
                 {
                     try
                     {
                         SL("There is no certificate file, creating one now");
-                        certificate(Config._System.CertificatePath, "pidgeonclient.org");
+                        certificate(Configuration._System.CertificatePath, "pidgeonclient.org");
                     }
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
                         SL("Unable to create cert file, ssl disabled");
-                        Config.Network.UsingSSL = false;
+                        Configuration.Network.UsingSSL = false;
                     }
                 }
 
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
-                SL("Port: " + Config.Network.server_port.ToString());
-                if (Config._System.MaxFileChunkSize == 0)
+                SL("Port: " + Configuration.Network.ServerPort.ToString());
+                if (Configuration._System.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");
                 }
                 else
                 {
-                    SL("Maximum file chunk size: " + Config._System.MaxFileChunkSize.ToString());
+                    SL("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
                 }
-                SL("Minimum buffer size: " + Config._System.MinimumBufferSize.ToString());
-                SL("Minimum chunk size: " + Config._System.ChunkSize.ToString());
-                SL("SSL is enabled: " + Config.Network.UsingSSL.ToString());
-                SL("Port: " + Config.Network.server_ssl.ToString());
+                SL("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
+                SL("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
+                SL("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
+                if (Configuration.Network.UsingSSL)
+                {
+                    SL("SSL port: " + Configuration.Network.ServerSSL.ToString());
+                }
+                else
+                {
+                    SL("SSL port: none");
+                }
 
                 SL("-----------------------------------------------------------");
 
@@ -166,6 +208,12 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// This function create a new certificate it is basically called only once
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="host"></param>
+        /// <returns></returns>
         public static bool certificate(string name, string host)
         {
             byte[] c = Certificate.CreateSelfSignCertificatePfx(
@@ -179,77 +227,6 @@ namespace pidgeon_sv
                 binWriter.Write(c);
             }
             return true;
-        }
-        
-        public static void ListenS()
-        {
-            try
-            {
-                SL("Listening (SSL)");
-                System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_ssl);
-                server.Start();
-
-                while (running)
-                {
-                    try
-                    {
-                        System.Net.Sockets.TcpClient connection = server.AcceptTcpClient();
-                        Thread _client = new Thread(Connection.InitialiseClientSSL);
-                        threads.Add(_client);
-                        _client.Start(connection);
-                        System.Threading.Thread.Sleep(200);
-                    }
-                    catch (ThreadAbortException)
-                    {
-                        return;
-                    }
-                    catch (Exception fail)
-                    {
-                        Core.handleException(fail);
-                    }
-                }
-            }
-            catch (ThreadAbortException)
-            {
-                return;
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
-        }
-        
-        public static void Listen()
-        {
-            try
-            {
-                SL("Waiting for clients");
-
-                System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Config.Network.server_port);
-                server.Start();
-
-                while (running)
-                {
-                    try
-                    {
-                        System.Net.Sockets.TcpClient connection = server.AcceptTcpClient();
-                        Thread _client = new Thread(Connection.InitialiseClient);
-                        threads.Add(_client);
-                        _client.Start(connection);
-                        System.Threading.Thread.Sleep(200);
-                    }
-                    catch (Exception fail)
-                    {
-                        Core.handleException(fail);
-                    }
-                }
-            }
-            catch (Exception fail)
-            {
-                handleException(fail);
-                SL("Terminating");
-                return;
-            }
         }
     }
 }
