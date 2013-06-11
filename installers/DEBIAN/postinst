@@ -2,7 +2,11 @@
 
 if [ "`id pidgeonsv | wc -l`" -eq 0 ];then
 	echo "Creating a service account for pidgeon services"
-	useradd -r pidgeonsv || exit 1
+	useradd -r pidgeonsv -d /usr/share/pidgeonsv || exit 1
+fi
+
+if [ ! -d "/usr/share/pidgeonsv" ];then
+  mkdir /usr/share/pidgeonsv
 fi
 
 if [ ! -d "/usr/share/pidgeonsv/data" ];
