@@ -27,5 +27,7 @@ if [ ! -f "$root/pidgeon-sv.exe" ];then
   exit 1
 fi
 
+cd $root || exit 1
 mono "$root/pidgeon-sv.exe" $*
+
 exit 0

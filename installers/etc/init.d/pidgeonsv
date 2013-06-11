@@ -13,9 +13,10 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Pidgeon irc services"
 NAME=pidgeonsv
 DAEMON="/usr/bin/pidgeon-sv"
-DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
+PIDFILEMONO="/var/run/$NAME"_MONO.pid
 SCRIPTNAME=/etc/init.d/$NAME
+DAEMON_ARGS="-p $PIDFILEMONO"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -56,6 +57,9 @@ do_stop()
         #   other if a failure occurred
         start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
         RETVAL="$?"
+        if [ -f $PIDFILEMONO ];then
+            kill `cat "$PIDFILEMONO"` && rm -f "$PIDFILEMONO"
+        fi
         [ "$RETVAL" = 2 ] && return 2
         # Wait for children to finish too if this is a daemon that forks
         # and if the daemon is only ever run from this initscript.
