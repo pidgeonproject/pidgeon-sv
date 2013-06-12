@@ -1,4 +1,4 @@
-Package: Pidgeon services
+Package: pidgeon-sv
 Version: 1.0.2.20
 Section: network
 Priority: optional
