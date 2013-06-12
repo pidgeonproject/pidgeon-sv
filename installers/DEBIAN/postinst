@@ -18,5 +18,6 @@ if [ ! -d "/usr/share/pidgeonsv/db" ];
 fi
 
 chown -R pidgeonsv "/usr/share/pidgeonsv/"
+ln -s /etc/pidgeon-sv/configuration /usr/share/pidgeon-sv/pidgeon.conf
 
 exit 0
