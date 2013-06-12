@@ -9,15 +9,15 @@ if [ ! -d "/usr/share/pidgeonsv" ];then
   mkdir /usr/share/pidgeonsv
 fi
 
-if [ ! -d "/usr/share/pidgeonsv/data" ];
+if [ ! -d "/usr/share/pidgeonsv/data" ];then
 	mkdir "/usr/share/pidgeonsv/data" || exit 1
 fi
 
-if [ ! -d "/usr/share/pidgeonsv/db" ];
+if [ ! -d "/usr/share/pidgeonsv/db" ];then
 	mkdir "/usr/share/pidgeonsv/db" || exit 1
 fi
 
 chown -R pidgeonsv "/usr/share/pidgeonsv/"
-ln -s /etc/pidgeon-sv/configuration /usr/share/pidgeon-sv/pidgeon.conf
+ln -s /etc/pidgeon-sv/pidgeon.conf /usr/share/pidgeon-sv/pidgeon.conf
 
 exit 0

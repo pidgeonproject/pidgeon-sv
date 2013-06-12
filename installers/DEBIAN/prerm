@@ -1,4 +1,5 @@
 #!/bin/sh
 
+rm -r /usr/share/pidgeon-sv
 
 exit 0
