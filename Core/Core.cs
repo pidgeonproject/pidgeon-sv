@@ -176,6 +176,7 @@ namespace pidgeon_sv
                 SL("This instance of pidgeon services has following parameters:");
                 SL("-----------------------------------------------------------");
                 SL("Port: " + Configuration.Network.ServerPort.ToString());
+                SL("WD: " + Directory.GetCurrentDirectory());
                 if (Configuration._System.MaxFileChunkSize == 0)
                 {
                     SL("Maximum file chunk size: unlimited");
