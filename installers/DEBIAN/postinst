@@ -19,5 +19,7 @@ fi
 
 chown -R pidgeonsv "/usr/share/pidgeon-sv/"
 ln -s /etc/pidgeon-sv/pidgeon-sv.conf /usr/share/pidgeon-sv/pidgeon.conf
+touch /var/log/pidgeonsv.log
+chown pidgeonsv /var/log/pidgeonsv.log
 
 exit 0

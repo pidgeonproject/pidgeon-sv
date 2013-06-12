@@ -18,7 +18,7 @@ PIDFILE=/var/run/$NAME.pid
 PIDFILEMONO="/var/run/$NAME"_MONO.pid
 SCRIPTNAME=/etc/init.d/$NAME
 FOLDER=/usr/share/pidgeon-sv
-DAEMON_ARGS="pidgeon-sv.exe -p $PIDFILE"
+DAEMON_ARGS="pidgeon-sv.exe -p $PIDFILE --daemon"
 SERVICE_USER=pidgeonsv
 #DAEMON_ARGS="-p $PIDFILEMONO"
 
