@@ -59,16 +59,16 @@ namespace pidgeon_sv
                               + "This is pidgeon services daemon, bellow is a list of available options:\n"
                               + "if this program is started with no parameters, it will start in interactive service mode\n"
                               + "\n"
-                              + "\n"
                               + "  -h (--help) display this help\n"
                               + "  -a (--add) insert user\n"
                               + "  -l (--list) list user\n"
                               + "  -v increase verbosity\n"
                               + "  -d (--delete) remove user\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
-                              + "  -s (--daemon) will start as a system daemon"
+                              + "  -s (--daemon) will start as a system daemon\n"
                               + "\n"
-                              + "for more information see http://pidgeonclient.org/wiki pidgeon is open source.");
+                              + "for more information see http://pidgeonclient.org/wiki"
+                              + "\npidgeon is open source.");
         }
 
         private static string ReadPw()

@@ -198,11 +198,14 @@ namespace pidgeon_sv
                 return;
             }
             Disconnect();
-            lock (connection.User.Clients)
+            if (connection != null)
             {
-                if (connection.User.Clients.Contains(this))
+                lock (connection.User.Clients)
                 {
-                    connection.User.Clients.Remove(this);
+                    if (connection.User.Clients.Contains(this))
+                    {
+                        connection.User.Clients.Remove(this);
+                    }
                 }
             }
             isDestroyed = true;
