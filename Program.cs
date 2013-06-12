@@ -24,30 +24,10 @@ namespace pidgeon_sv
 {
     class Program
     {
-        public static Mono.Unix.UnixSignal[] signals = new UnixSignal[] {
-                    new UnixSignal (Mono.Unix.Native.Signum.SIGTERM),
-                    new UnixSignal (Mono.Unix.Native.Signum.SIGKILL),
-                };
-
-        public static void SIGN()
-        {
-            while (true)
-            {
-                // Wait for a signal to be delivered
-                int index = Mono.Unix.UnixSignal.WaitAny (signals, -1);
- 
-                Mono.Unix.Native.Signum signal = signals [index].Signum;
-
-                Environment.Exit(0);
-            }
-        }
-
         private static void Main(string[] args)
         {
             try
             {
-                System.Threading.Thread signal_thread = new System.Threading.Thread(SIGN);
-                signal_thread.Start();
                 Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
                 Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
