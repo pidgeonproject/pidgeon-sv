@@ -44,6 +44,9 @@ namespace pidgeon_sv
                     {
                         return;
                     }
+
+                    Core.Writer.Init();
+
                     if (Configuration.Network.UsingSSL)
                     {
                         Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);

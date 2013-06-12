@@ -32,6 +32,81 @@ namespace pidgeon_sv
         /// </summary>
         public static FileSystemWatcher fs;
 
+        public class Writer
+        {
+            public class Item
+            {
+                /// <summary>
+                /// Text
+                /// </summary>
+                public string Text;
+                /// <summary>
+                /// Path
+                /// </summary>
+                public string FN;
+
+                /// <summary>
+                /// Creates a new instance of writer
+                /// </summary>
+                /// <param name="fn"></param>
+                /// <param name="text"></param>
+                public Item(string fn, string text)
+                {
+                    FN = fn;
+                    Text = text;
+                }
+            }
+
+            public static List<Item> DB = new List<Item>();
+
+            public static void Insert(string text, string file)
+            {
+                lock (DB)
+                {
+                    DB.Add(new Item(file, text));
+                }
+            }
+
+            private static void ex()
+            {
+                try
+                {
+                    while (Core.IsRunning)
+                    {
+                        List<Item> list = new List<Item>();
+                        lock (DB)
+                        {
+                            if (DB.Count > 0)
+                            {
+                                list.AddRange(DB);
+                                DB.Clear();
+                            }
+                        }
+                        foreach (Item item in list)
+                        {
+                            File.AppendAllText(item.FN, item.Text + Environment.NewLine);
+                        }
+                        System.Threading.Thread.Sleep(2000);
+                    }
+                }
+                catch (Exception fail)
+                {
+                    Core.handleException(fail);
+                }
+            }
+
+            public static void Init()
+            {
+                System.Threading.Thread logger = new Thread(ex);
+                logger.Name = "Writer";
+                lock (Core.ThreadDB)
+                {
+                    Core.ThreadDB.Add(logger);
+                }
+                logger.Start();
+            }
+        }
+
         private static void OnChanged(object source, FileSystemEventArgs e)
         {
             Core.SL("Warning, the user file was changed, reloading it");
@@ -278,6 +353,12 @@ namespace pidgeon_sv
                             break;
                         case "server_ssl":
                             Configuration.Network.ServerSSL = int.Parse(curr.InnerText);
+                            break;
+                        case "verbosity":
+                            Configuration.Debugging.Verbosity += int.Parse(curr.InnerText);
+                            break;
+                        case "log":
+                            Configuration._System.Log = curr.InnerText;
                             break;
                     }
                 }

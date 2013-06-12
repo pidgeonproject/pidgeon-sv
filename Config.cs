@@ -64,6 +64,8 @@ namespace pidgeon_sv
 
             public static readonly string ConfigurationFile = "pidgeon.conf";
 
+            public static string Log = "/var/log/pidgeonsv.log";
+
             /// <summary>
             /// This is a minimal size of one chunk before it's written to storage, to free a memory
             /// </summary>

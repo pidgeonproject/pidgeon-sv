@@ -140,7 +140,9 @@ namespace pidgeon_sv
             if (!Configuration._System.Daemon)
             {
                 Console.WriteLine(DateTime.Now.ToString() + ": " + text);
+                return;
             }
+            Core.Writer.Insert(DateTime.Now.ToString() + ": " + text, Configuration._System.Log);
         }
 
         /// <summary>

@@ -291,6 +291,7 @@ namespace pidgeon_sv
                             id = "pid";
                             Read = true;
                             break;
+                        case "-s":
                         case "--daemon":
                             parsed = id;
                             id = "daemon";
