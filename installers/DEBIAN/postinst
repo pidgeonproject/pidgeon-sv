@@ -17,7 +17,7 @@ if [ ! -d "/usr/share/pidgeonsv/db" ];then
 	mkdir "/usr/share/pidgeonsv/db" || exit 1
 fi
 
-chown -R pidgeonsv "/usr/share/pidgeonsv/"
-ln -s /etc/pidgeon-sv/pidgeon.conf /usr/share/pidgeon-sv/pidgeon.conf
+chown -R pidgeonsv "/usr/share/pidgeon-sv/"
+ln -s /etc/pidgeon-sv/pidgeon-sv.conf /usr/share/pidgeon-sv/pidgeon.conf
 
 exit 0
