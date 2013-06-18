@@ -200,11 +200,17 @@ namespace pidgeon_sv
             Disconnect();
             if (connection != null)
             {
-                lock (connection.User.Clients)
+                if (connection.User != null)
                 {
-                    if (connection.User.Clients.Contains(this))
+                    if (connection.User.Clients != null)
                     {
-                        connection.User.Clients.Remove(this);
+                        lock (connection.User.Clients)
+                        {
+                            if (connection.User.Clients.Contains(this))
+                            {
+                                connection.User.Clients.Remove(this);
+                            }
+                        }
                     }
                 }
             }
