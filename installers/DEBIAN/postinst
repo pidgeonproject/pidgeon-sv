@@ -2,19 +2,19 @@
 
 if [ "`id pidgeonsv | wc -l`" -eq 0 ];then
 	echo "Creating a service account for pidgeon services"
-	useradd -r pidgeonsv -d /usr/share/pidgeonsv || exit 1
+	useradd -r pidgeonsv -d /usr/share/pidgeon-sv || exit 1
 fi
 
-if [ ! -d "/usr/share/pidgeonsv" ];then
-  mkdir /usr/share/pidgeonsv
+if [ ! -d "/usr/share/pidgeon-sv" ];then
+  mkdir /usr/share/pidgeon-sv
 fi
 
-if [ ! -d "/usr/share/pidgeonsv/data" ];then
-	mkdir "/usr/share/pidgeonsv/data" || exit 1
+if [ ! -d "/usr/share/pidgeon-sv/data" ];then
+	mkdir "/usr/share/pidgeon-sv/data" || exit 1
 fi
 
-if [ ! -d "/usr/share/pidgeonsv/db" ];then
-	mkdir "/usr/share/pidgeonsv/db" || exit 1
+if [ ! -d "/usr/share/pidgeon-sv/db" ];then
+	mkdir "/usr/share/pidgeon-sv/db" || exit 1
 fi
 
 chown -R pidgeonsv "/usr/share/pidgeon-sv/"
