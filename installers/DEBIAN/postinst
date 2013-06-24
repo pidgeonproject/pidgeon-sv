@@ -17,6 +17,12 @@ if [ ! -d "/usr/share/pidgeon-sv/db" ];then
 	mkdir "/usr/share/pidgeon-sv/db" || exit 1
 fi
 
+if [ ! -d "/var/log/pidgeon-sv" ];then
+    mkdir "/var/log/pidgeon-sv"
+fi
+
+chown -R pidgeonsv "/var/log/pidgeon-sv"
+
 chown -R pidgeonsv "/usr/share/pidgeon-sv/"
 ln -s /etc/pidgeon-sv/pidgeon-sv.conf /usr/share/pidgeon-sv/pidgeon.conf
 touch /var/log/pidgeonsv.log
