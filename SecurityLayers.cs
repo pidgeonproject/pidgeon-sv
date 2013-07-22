@@ -51,6 +51,7 @@ namespace pidgeon_sv
         public static SecurityRole RestartSystem = new SecurityRole(SystemUser.UserLevel.Root);
         public static SecurityRole ModifyUser = new SecurityRole(SystemUser.UserLevel.Admin);
         public static SecurityRole ReadUser = new SecurityRole(SystemUser.UserLevel.Admin);
+        public static SecurityRole ShutdownSystem = new SecurityRole(SystemUser.UserLevel.Root);
 
         public static bool isAuthorized(SystemUser user, SecurityRole role)
         {

@@ -149,7 +149,7 @@ namespace pidgeon_sv
                 while (oldmessages.Count > Configuration._System.MinimumBufferSize)
                 {
                     Count++;
-                    parent.data.MessagePool_InsertData(oldmessages[0], Network);
+                    parent.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);
                     oldmessages.RemoveAt(0);
                 }
                 Core.DebugLog("Stored " + Count.ToString());

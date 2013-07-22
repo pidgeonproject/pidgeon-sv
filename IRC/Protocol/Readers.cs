@@ -58,7 +58,7 @@ namespace pidgeon_sv
                 return 0;
             }
             // now search the disk
-            backlog_size = backlog_size + owner.data.MessagePool_Backlog(size, mqid, Server);
+            backlog_size = backlog_size + owner.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
             Core.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
             return backlog_size;
         }
@@ -89,7 +89,7 @@ namespace pidgeon_sv
                         // the backlog needs to be parsed from file
                         Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
                         // we get the total size of memory and disk
-                        total_count = buffer.oldmessages.Count + owner.data.GetMessageSize(Server);
+                        total_count = buffer.oldmessages.Count + owner.DatabaseEngine.GetMessageSize(Server);
                         if (total_count < RequestedSize)
                         {
                             Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
@@ -114,7 +114,7 @@ namespace pidgeon_sv
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
                         // we send the data using the storage
-                        owner.data.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
+                        owner.DatabaseEngine.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
                         if (index < 0)
                         {
                             // this makes no sense, the datafile was probably corrupted
@@ -196,7 +196,7 @@ namespace pidgeon_sv
                 }
             }
 
-            owner.data.MessagePool_Range(from, last, Server, ref index, user);
+            owner.DatabaseEngine.MessagePool_Range(from, last, Server, ref index, user);
         }
     }
 }

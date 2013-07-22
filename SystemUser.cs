@@ -34,7 +34,7 @@ namespace pidgeon_sv
         /// <summary>
         /// The password
         /// </summary>
-        public string password = "";
+        public string Password = "";
         /// <summary>
         /// The nickname
         /// </summary>
@@ -42,7 +42,7 @@ namespace pidgeon_sv
         /// <summary>
         /// The ident
         /// </summary>
-        public string ident = "pidgeon";
+        public string Ident = "pidgeon";
         /// <summary>
         /// The realname
         /// </summary>
@@ -58,11 +58,12 @@ namespace pidgeon_sv
         /// <summary>
         /// Pointer to database engine used by this user
         /// </summary>
-        public DB data = null;
+        public DB DatabaseEngine = null;
         /// <summary>
         /// Level of this user
         /// </summary>
         public UserLevel Level = UserLevel.User;
+        private bool Locked = false;
         /// <summary>
         /// Whether this user is locked
         /// </summary>
@@ -73,7 +74,7 @@ namespace pidgeon_sv
                 return Locked;
             }
         }
-        private bool Locked = false;
+        
         // number of self messages of this user
         private int MessageCount = 0;
 
@@ -89,12 +90,12 @@ namespace pidgeon_sv
         public SystemUser(string user, string pw, bool ro = false)
         {
             UserName = user;
-            password = pw;
-            data = new DatabaseFile(this);
+            Password = pw;
+            DatabaseEngine = new DatabaseFile(this);
             if (ro == false)
             {
                 Core.DebugLog("Cleaning DB for " + UserName);
-                data.Clear();
+                DatabaseEngine.Clear();
             }
         }
 
@@ -183,6 +184,19 @@ namespace pidgeon_sv
             return null;
         }
 
+        public bool FailSafeDeliver(ProtocolMain.Datagram text)
+        {
+            try
+            {
+                Deliver(text);
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+            }
+            return true;
+        }
+
         public bool Deliver(ProtocolMain.Datagram text)
         {
             lock (Clients)
@@ -195,7 +209,7 @@ namespace pidgeon_sv
             return true;
         }
 
-        public static bool isValid(string name)
+        public static bool IsValid(string name)
         {
             if (name.Contains("&") ||
                 name.Contains("|") ||
@@ -220,7 +234,7 @@ namespace pidgeon_sv
             server.SSL = ssl;
             Network networkid = new Network(network, server);
             networkid.nickname = Nickname;
-            networkid.Ident = ident;
+            networkid.Ident = Ident;
             networkid.UserName = RealName;
             networkid.Quit = "http://pidgeonclient.org";
             lock (ConnectedNetworks)
@@ -317,7 +331,7 @@ namespace pidgeon_sv
                 if (Core.UserList.Contains(user))
                 {
                     user.Lock();
-                    user.data.Clear();
+                    user.DatabaseEngine.Clear();
                     user.ConnectedNetworks.Clear();
                     user.Clients.Clear();
                     user.Messages.Clear();
@@ -333,7 +347,7 @@ namespace pidgeon_sv
             user.Level = level;
             user.Nickname = nick;
             user.RealName = realname;
-            user.ident = ident;
+            user.Ident = ident;
             lock (Core.UserList)
             {
                 Core.UserList.Add(user);

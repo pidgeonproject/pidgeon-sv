@@ -146,7 +146,7 @@ namespace pidgeon_sv
                 return;
             }
             user = new SystemUser(username, password);
-            user.ident = ident;
+            user.Ident = ident;
             user.Level = ul;
             user.RealName = realname;
             Core.UserList.Add(user);

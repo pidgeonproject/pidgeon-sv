@@ -235,14 +235,11 @@ namespace pidgeon_sv
                 }
                 Core.SL("Connection closed by remote: " + connection.IP);
                 connection.Clean();
+                return;
             }
-            catch (System.IO.IOException)
+            catch (IOException)
             {
                 Core.SL("Connection closed: " + connection.IP);
-            }
-            catch (ThreadAbortException)
-            {
-                Core.DebugLog("Connection thread was aborted");
             }
             catch (Exception fail)
             {
@@ -266,16 +263,22 @@ namespace pidgeon_sv
 
         public void Clean()
         {
-            Core.SL("Disconnecting connection: " + IP);
-            Disconnect();
-            GC.Collect();
-
-            lock (ConnectedUsers)
+            try
             {
-                if (ConnectedUsers.Contains(this))
+                Core.SL("Disconnecting connection: " + IP);
+                Disconnect();
+
+                lock (ConnectedUsers)
                 {
-                    ConnectedUsers.Remove(this);
+                    if (ConnectedUsers.Contains(this))
+                    {
+                        ConnectedUsers.Remove(this);
+                    }
                 }
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
             }
         }
 

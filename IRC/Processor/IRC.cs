@@ -116,6 +116,13 @@ namespace pidgeon_sv
                             Channel c = _Network.getChannel(channel);
                             if (c != null)
                             {
+                                lock (_Network.Channels)
+                                {
+                                    if (_Network.Channels.Contains(c))
+                                    {
+                                        _Network.Channels.Remove(c);
+                                    }
+                                }
                                 if (c != null)
                                 {
                                     if (c.IsAlive)

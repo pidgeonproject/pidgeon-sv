@@ -31,7 +31,13 @@ namespace pidgeon_sv
     {
         private System.Net.Sockets.NetworkStream _networkStream = null;
         private System.IO.StreamReader _reader = null;
+        /// <summary>
+        /// Network associated to this IRC protocol
+        /// </summary>
         public Network _network;
+        /// <summary>
+        /// Stream
+        /// </summary>
         private System.IO.StreamWriter _writer = null;
         private SslStream _networkSsl = null;
         private Messages _messages = new Messages();
@@ -43,6 +49,9 @@ namespace pidgeon_sv
         public DateTime pong = DateTime.Now;
         private bool destroyed = false;
 
+        /// <summary>
+        /// Whether this protocol is connected or not
+        /// </summary>
         public bool IsConnected
         {
             get
@@ -137,7 +146,7 @@ namespace pidgeon_sv
                 ProtocolMain.Datagram dt = new ProtocolMain.Datagram("CONNECTION", "PROBLEM");
                 dt.Parameters.Add("network", Server);
                 dt.Parameters.Add("info", fail.Message);
-                owner.Deliver(dt);
+                owner.FailSafeDeliver(dt);
                 Core.handleException(fail);
             }
         }
@@ -219,7 +228,7 @@ namespace pidgeon_sv
             Core.DebugLog("Removing all buffers for " + Server);
             lock (buffer)
             {
-                owner.data.DeleteCache(Server);
+                owner.DatabaseEngine.DeleteCache(Server);
                 buffer.oldmessages.Clear();
                 buffer.messages.Clear();
             }
@@ -242,25 +251,32 @@ namespace pidgeon_sv
 
         public void Disconnect()
         {
-            if (!IsConnected)
-            {
-                return;
-            }
-            if (!_network.Connected)
-            {
-                return;
-            }
             try
             {
-                Core.DisableThread(keep);
-                _writer.WriteLine("QUIT :" + _network.Quit);
-                _writer.Flush();
+                if (!IsConnected)
+                {
+                    return;
+                }
+                if (!_network.Connected)
+                {
+                    return;
+                }
+                try
+                {
+                    Core.DisableThread(keep);
+                    _writer.WriteLine("QUIT :" + _network.Quit);
+                    _writer.Flush();
+                }
+                catch (Exception fail)
+                {
+                    Core.handleException(fail);
+                }
+                _network.Connected = false;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
             }
-            _network.Connected = false;
         }
         
         public override void Exit()

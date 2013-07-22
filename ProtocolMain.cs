@@ -128,6 +128,10 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// If this is true the buffer will be flushed only when there is a large amount of data
+        /// this was should be faster when there is something huge being transfered
+        /// </summary>
         public bool TrafficChunks = false;
         private string TrafficChunk = "";
         private bool isDestroyed = false;
@@ -179,15 +183,22 @@ namespace pidgeon_sv
 
         public void Disconnect()
         {
-            if (!Connected)
+            try
             {
-                return;
-            }
-            Connected = false;
+                if (!Connected)
+                {
+                    return;
+                }
+                Connected = false;
 
-            if (connection != null)
+                if (connection != null)
+                {
+                    connection.Disconnect();
+                }
+            }
+            catch (Exception fail)
             {
-                connection.Disconnect();
+                Core.handleException(fail);
             }
         }
 

@@ -226,9 +226,9 @@ namespace pidgeon_sv
                                     }
                                 }
                             }
-                            line.password = password;
+                            line.Password = password;
                             line.Nickname = nickname;
-                            line.ident = ident;
+                            line.Ident = ident;
                             line.RealName = realname;
                             line.Level = UserLevel;
                             if (Nonexistent)
@@ -285,9 +285,9 @@ namespace pidgeon_sv
                         XmlAttribute locked = configuration.CreateAttribute("locked");
                         XmlAttribute level = configuration.CreateAttribute("level");
                         name.Value = user.UserName;
-                        password.Value = user.password;
+                        password.Value = user.Password;
                         nick.Value = user.Nickname;
-                        ident.Value = user.ident;
+                        ident.Value = user.Ident;
                         realname.Value = user.RealName;
                         locked.Value = user.IsLocked.ToString();
                         level.Value = user.Level.ToString();

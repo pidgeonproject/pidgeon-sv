@@ -38,6 +38,9 @@ namespace pidgeon_sv
             /// Port SSL
             /// </summary>
             public static int ServerSSL = 22432;
+            /// <summary>
+            /// Using SSL
+            /// </summary>
             public static bool UsingSSL = true;
         }
 
@@ -62,8 +65,14 @@ namespace pidgeon_sv
             /// </summary>
             public static string UserFile = "users";
 
+            /// <summary>
+            /// Configuration file
+            /// </summary>
             public static readonly string ConfigurationFile = "pidgeon.conf";
 
+            /// <summary>
+            /// Log
+            /// </summary>
             public static string Log = "/var/log/pidgeonsv.log";
 
             /// <summary>

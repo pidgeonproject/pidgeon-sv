@@ -239,7 +239,7 @@ namespace pidgeon_sv
 
         public static void GlobalIdent(XmlNode node, ProtocolMain protocol)
         {
-            protocol.connection.User.ident = node.InnerText;
+            protocol.connection.User.Ident = node.InnerText;
             protocol.Deliver(new ProtocolMain.Datagram("GLOBALIDENT", node.InnerText));
         }
 
@@ -297,7 +297,7 @@ namespace pidgeon_sv
                 {
                     if (curr_user.UserName == username)
                     {
-                        if (curr_user.password == pw)
+                        if (curr_user.Password == pw)
                         {
                             protocol.connection.User = curr_user;
                             lock (protocol.connection.User.Clients)
@@ -414,7 +414,7 @@ namespace pidgeon_sv
                         return;
                     }
 
-                    if (SystemUser.isValid(node.Attributes[0].Value))
+                    if (SystemUser.IsValid(node.Attributes[0].Value))
                     {
                         SystemUser.UserLevel level = SystemUser.UserLevel.User;
 
