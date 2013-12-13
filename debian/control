@@ -1,0 +1,14 @@
+Source: pidgeon-sv
+Maintainer: Petr Bena <benapetr@gmail.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.4
+Build-Depends: debhelper (>= 9), mono-xbuild,
+
+Package: pidgeon-sv
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Services for pidgeon irc client
+ Services provides a multiuser server that can be used
+ to relay irc connection so that you stay connected even
+ when you need to go offline
