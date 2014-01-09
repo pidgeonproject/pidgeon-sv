@@ -109,7 +109,7 @@ namespace pidgeon_sv
 
         private static void OnChanged(object source, FileSystemEventArgs e)
         {
-            Core.SL("Warning, the user file was changed, reloading it");
+            SystemLog.Text("Warning, the user file was changed, reloading it");
             LoadUser();
         }
 
@@ -122,7 +122,7 @@ namespace pidgeon_sv
             {
                 if (!ro)
                 {
-                    SL("Loading users");
+                    SystemLog.Text("Loading users");
                 }
                 if (File.Exists(Configuration._System.UserFile))
                 {
@@ -238,7 +238,7 @@ namespace pidgeon_sv
                         }
                         if (!ro)
                         {
-                            SL("Loaded users: " + UserList.Count.ToString());
+                            SystemLog.Text("Loaded users: " + UserList.Count.ToString());
                         }
                     }
                 }
@@ -246,7 +246,7 @@ namespace pidgeon_sv
                 {
                     if (!ro)
                     {
-                        SL("There is no userfile for this instance, create one using parameter -a");
+                        SystemLog.Text("There is no userfile for this instance, create one using parameter -a");
                     }
                 }
             }
@@ -321,7 +321,7 @@ namespace pidgeon_sv
         {
             if (!File.Exists(Configuration._System.ConfigurationFile))
             {
-                SL("WARNING: there is no configuration file");
+                SystemLog.Text("WARNING: there is no configuration file");
                 return;
             }
             else
@@ -343,7 +343,8 @@ namespace pidgeon_sv
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
-                                SL("Invalid chunk size, using default: " + Configuration._System.ChunkSize);
+                                SystemLog.Text("Invalid chunk size, using default: "
+                                           + Configuration._System.ChunkSize);
                                 break;
                             }
                             Configuration._System.ChunkSize = value;

@@ -311,7 +311,7 @@ namespace pidgeon_sv
                     Core.DebugLog("There is no datafile for " + network);
                     return 0;
                 }
-                System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
 
                 Dictionary<int, Index> index = Indexes[network];
@@ -380,7 +380,7 @@ namespace pidgeon_sv
                     Unlock(network);
                     return 0;
                 }
-                System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
 
                 Dictionary<int, Index> index = Indexes[network];

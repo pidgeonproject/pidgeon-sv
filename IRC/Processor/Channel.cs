@@ -28,8 +28,8 @@ namespace pidgeon_sv
         {
             if (code.Length > 3)
             {
-                string name = code[2];
-                string topic = _value;
+                //string name = code[2];
+                //string topic = _value;
                 Channel channel = _Network.getChannel(code[3]);
                 if (channel != null)
                 {
@@ -42,7 +42,7 @@ namespace pidgeon_sv
 
         private bool ChannelData(string command, string parameters, string value)
         {
-            string channel_name = parameters.Substring(parameters.IndexOf(" ") + 1);
+            //string channel_name = parameters.Substring(parameters.IndexOf(" ") + 1);
             /*int user_count = 0;
             if (channel_name.Contains(" "))
             {
@@ -235,7 +235,7 @@ namespace pidgeon_sv
         {
             if (code.Length > 6)
             {
-                string chan = code[3];
+                //string chan = code[3];
                 Channel channel = _Network.getChannel(code[3]);
                 if (channel != null)
                 {
@@ -395,8 +395,8 @@ namespace pidgeon_sv
             chan = chan.Replace(" ", "");
             string user = source.Substring(0, source.IndexOf("!"));
             string _ident;
-            string _host;
-            _host = source.Substring(source.IndexOf("@") + 1);
+            //string _host;
+            //_host = source.Substring(source.IndexOf("@") + 1);
             _ident = source.Substring(source.IndexOf("!") + 1);
             _ident = _ident.Substring(0, _ident.IndexOf("@"));
             Channel channel = _Network.getChannel(chan);
@@ -436,7 +436,7 @@ namespace pidgeon_sv
         {
             string chan = parameters;
             chan = chan.Replace(" ", "");
-            string user = source.Substring(0, source.IndexOf("!"));
+            //string user = source.Substring(0, source.IndexOf("!"));
             Channel channel = _Network.getChannel(chan);
             if (channel != null)
             {
@@ -449,11 +449,11 @@ namespace pidgeon_sv
         {
             string user = source.Substring(0, source.IndexOf("!"));
             string _ident;
-            string _host;
-            _host = source.Substring(source.IndexOf("@") + 1);
+            //string _host;
+            //_host = source.Substring(source.IndexOf("@") + 1);
             _ident = source.Substring(source.IndexOf("!") + 1);
             _ident = _ident.Substring(0, _ident.IndexOf("@"));
-            string _new = value;
+            //string _new = value;
             foreach (Channel item in _Network.Channels)
             {
                 if (item.IsAlive)

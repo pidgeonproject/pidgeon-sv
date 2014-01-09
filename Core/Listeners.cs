@@ -34,10 +34,10 @@ namespace pidgeon_sv
         {
             try
             {
-                SL("Opening SSL listener");
+                SystemLog.Text("Opening SSL listener");
                 System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Configuration.Network.ServerSSL);
                 server.Start();
-                SL("Listener of SSL is up!!");
+                SystemLog.Text("Listener of SSL is up!!");
 
                 while (isRunning)
                 {
@@ -51,7 +51,7 @@ namespace pidgeon_sv
                     }
                     catch (ThreadAbortException)
                     {
-                        SL("Aborted SSL listener");
+                        SystemLog.Text("Aborted SSL listener");
                         return;
                     }
                     catch (Exception fail)
@@ -62,13 +62,13 @@ namespace pidgeon_sv
             }
             catch (ThreadAbortException)
             {
-                SL("Aborted SSL listener");
+                SystemLog.Text("Aborted SSL listener");
                 return;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                SL("Aborted SSL listener");
+                SystemLog.Text("Aborted SSL listener");
             }
         }
 
@@ -79,12 +79,12 @@ namespace pidgeon_sv
         {
             try
             {
-                SL("Opening listener");
+                SystemLog.Text("Opening listener");
 
                 System.Net.Sockets.TcpListener server = new System.Net.Sockets.TcpListener(IPAddress.Any, Configuration.Network.ServerPort);
                 server.Start();
 
-                SL("Listener is up!!");
+                SystemLog.Text("Listener is up!!");
 
                 while (isRunning)
                 {
@@ -98,7 +98,7 @@ namespace pidgeon_sv
                     }
                     catch (ThreadAbortException)
                     {
-                        SL("Aborted listener");
+                        SystemLog.Text("Aborted listener");
                         return;
                     }
                     catch (Exception fail)
@@ -110,7 +110,7 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 handleException(fail);
-                SL("Aborted listener");
+                SystemLog.Text("Aborted listener");
                 return;
             }
         }

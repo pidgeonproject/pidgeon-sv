@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pidgeon-sv", "pidgeon-sv.csproj", "{47C72892-589F-4072-ADFE-32AC7CF09409}"
 EndProject
 Global
@@ -13,6 +13,25 @@ Global
 		{47C72892-589F-4072-ADFE-32AC7CF09409}.Debug|x86.Build.0 = Debug|x86
 		{47C72892-589F-4072-ADFE-32AC7CF09409}.Release|x86.ActiveCfg = Release|x86
 		{47C72892-589F-4072-ADFE-32AC7CF09409}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = pidgeon-sv.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.FileWidth = 120
+		$2.NoTabsAfterNonTabs = True
+		$2.inheritsSet = VisualStudio
+		$2.inheritsScope = text/plain
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.ElseIfNewLinePlacement = SameLine
+		$3.AfterDelegateDeclarationParameterComma = True
+		$3.inheritsSet = Mono
+		$3.inheritsScope = text/x-csharp
+		$3.scope = text/x-csharp
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

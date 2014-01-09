@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -16,49 +16,30 @@
  ***************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace pidgeon_sv
 {
-    class Program
+    public class SystemLog
     {
-        private static void Main(string[] args)
+        public static void Error(string Message)
         {
-            try
+            if (!Configuration._System.Daemon)
             {
-                Core.StartTime = DateTime.Now;
-                Core.Parameters = args;
-                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
-
-                if (!Directory.Exists(Configuration._System.DatabaseFolder))
-                {
-                    Directory.CreateDirectory(Configuration._System.DatabaseFolder);
-                }
-
-                // Check the parameters and if we can continue, launch the core
-                if (Terminal.Parameters())
-                {
-                    if (!Core.Init())
-                    {
-                        return;
-                    }
-
-                    Core.Writer.Init();
-
-                    if (Configuration.Network.UsingSSL)
-                    {
-                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
-                        Core.SSLListenerTh.Start();
-                    }
-                    Core.Listen();
-                }
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
+                Console.WriteLine(DateTime.Now.ToString() + " [ERROR]: " + Message);
                 return;
             }
+            Core.Writer.Insert(DateTime.Now.ToString() + " [ERROR]: " + Message, Configuration._System.Log);
+        }
+
+        public static void Text (string Message)
+        {
+            if (!Configuration._System.Daemon)
+            {
+                Console.WriteLine(DateTime.Now.ToString() + ": " + Message);
+                return;
+            }
+            Core.Writer.Insert(DateTime.Now.ToString() + ": " + Message, Configuration._System.Log);
         }
     }
 }
+

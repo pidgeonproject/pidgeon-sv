@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Program Files (x86)\Mono-2.10.9\lib\mono\2.0\Mono.Posix.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -68,6 +64,7 @@
     <Compile Include="SecurityLayers.cs" />
     <Compile Include="Terminal.cs" />
     <Compile Include="User.cs" />
+    <Compile Include="SystemLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -84,7 +81,7 @@
     <MonoDevelop>
       <Properties>
         <Policies>
-          <TextStylePolicy FileWidth="120" TabWidth="4" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-csharp" />
+          <TextStylePolicy FileWidth="120" TabsToSpaces="False" EolMarker="Windows" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
           <CSharpFormattingPolicy inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
         </Policies>
       </Properties>

@@ -199,7 +199,7 @@ namespace pidgeon_sv
 
             protocol.connection.User.ConnectIRC(server, port, ssl);
             Network network = protocol.connection.User.retrieveServer(server);
-            Core.SL(protocol.connection.IP + ": Connecting to " + server);
+            SystemLog.Text(protocol.connection.IP + ": Connecting to " + server);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
             response.Parameters.Add("network", server);
             if (network != null)
@@ -304,7 +304,7 @@ namespace pidgeon_sv
                             {
                                 protocol.connection.User.Clients.Add(protocol);
                             }
-                            Core.SL(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
+                            SystemLog.Text(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
                             response = new ProtocolMain.Datagram("AUTH", "OK");
                             response.Parameters.Add("ls", "There is " + protocol.connection.User.Clients.Count.ToString() + " connections logged in to this account");
                             protocol.connection.status = Connection.Status.Connected;

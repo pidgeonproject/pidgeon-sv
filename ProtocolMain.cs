@@ -341,7 +341,7 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
-                Core.SL("Error: sending a text to closed connection " + connection.IP);
+                SystemLog.Text("Error: sending a text to closed connection " + connection.IP);
                 return;
             }
             XmlDocument datagram = new XmlDocument();
@@ -362,7 +362,7 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
-                Core.SL("Error: sending a text to closed connection " + connection.IP);
+                SystemLog.Text("Error: sending a text to closed connection " + connection.IP);
                 return false;
             }
             try
@@ -402,7 +402,7 @@ namespace pidgeon_sv
             }
             catch (IOException fail)
             {
-                Core.SL("Connection closed: " + fail.ToString());
+                SystemLog.Text("Connection closed: " + fail.ToString());
                 Disconnect();
                 return false;
             }
