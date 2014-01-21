@@ -152,7 +152,7 @@ namespace pidgeon_sv
                     parent.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);
                     oldmessages.RemoveAt(0);
                 }
-                Core.DebugLog("Stored " + Count.ToString());
+                SystemLog.DebugLog("Stored " + Count.ToString());
             }
         }
     }

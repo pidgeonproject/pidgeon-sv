@@ -84,7 +84,7 @@ namespace pidgeon_sv
 
             if (Thread.CurrentThread == thread)
             {
-                DebugLog("Attempt of thread to kill self: " + thread.Name);
+                SystemLog.DebugLog("Attempt of thread to kill self: " + thread.Name);
                 return;
             }
 
@@ -121,13 +121,6 @@ namespace pidgeon_sv
             SystemLog.Text("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
-        public static void DebugLog(string text, int verbosity = 1)
-        {
-            if (verbosity <= Configuration.Debugging.Verbosity) {
-                SystemLog.Text ("DEBUG: " + text);
-            }
-        }
-
         /// <summary>
         /// This function load the services
         /// </summary>
@@ -146,7 +139,7 @@ namespace pidgeon_sv
                     try
                     {
                         SystemLog.Text("There is no certificate file, creating one now");
-                        certificate(Configuration._System.CertificatePath, "pidgeonclient.org");
+                        GenerateCertificate(Configuration._System.CertificatePath, "pidgeonclient.org");
                     }
                     catch (Exception fail)
                     {
@@ -200,7 +193,7 @@ namespace pidgeon_sv
         /// <param name="name"></param>
         /// <param name="host"></param>
         /// <returns></returns>
-        public static bool certificate(string name, string host)
+        public static bool GenerateCertificate(string name, string host)
         {
             byte[] c = Certificate.CreateSelfSignCertificatePfx(
                 "CN=" + host, //host name

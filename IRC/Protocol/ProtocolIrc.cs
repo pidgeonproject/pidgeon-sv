@@ -191,7 +191,7 @@ namespace pidgeon_sv
             }
             catch (IOException fail)
             {
-                Core.DebugLog("Error: connection " + Server + " was closed: " + fail.ToString());
+                SystemLog.DebugLog("Error: connection " + Server + " was closed: " + fail.ToString());
                 Disconnect();
             }
             catch (Exception fail)
@@ -225,7 +225,7 @@ namespace pidgeon_sv
 
         public void ClearBuffers()
         {
-            Core.DebugLog("Removing all buffers for " + Server);
+            SystemLog.DebugLog("Removing all buffers for " + Server);
             lock (buffer)
             {
                 owner.DatabaseEngine.DeleteCache(Server);
@@ -283,7 +283,7 @@ namespace pidgeon_sv
         {
             if (destroyed)
             {
-                Core.DebugLog("This network was already destroyed");
+                SystemLog.DebugLog("This network was already destroyed");
                 return;
             }
             ClearBuffers();

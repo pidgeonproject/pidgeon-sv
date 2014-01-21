@@ -284,7 +284,7 @@ namespace pidgeon_sv
 
         ~Network()
         {
-            Core.DebugLog("Destructor called for network " + ServerName);
+            SystemLog.DebugLog("Destructor called for network " + ServerName);
         }
 
         public void Disconnect()

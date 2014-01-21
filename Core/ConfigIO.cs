@@ -141,12 +141,12 @@ namespace pidgeon_sv
                     configuration.Load(Configuration._System.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
-                        Core.DebugLog("There is no proper information about users in config file");
+                        SystemLog.DebugLog("There is no proper information about users in config file");
                         return;
                     }
                     lock (UserList)
                     {
-                        Core.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
+                        SystemLog.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
                         foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                         {
                             SystemUser.UserLevel UserLevel = SystemUser.UserLevel.User;
@@ -200,7 +200,7 @@ namespace pidgeon_sv
                             }
                             if (name == null || password == null)
                             {
-                                Core.DebugLog("Invalid record for some user, skipped");
+                                SystemLog.DebugLog("Invalid record for some user, skipped");
                                 continue;
                             }
                             bool Nonexistent = false;
@@ -217,7 +217,7 @@ namespace pidgeon_sv
                                     if (locked)
                                     {
                                         // we need to lock this user
-                                        Core.DebugLog("Locking user: " + name);
+                                        SystemLog.DebugLog("Locking user: " + name);
                                         line.Lock();
                                     }
                                     else

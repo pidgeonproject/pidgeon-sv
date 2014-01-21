@@ -94,7 +94,7 @@ namespace pidgeon_sv
             DatabaseEngine = new DatabaseFile(this);
             if (ro == false)
             {
-                Core.DebugLog("Cleaning DB for " + UserName);
+                SystemLog.DebugLog("Cleaning DB for " + UserName);
                 DatabaseEngine.Clear();
             }
         }
@@ -133,7 +133,7 @@ namespace pidgeon_sv
             {
                 if (text.network == null)
                 {
-                    Core.DebugLog("network is bad");
+                    SystemLog.DebugLog("network is bad");
                     return;
                 }
                 ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);

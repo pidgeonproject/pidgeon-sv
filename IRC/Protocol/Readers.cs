@@ -37,7 +37,7 @@ namespace pidgeon_sv
         public int getBacklogSize(int mqid, int size)
         {
             // check memory first (quickly)
-            Core.DebugLog("Retrieving size of backlog for " + Server);
+            SystemLog.DebugLog("Retrieving size of backlog for " + Server);
             DateTime start_time = DateTime.Now;
             bool FoundNewer = false;
             int backlog_size = 0;
@@ -54,12 +54,12 @@ namespace pidgeon_sv
             }
             if (!FoundNewer)
             {
-                Core.DebugLog("No backlog data");
+                SystemLog.DebugLog("No backlog data");
                 return 0;
             }
             // now search the disk
             backlog_size = backlog_size + owner.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
-            Core.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
+            SystemLog.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
             return backlog_size;
         }
 
@@ -67,7 +67,7 @@ namespace pidgeon_sv
         {
             try
             {
-                Core.DebugLog("User " + owner.Nickname + " requested a backlog of data starting from " + mqid.ToString());
+                SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of data starting from " + mqid.ToString());
                 user.TrafficChunks = true;
                 int total_count = RequestedSize;
                 int total_requested_size = RequestedSize;
@@ -78,7 +78,7 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count == 0)
                     {
                         // we don't need to deliver any backlog
-                        Core.DebugLog("User " + owner.Nickname + " requested a backlog, there are no data");
+                        SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog, there are no data");
                         ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
                         size.Parameters.Add("network", Server);
                         user.Deliver(size);
@@ -87,12 +87,12 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count < RequestedSize)
                     {
                         // the backlog needs to be parsed from file
-                        Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
+                        SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
                         // we get the total size of memory and disk
                         total_count = buffer.oldmessages.Count + owner.DatabaseEngine.GetMessageSize(Server);
                         if (total_count < RequestedSize)
                         {
-                            Core.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
+                            SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
                         }
                         // we get a backlog size in case that user has some mqid
                         if (mqid > 0)
@@ -109,7 +109,7 @@ namespace pidgeon_sv
                         {
                             backlog_size = total_requested_size;
                         }
-                        Core.DebugLog("Delivering backlog messages to peer: " + backlog_size.ToString());
+                        SystemLog.DebugLog("Delivering backlog messages to peer: " + backlog_size.ToString());
                         ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
@@ -118,7 +118,7 @@ namespace pidgeon_sv
                         if (index < 0)
                         {
                             // this makes no sense, the datafile was probably corrupted
-                            Core.DebugLog("Something went wrong");
+                            SystemLog.DebugLog("Something went wrong");
                             return;
                         }
                         backlog_size = buffer.oldmessages.Count;
@@ -141,7 +141,7 @@ namespace pidgeon_sv
                     // now we need to deliver the remaining data from memory
                     if (backlog_size > buffer.oldmessages.Count)
                     {
-                        Core.DebugLog("For some reason the backlog size was bigger than number of all messages in memory");
+                        SystemLog.DebugLog("For some reason the backlog size was bigger than number of all messages in memory");
                         backlog_size = buffer.oldmessages.Count;
                     }
 
@@ -174,7 +174,7 @@ namespace pidgeon_sv
 
         public void getRange(ProtocolMain user, int from, int last)
         {
-            Core.DebugLog("User " + owner.Nickname + " requested a range of data starting from " + from.ToString());
+            SystemLog.DebugLog("User " + owner.Nickname + " requested a range of data starting from " + from.ToString());
             int index = 0;
             lock (buffer.oldmessages)
             {

@@ -39,19 +39,25 @@ namespace pidgeon_sv
                 // Check the parameters and if we can continue, launch the core
                 if (Terminal.Parameters())
                 {
-                    if (!Core.Init())
-                    {
-                        return;
-                    }
+					if (Configuration._System.Daemon)
+					{
+	                    if (!Core.Init())
+	                    {
+	                        return;
+	                    }
 
-                    Core.Writer.Init();
+	                    Core.Writer.Init();
 
-                    if (Configuration.Network.UsingSSL)
-                    {
-                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
-                        Core.SSLListenerTh.Start();
-                    }
-                    Core.Listen();
+	                    if (Configuration.Network.UsingSSL)
+	                    {
+	                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
+	                        Core.SSLListenerTh.Start();
+	                    }
+	                    Core.Listen();
+					} else
+					{
+						Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");
+					}
                 }
             }
             catch (Exception fail)

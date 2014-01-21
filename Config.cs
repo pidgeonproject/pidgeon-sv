@@ -38,6 +38,10 @@ namespace pidgeon_sv
             /// Port SSL
             /// </summary>
             public static int ServerSSL = 22432;
+			/// <summary>
+			/// Port for internal data transfers between the components of services
+			/// </summary>
+			public static int IPC = 8428;
             /// <summary>
             /// Using SSL
             /// </summary>

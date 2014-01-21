@@ -118,12 +118,12 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                    SystemLog.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
                 }
             }
             else
             {
-                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                SystemLog.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
             }
         }
 
@@ -145,12 +145,12 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                    SystemLog.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
                 }
             }
             else
             {
-                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                SystemLog.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
             }
         }
 
@@ -232,7 +232,7 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    Core.DebugLog("Can't remove the protocol from system, error #2");
+                    SystemLog.DebugLog("Can't remove the protocol from system, error #2");
                 }
             }
         }
@@ -269,7 +269,7 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    Core.DebugLog("Network was not found for " + protocol.connection.IP);
+                    SystemLog.DebugLog("Network was not found for " + protocol.connection.IP);
                 }
             }
         }

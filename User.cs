@@ -103,7 +103,7 @@ namespace pidgeon_sv
         {
             if (!user.Contains("@") || !user.Contains("!"))
             {
-                Core.DebugLog("Unable to create user from " + user);
+                SystemLog.DebugLog("Unable to create user from " + user);
                 return;
             }
             string name = user.Substring(0, user.IndexOf("!"));

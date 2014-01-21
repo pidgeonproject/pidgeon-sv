@@ -123,7 +123,7 @@ namespace pidgeon_sv
                                 {
                                     if (parts.Count < CurrentParam + 1)
                                     {
-                                        Core.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
+                                        SystemLog.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
                                         return;
                                     }
 
@@ -145,7 +145,7 @@ namespace pidgeon_sv
                                 {
                                     if (parts.Count < CurrentParam + 1)
                                     {
-                                        Core.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
+                                        SystemLog.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
                                         return;
                                     }
 

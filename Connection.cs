@@ -86,7 +86,7 @@ namespace pidgeon_sv
 
         ~Connection()
         {
-            Core.DebugLog("Destructor called for " + IP);
+            SystemLog.DebugLog("Destructor called for " + IP);
         }
 
         public static void ConnectionKiller(object data)
@@ -121,7 +121,7 @@ namespace pidgeon_sv
             }
             else
             {
-                Core.DebugLog("Invalid main of " + IP);
+                SystemLog.DebugLog("Invalid main of " + IP);
             }
         }
 

@@ -179,13 +179,13 @@ namespace pidgeon_sv
             text.LoadXml(data);
             if (text.ChildNodes.Count < 1)
             {
-                Core.DebugLog("Invalid xml for message");
+                SystemLog.DebugLog("Invalid xml for message");
                 return null;
             }
 
             if (text.ChildNodes[0].Name != "message")
             {
-                Core.DebugLog("Invalid xml for message");
+                SystemLog.DebugLog("Invalid xml for message");
                 return null;
             }
 
@@ -261,7 +261,7 @@ namespace pidgeon_sv
                     }
                     else
                     {
-                        Core.DebugLog("Invalid index (browsing slowly) for " + network);
+                        SystemLog.DebugLog("Invalid index (browsing slowly) for " + network);
                         ProtocolIrc.Buffer.Message message = str2M(line);
                         if (MQID < int.Parse(message.message.Parameters["MQID"]))
                         {
@@ -271,7 +271,7 @@ namespace pidgeon_sv
                     }
                     current_line++;
                 }
-                Core.DebugLog("Sent messages: " + sent.ToString());
+                SystemLog.DebugLog("Sent messages: " + sent.ToString());
                 Unlock(network);
             }
             catch (Exception fail)
@@ -289,7 +289,7 @@ namespace pidgeon_sv
             }
             try
             {
-                Core.DebugLog("Getting range from disk");
+                SystemLog.DebugLog("Getting range from disk");
                 int messages = 0;
                 Lock(network);
                 lock (MessageSize)
@@ -308,7 +308,7 @@ namespace pidgeon_sv
                 if (!File.Exists(MessagePool(network)))
                 {
                     Unlock(network);
-                    Core.DebugLog("There is no datafile for " + network);
+                    SystemLog.DebugLog("There is no datafile for " + network);
                     return 0;
                 }
                 //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
@@ -349,7 +349,7 @@ namespace pidgeon_sv
             }
             try
             {
-                Core.DebugLog("Getting size from disk");
+                SystemLog.DebugLog("Getting size from disk");
                 int messages = 0;
                 Lock(network);
                 int skip = 0;
@@ -403,7 +403,7 @@ namespace pidgeon_sv
                     current_line++;
                 }
                 Unlock(network);
-                Core.DebugLog("size retrieved for " + network);
+                SystemLog.DebugLog("size retrieved for " + network);
                 return messages;
             }
             catch (Exception fail)

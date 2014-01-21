@@ -64,7 +64,7 @@ namespace pidgeon_sv
 
                 if (gram.ChildNodes.Count < 1)
                 {
-                    Core.DebugLog("Invalid xml for data gram");
+                    SystemLog.DebugLog("Invalid xml for data gram");
                     return null;
                 }
 
@@ -92,7 +92,7 @@ namespace pidgeon_sv
             {
                 if (_network == null)
                 {
-                    Core.DebugLog("Constructor of SelfData failed, because of null network");
+                    SystemLog.DebugLog("Constructor of SelfData failed, because of null network");
                     throw new Exception("Constructor of SelfData failed, because of null network");
                 }
                 nick = _network.nickname;
@@ -151,7 +151,7 @@ namespace pidgeon_sv
 
         ~ProtocolMain()
         {
-            Core.DebugLog("Destructor called for ProtocolMain of " + connection.IP);
+            SystemLog.DebugLog("Destructor called for ProtocolMain of " + connection.IP);
         }
 
         public static bool Valid(string datagram)
@@ -329,7 +329,7 @@ namespace pidgeon_sv
             }
             catch (Exception fail)
             {
-                Core.DebugLog(fail.ToString());
+                SystemLog.DebugLog(fail.ToString());
                 response = new ProtocolMain.Datagram("FAIL", "GENERIC");
                 response.Parameters.Add("code", "6");
                 response.Parameters.Add("description", "internal error: " + fail.Message.ToString());

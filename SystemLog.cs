@@ -21,6 +21,12 @@ namespace pidgeon_sv
 {
     public class SystemLog
     {
+		/// <summary>
+		/// Log the error to system log
+		/// </summary>
+		/// <param name='Message'>
+		/// Message.
+		/// </param>
         public static void Error(string Message)
         {
             if (!Configuration._System.Daemon)
@@ -31,7 +37,13 @@ namespace pidgeon_sv
             Core.Writer.Insert(DateTime.Now.ToString() + " [ERROR]: " + Message, Configuration._System.Log);
         }
 
-        public static void Text (string Message)
+		/// <summary>
+		/// Log the text message
+		/// </summary>
+		/// <param name='Message'>
+		/// Message.
+		/// </param>
+        public static void Text(string Message)
         {
             if (!Configuration._System.Daemon)
             {
@@ -39,6 +51,14 @@ namespace pidgeon_sv
                 return;
             }
             Core.Writer.Insert(DateTime.Now.ToString() + ": " + Message, Configuration._System.Log);
+        }
+
+		public static void DebugLog(string text, int verbosity = 1)
+        {
+            if (verbosity <= Configuration.Debugging.Verbosity)
+			{
+                SystemLog.Text ("DEBUG: " + text);
+            }
         }
     }
 }
