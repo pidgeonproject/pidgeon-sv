@@ -29,12 +29,22 @@ namespace pidgeon_sv
 		/// </param>
         public static void Error(string Message)
         {
-            if (!Configuration._System.Daemon)
+            if (Configuration.Logging.Terminal)
             {
                 Console.WriteLine(DateTime.Now.ToString() + " [ERROR]: " + Message);
                 return;
             }
-            Core.Writer.Insert(DateTime.Now.ToString() + " [ERROR]: " + Message, Configuration._System.Log);
+            Core.Writer.Insert(DateTime.Now.ToString() + " [ERROR]: " + Message, Configuration.Logging.Log);
+        }
+
+        public static void Warning(string Message)
+        {
+            if (Configuration.Logging.Terminal)
+            {
+                Console.WriteLine(DateTime.Now.ToString() + " [WARNING]: " + Message);
+                return;
+            }
+            Core.Writer.Insert(DateTime.Now.ToString() + " [WARNING]: " + Message, Configuration.Logging.Log);
         }
 
 		/// <summary>
@@ -43,21 +53,21 @@ namespace pidgeon_sv
 		/// <param name='Message'>
 		/// Message.
 		/// </param>
-        public static void Text(string Message)
+        public static void WriteLine(string Message)
         {
-            if (!Configuration._System.Daemon)
+            if (Configuration.Logging.Terminal)
             {
                 Console.WriteLine(DateTime.Now.ToString() + ": " + Message);
                 return;
             }
-            Core.Writer.Insert(DateTime.Now.ToString() + ": " + Message, Configuration._System.Log);
+            Core.Writer.Insert(DateTime.Now.ToString() + ": " + Message, Configuration.Logging.Log);
         }
 
 		public static void DebugLog(string text, int verbosity = 1)
         {
             if (verbosity <= Configuration.Debugging.Verbosity)
 			{
-                SystemLog.Text ("DEBUG: " + text);
+                SystemLog.WriteLine ("DEBUG {" + verbosity.ToString() + "}: " + text);
             }
         }
     }

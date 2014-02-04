@@ -37,12 +37,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Listeners.cs" />
     <Compile Include="IRC\Processor\Channel.cs" />
     <Compile Include="IRC\Protocol\Readers.cs" />
     <Compile Include="SystemUser.cs" />
     <Compile Include="Certificate.cs" />
-    <Compile Include="Channel.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="Core\ConfigIO.cs" />
@@ -54,7 +52,6 @@
     <Compile Include="IRC\Processor\IRC.cs" />
     <Compile Include="IRC\Protocol\Buffer.cs" />
     <Compile Include="IRC\Protocol\Queue.cs" />
-    <Compile Include="Network.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol.cs" />
@@ -63,8 +60,15 @@
     <Compile Include="Responses.cs" />
     <Compile Include="SecurityLayers.cs" />
     <Compile Include="Terminal.cs" />
-    <Compile Include="User.cs" />
     <Compile Include="SystemLog.cs" />
+    <Compile Include="Listeners\Listeners.cs" />
+    <Compile Include="Listeners\Lsnr.cs" />
+    <Compile Include="Listeners\ServicesListener.cs" />
+    <Compile Include="Listeners\SecuredListener.cs" />
+    <Compile Include="IRC\Network.cs" />
+    <Compile Include="IRC\Channel.cs" />
+    <Compile Include="IRC\User.cs" />
+    <Compile Include="Core\Writer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -81,10 +85,13 @@
     <MonoDevelop>
       <Properties>
         <Policies>
-          <TextStylePolicy FileWidth="120" TabsToSpaces="False" EolMarker="Windows" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
-          <CSharpFormattingPolicy inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <TextStylePolicy inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy IndentSwitchBody="True" AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" EventRemoveBraceStyle="NextLine" StatementBraceStyle="NextLine" ArrayInitializerBraceStyle="NextLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeDelegateDeclarationParentheses="False" NewParentheses="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
         </Policies>
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="Listeners\" />
+  </ItemGroup>
 </Project>

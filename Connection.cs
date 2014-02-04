@@ -113,7 +113,7 @@ namespace pidgeon_sv
                 Thread.Sleep(60000);
                 if (status == Connection.Status.WaitingPW)
                 {
-                    SystemLog.Text("Failed to authenticate in time - killing connection " + IP);
+                    SystemLog.WriteLine("Failed to authenticate in time - killing connection " + IP);
                     Core.DisableThread(main);
                     Clean();
                     return;
@@ -166,7 +166,7 @@ namespace pidgeon_sv
                 }
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
                 connection = new Connection();
-                SystemLog.Text("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
+                SystemLog.WriteLine("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
                 connection.main = Thread.CurrentThread;
                 connection.client = client;
                 connection.IP = client.Client.RemoteEndPoint.ToString();
@@ -217,13 +217,13 @@ namespace pidgeon_sv
                         }
                         else
                         {
-                            SystemLog.Text("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
+                            SystemLog.WriteLine("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
                             System.Threading.Thread.Sleep(800);
                         }
                     }
                     catch (IOException)
                     {
-                        SystemLog.Text("Connection closed: " + connection.IP);
+                        SystemLog.WriteLine("Connection closed: " + connection.IP);
                         connection.Clean();
                         return;
                     }
@@ -233,13 +233,13 @@ namespace pidgeon_sv
                         return;
                     }
                 }
-                SystemLog.Text("Connection closed by remote: " + connection.IP);
+                SystemLog.WriteLine("Connection closed by remote: " + connection.IP);
                 connection.Clean();
                 return;
             }
             catch (IOException)
             {
-                SystemLog.Text("Connection closed: " + connection.IP);
+                SystemLog.WriteLine("Connection closed: " + connection.IP);
             }
             catch (Exception fail)
             {
@@ -265,7 +265,7 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.Text("Disconnecting connection: " + IP);
+                SystemLog.WriteLine("Disconnecting connection: " + IP);
                 Disconnect();
 
                 lock (ConnectedUsers)

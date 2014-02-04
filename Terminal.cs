@@ -65,6 +65,7 @@ namespace pidgeon_sv
                               + "  -d (--delete) remove user\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
                               + "  -s (--daemon) will start system daemon\n"
+                              + "  -t (--terminal) will log to terminal as well\n"
                               + "\n"
                               + "for more information see http://pidgeonclient.org/wiki"
                               + "\npidgeon is open source.");
@@ -108,22 +109,19 @@ namespace pidgeon_sv
             Console.Write("Enter password: ");
             string password;
             password = ReadPw();
-            Console.Write("\nEnter user level (root | admin | user) [user]: ");
+            Console.Write("\nEnter default user role (root | admin | user) [user]: ");
             string level;
             level = Console.ReadLine();
-            SystemUser.UserLevel ul = SystemUser.UserLevel.User;
+            List<Security.SecurityRole> Roles = new List<pidgeon_sv.Security.SecurityRole>();
+            Roles.Add(Security.SecurityRole.RegularUser);
 
             switch (level)
             {
                 case "root":
-                    ul = SystemUser.UserLevel.Root;
+                    Roles.Add(Security.SecurityRole.Root);
                     break;
                 case "admin":
-                    ul = SystemUser.UserLevel.Admin;
-                    break;
-                case "":
-                case "user":
-                    ul = SystemUser.UserLevel.User;
+                    Roles.Add(Security.SecurityRole.Administrator);
                     break;
                 default:
                     Console.WriteLine("Invalid level, using user");
@@ -146,7 +144,7 @@ namespace pidgeon_sv
             }
             user = new SystemUser(username, password);
             user.Ident = ident;
-            user.Level = ul;
+            user.Roles = Roles;
             user.RealName = realname;
             Core.UserList.Add(user);
             Core.SaveUser();
@@ -224,6 +222,10 @@ namespace pidgeon_sv
                         break;
                     case "daemon":
                         Configuration._System.Daemon = true;
+                        Configuration.Logging.Terminal = false;
+                        break;
+                    case "terminal":
+                        Configuration.Logging.Terminal = true;
                         break;
                 }
             }
@@ -288,6 +290,12 @@ namespace pidgeon_sv
                         case "--pid":
                             parsed = id;
                             id = "pid";
+                            Read = true;
+                            break;
+                        case "-t":
+                        case "--terminal":
+                            parsed = id;
+                            id = "terminal";
                             Read = true;
                             break;
                         case "-s":

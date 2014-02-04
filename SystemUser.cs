@@ -60,9 +60,9 @@ namespace pidgeon_sv
         /// </summary>
         public DB DatabaseEngine = null;
         /// <summary>
-        /// Level of this user
+        /// The permission list.
         /// </summary>
-        public UserLevel Level = UserLevel.User;
+        public List<Security.SecurityRole> Roles = new List<pidgeon_sv.Security.SecurityRole>();
         private bool Locked = false;
         /// <summary>
         /// Whether this user is locked
@@ -97,6 +97,25 @@ namespace pidgeon_sv
                 SystemLog.DebugLog("Cleaning DB for " + UserName);
                 DatabaseEngine.Clear();
             }
+        }
+
+        public bool IsApproved(Security.Permission permission)
+        {
+            lock (this.Roles)
+            {
+                foreach (Security.SecurityRole role in this.Roles)
+                {
+                    if (role.Name == "Root")
+                    {
+                        return true;
+                    }
+                    if (role.HasPermission(permission))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -341,10 +360,10 @@ namespace pidgeon_sv
             Core.SaveUser();
         }
 
-        public static void CreateEntry(string name, string password, string nick, UserLevel level, string realname, string ident)
+        public static void CreateUser(string name, string password, string nick, List<pidgeon_sv.Security.SecurityRole> RoleList, string realname, string ident)
         {
             SystemUser user = new SystemUser(name, password);
-            user.Level = level;
+            user.Roles = RoleList;
             user.Nickname = nick;
             user.RealName = realname;
             user.Ident = ident;
@@ -383,13 +402,6 @@ namespace pidgeon_sv
                 }
             }
             return false;
-        }
-
-        public enum UserLevel
-        {
-            Root,
-            Admin,
-            User
         }
     }
 }

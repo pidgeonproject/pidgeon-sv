@@ -101,7 +101,7 @@ namespace pidgeon_sv
         /// </summary>
         public static void Quit()
         {
-            SystemLog.Text("Killing all connections and running processes");
+            SystemLog.WriteLine("Killing all connections and running processes");
             foreach (Thread curr in ThreadDB)
             {
                 if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
@@ -109,7 +109,7 @@ namespace pidgeon_sv
                     curr.Abort();
                 }
             }
-            SystemLog.Text("Exiting");
+            SystemLog.WriteLine("Exiting");
         }
 
         public static void handleException(Exception reason, bool ThreadOK = false)
@@ -118,7 +118,7 @@ namespace pidgeon_sv
             {
                 return;
             }
-            SystemLog.Text("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
+            SystemLog.WriteLine("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
         /// <summary>
@@ -129,8 +129,8 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.Text("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
-                SystemLog.Text("OS: " + Environment.OSVersion.ToString());
+                SystemLog.WriteLine("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
+                SystemLog.WriteLine("OS: " + Environment.OSVersion.ToString());
 
                 LoadConf();
 
@@ -138,42 +138,42 @@ namespace pidgeon_sv
                 {
                     try
                     {
-                        SystemLog.Text("There is no certificate file, creating one now");
+                        SystemLog.WriteLine("There is no certificate file, creating one now");
                         GenerateCertificate(Configuration._System.CertificatePath, "pidgeonclient.org");
                     }
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
-                        SystemLog.Text("Unable to create cert file, ssl disabled");
+                        SystemLog.WriteLine("Unable to create cert file, ssl disabled");
                         Configuration.Network.UsingSSL = false;
                     }
                 }
 
-                SystemLog.Text("This instance of pidgeon services has following parameters:");
-                SystemLog.Text("-----------------------------------------------------------");
-                SystemLog.Text("Port: " + Configuration.Network.ServerPort.ToString());
-                SystemLog.Text("WD: " + Directory.GetCurrentDirectory());
+                SystemLog.WriteLine("This instance of pidgeon services has following parameters:");
+                SystemLog.WriteLine("-----------------------------------------------------------");
+                SystemLog.WriteLine("Port: " + Configuration.Network.ServerPort.ToString());
+                SystemLog.WriteLine("WD: " + Directory.GetCurrentDirectory());
                 if (Configuration._System.MaxFileChunkSize == 0)
                 {
-                    SystemLog.Text("Maximum file chunk size: unlimited");
+                    SystemLog.WriteLine("Maximum file chunk size: unlimited");
                 }
                 else
                 {
-                    SystemLog.Text("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
+                    SystemLog.WriteLine("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
                 }
-                SystemLog.Text("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
-                SystemLog.Text("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
-                SystemLog.Text("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
+                SystemLog.WriteLine("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
+                SystemLog.WriteLine("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
+                SystemLog.WriteLine("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
                 if (Configuration.Network.UsingSSL)
                 {
-                    SystemLog.Text("SSL port: " + Configuration.Network.ServerSSL.ToString());
+                    SystemLog.WriteLine("SSL port: " + Configuration.Network.ServerSSL.ToString());
                 }
                 else
                 {
-                    SystemLog.Text("SSL port: none");
+                    SystemLog.WriteLine("SSL port: none");
                 }
 
-                SystemLog.Text("-----------------------------------------------------------");
+                SystemLog.WriteLine("-----------------------------------------------------------");
 
                 LoadUser();
 
@@ -182,7 +182,7 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                SystemLog.Text("Fatal error - exiting");
+                SystemLog.WriteLine("Fatal error - exiting");
                 return false;
             }
         }

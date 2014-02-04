@@ -17,12 +17,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.IO;
 
 namespace pidgeon_sv
 {
     class Program
     {
+        public static bool IsRunning = true;
+
         private static void Main(string[] args)
         {
             try
@@ -41,19 +44,28 @@ namespace pidgeon_sv
                 {
 					if (Configuration._System.Daemon)
 					{
+                        SystemLog.DebugLog("Loading core");
 	                    if (!Core.Init())
 	                    {
 	                        return;
 	                    }
 
+                        // load a system log writer
 	                    Core.Writer.Init();
-
+                        // create a new regular listener
+                        ServicesListener listener = new ServicesListener(Configuration.Network.ServerPort);
+                        listener.Listen();
+                        // create a new ssl listener
 	                    if (Configuration.Network.UsingSSL)
 	                    {
-	                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
-	                        Core.SSLListenerTh.Start();
+                            SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
+                            listener2.Listen();
 	                    }
-	                    Core.Listen();
+                        while (IsRunning)
+                        {
+                            Thread.Sleep(800);
+                        }
+
 					} else
 					{
 						Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");

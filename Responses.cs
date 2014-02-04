@@ -199,12 +199,12 @@ namespace pidgeon_sv
 
             protocol.connection.User.ConnectIRC(server, port, ssl);
             Network network = protocol.connection.User.retrieveServer(server);
-            SystemLog.Text(protocol.connection.IP + ": Connecting to " + server);
+            SystemLog.WriteLine(protocol.connection.IP + ": Connecting to " + server);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
             response.Parameters.Add("network", server);
             if (network != null)
             {
-                response.Parameters.Add("id", network.id);
+                response.Parameters.Add("id", network.NetworkID);
             }
             protocol.Deliver(response);
         }
@@ -304,7 +304,7 @@ namespace pidgeon_sv
                             {
                                 protocol.connection.User.Clients.Add(protocol);
                             }
-                            SystemLog.Text(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
+                            SystemLog.WriteLine(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
                             response = new ProtocolMain.Datagram("AUTH", "OK");
                             response.Parameters.Add("ls", "There is " + protocol.connection.User.Clients.Count.ToString() + " connections logged in to this account");
                             protocol.connection.status = Connection.Status.Connected;
@@ -369,7 +369,7 @@ namespace pidgeon_sv
                 foreach (Network current_net in protocol.connection.User.ConnectedNetworks)
                 {
                     networks += current_net.ServerName + "|";
-                    id += current_net.id + "|";
+                    id += current_net.NetworkID + "|";
                 }
             }
             response = new ProtocolMain.Datagram("NETWORKLIST", networks);
@@ -383,7 +383,7 @@ namespace pidgeon_sv
             switch (node.Value)
             {
                 case "LIST":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ReadUser))
+                    if (!protocol.connection.User.IsApproved(Security.Permission.ListUsers))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -399,7 +399,7 @@ namespace pidgeon_sv
                     response = new ProtocolMain.Datagram("USERLIST", users);
                     break;
                 case "CREATEUSER":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.CreateUser))
+                    if (!protocol.connection.User.IsApproved(Security.Permission.CreateUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -416,26 +416,14 @@ namespace pidgeon_sv
 
                     if (SystemUser.IsValid(node.Attributes[0].Value))
                     {
-                        SystemUser.UserLevel level = SystemUser.UserLevel.User;
+                        //SystemUser.CreateUser(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
 
-                        switch (node.Attributes[3].Value.ToUpper())
-                        {
-                            case "USER":
-                                level = SystemUser.UserLevel.User;
-                                break;
-                            case "ADMIN":
-                                level = SystemUser.UserLevel.Admin;
-                                break;
-                            case "ROOT":
-                                level = SystemUser.UserLevel.Root;
-                                break;
-                        }
-
-                        SystemUser.CreateEntry(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
-
-                        response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
-                        response.Parameters.Add("name", node.Attributes[0].Value);
-                        response.Parameters.Add("result", "ok");
+                        //response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
+                        //response.Parameters.Add("name", node.Attributes[0].Value);
+                        //response.Parameters.Add("result", "ok");
+                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                        response.Parameters.Add("code", "6");
+                        response.Parameters.Add("description", "not implemented");
                         protocol.Deliver(response);
                     }
 
@@ -446,7 +434,7 @@ namespace pidgeon_sv
 
                     return;
                 case "LOCKUSER":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ModifyUser))
+                    if (!protocol.connection.User.IsApproved(Security.Permission.LockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -483,7 +471,7 @@ namespace pidgeon_sv
                         return;
                     }
                 case "UNLOCK":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ModifyUser))
+                    if (!protocol.connection.User.IsApproved(Security.Permission.UnlockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -515,7 +503,7 @@ namespace pidgeon_sv
                     }
                     break;
                 case "REMOVE":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.DeleteUser))
+                    if (!protocol.connection.User.IsApproved(Security.Permission.DeleteUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
