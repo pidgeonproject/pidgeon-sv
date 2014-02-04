@@ -98,7 +98,15 @@ namespace pidgeon_sv
 
         private static void CreateUser(Parameter parameter)
         {
-            Core.LoadUser(true);
+            if (Configuration.Debugging.Verbosity > 0)
+            {
+                Configuration.Logging.Terminal = true;
+                Core.LoadUser();
+            } else
+            {
+                Core.LoadUser(true);
+            }
+            Configuration.Logging.Terminal = true;
             Console.Write("Enter username: ");
             string username;
             username = Console.ReadLine();
@@ -107,8 +115,8 @@ namespace pidgeon_sv
                 username = "http://pidgeonclient.org";
             }
             Console.Write("Enter password: ");
-            string password;
-            password = ReadPw();
+            string password = ReadPw();
+            password = Core.CalculateMD5Hash(password);
             Console.Write("\nEnter default user role (root | admin | user) [user]: ");
             string level;
             level = Console.ReadLine();
@@ -123,13 +131,14 @@ namespace pidgeon_sv
                 case "admin":
                     Roles.Add(Security.SecurityRole.Administrator);
                     break;
-                default:
-                    Console.WriteLine("Invalid level, using user");
-                    break;
             }
 
-            Console.Write("Enter real name: ");
+            Console.Write("Enter real name [Pidgeon]: ");
             string realname = Console.ReadLine();
+            if (realname.Replace(" ", "") == "")
+            {
+                realname = "Pidgeon";
+            }
             Console.Write("Enter ident [pidgeon]: ");
             string ident = Console.ReadLine();
             if (ident.Replace(" ", "") == "")
@@ -232,6 +241,53 @@ namespace pidgeon_sv
             return false;
         }
 
+        private static Parameter GetParameter(char name)
+        {
+            bool Read = false;
+            string id = null;
+            switch (name)
+            {
+                case 'h':
+                    id = "help";
+                    Read = true;
+                    break;
+                case 'a':
+                    id = "add";
+                    Read = true;
+                    break;
+                case 'l':
+                    id = "list";
+                    Read = true;
+                    break;
+                case 'd':
+                    id = "delete";
+                    Read = true;
+                    break;
+                case 'v':
+                    id = "-v";
+                    Read = true;
+                    break;
+                case 'p':
+                    id = "pid";
+                    Read = true;
+                    break;
+                case 't':
+                    id = "terminal";
+                    Read = true;
+                    break;
+                case 's':
+                    id = "daemon";
+                    Read = true;
+                    break;
+            }
+            if (Read)
+            {
+                Parameter text = new Parameter(id, new List<string>());
+                return text;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Check the parameters of program, return true if we can continue
         /// </summary>
@@ -252,34 +308,45 @@ namespace pidgeon_sv
                 string parsed = null;
                 foreach (string data in args)
                 {
+                    if (!data.StartsWith("--") && data.StartsWith("-"))
+                    {
+                        // we got a single char parameter
+                        string tx = data.Substring(1);
+                        while (tx.Length > 0)
+                        {
+                            Parameter p = GetParameter(tx[0]);
+                            if (p == null)
+                            {
+                                Console.WriteLine("Unknown parameter: -" + tx[0].ToString());
+                                return false;
+                            }
+                            tx = tx.Substring(1);
+                            ParameterList.Add(p);
+                        }
+                    }
                     bool Read = false;
                     switch (data)
                     {
                         case "--help":
-                        case "-h":
                             parsed = id;
                             id = "help";
                             Read = true;
                             break;
                         case "--add":
-                        case "-a":
                             parsed = id;
                             id = "add";
                             Read = true;
                             break;
-                        case "-l":
                         case "--list":
                             parsed = id;
                             id = "list";
                             Read = true;
                             break;
-                        case "-d":
                         case "--delete":
                             parsed = id;
                             id = "delete";
                             Read = true;
                             break;
-                        case "-v":
                         case "--verbose":
                             parsed = id;
                             id = "-v";
@@ -291,13 +358,11 @@ namespace pidgeon_sv
                             id = "pid";
                             Read = true;
                             break;
-                        case "-t":
                         case "--terminal":
                             parsed = id;
                             id = "terminal";
                             Read = true;
                             break;
-                        case "-s":
                         case "--daemon":
                             parsed = id;
                             id = "daemon";

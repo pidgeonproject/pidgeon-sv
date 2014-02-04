@@ -80,7 +80,7 @@ namespace pidgeon_sv
         {
             if (verbosity <= Configuration.Debugging.Verbosity)
 			{
-                SystemLog.WriteLine("DEBUG {" + verbosity.ToString() + "}: " + text, false, ConsoleColor.Green);
+                SystemLog.WriteLine(" DEBUG {" + verbosity.ToString() + "}: " + text, false, ConsoleColor.Green);
             }
         }
     }

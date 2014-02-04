@@ -32,7 +32,7 @@ namespace pidgeon_sv
             {
                 Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
-                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users.xml";
 
                 if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {

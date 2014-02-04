@@ -56,7 +56,7 @@ namespace pidgeon_sv
                         fs = new FileSystemWatcher();
                         fs.Path = Configuration._System.DatabaseFolder;
                         fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                        fs.Filter = "users";
+                        fs.Filter = Configuration._System.UserFile;
                         fs.Changed += new FileSystemEventHandler(OnChanged);
                         fs.Created += new FileSystemEventHandler(OnChanged);
                         fs.Deleted += new FileSystemEventHandler(OnChanged);
@@ -143,7 +143,7 @@ namespace pidgeon_sv
                                 {
                                     if (role.Name == "role")
                                     {
-                                        Security.SecurityRole Role = Security.SecurityRole.GetRoleFromString(role.Value);
+                                        Security.SecurityRole Role = Security.SecurityRole.GetRoleFromString(role.InnerText);
                                         if (Role != null)
                                         {
                                             if (!user.Roles.Contains(Role))
@@ -204,7 +204,6 @@ namespace pidgeon_sv
                 XmlDocument configuration = new XmlDocument();
 
                 XmlNode xmlnode = configuration.CreateElement("users");
-
                 lock (UserList)
                 {
                     foreach (SystemUser user in UserList)
@@ -231,7 +230,7 @@ namespace pidgeon_sv
                         foreach (Security.SecurityRole ROLE in user.Roles)
                         {
                             XmlNode role = configuration.CreateElement("role");
-                            role.Value = ROLE.Name;
+                            role.InnerText = ROLE.Name;
                             item.AppendChild(role);
                         }
                         xmlnode.AppendChild(item);
