@@ -222,7 +222,6 @@ namespace pidgeon_sv
                         break;
                     case "daemon":
                         Configuration._System.Daemon = true;
-                        Configuration.Logging.Terminal = false;
                         break;
                     case "terminal":
                         Configuration.Logging.Terminal = true;

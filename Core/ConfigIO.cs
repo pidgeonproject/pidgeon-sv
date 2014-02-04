@@ -34,7 +34,7 @@ namespace pidgeon_sv
 
         private static void OnChanged(object source, FileSystemEventArgs e)
         {
-            SystemLog.WriteLine("Warning, the user file was changed, reloading it");
+            SystemLog.Warning("the user file was changed, reloading it");
             LoadUser();
         }
 
@@ -66,7 +66,7 @@ namespace pidgeon_sv
                     configuration.Load(Configuration._System.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
-                        SystemLog.DebugLog("There is no proper information about users in config file");
+                        SystemLog.Warning("There is no proper information about users in config file");
                         return;
                     }
                     lock (UserList)
@@ -179,7 +179,7 @@ namespace pidgeon_sv
                 {
                     if (!QietMode)
                     {
-                        SystemLog.WriteLine("There is no userfile for this instance, create one using parameter -a");
+                        SystemLog.Warning("There is no userfile for this instance, create one using parameter -a");
                     }
                 }
             }
@@ -258,7 +258,7 @@ namespace pidgeon_sv
             Security.SecurityRole.Initialize();
             if (!File.Exists(Configuration._System.ConfigurationFile))
             {
-                SystemLog.WriteLine("WARNING: there is no configuration file");
+                SystemLog.Warning("there is no configuration file");
                 return;
             }
             else
@@ -280,7 +280,7 @@ namespace pidgeon_sv
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
-                                SystemLog.WriteLine("Invalid chunk size, using default: "
+                                SystemLog.Warning("Invalid chunk size, using default: "
                                            + Configuration._System.ChunkSize);
                                 break;
                             }

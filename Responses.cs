@@ -157,7 +157,7 @@ namespace pidgeon_sv
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.version + " I have " 
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.PidgeonSvVersion + " I have " 
                 + Connection.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
                 + "kb private and " 

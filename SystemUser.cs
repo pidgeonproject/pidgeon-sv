@@ -94,7 +94,7 @@ namespace pidgeon_sv
             DatabaseEngine = new DatabaseFile(this);
             if (ro == false)
             {
-                SystemLog.DebugLog("Cleaning DB for " + UserName);
+                SystemLog.DebugLog("Cleaning buffer for " + UserName);
                 DatabaseEngine.Clear();
             }
         }

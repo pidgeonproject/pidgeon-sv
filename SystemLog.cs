@@ -29,22 +29,12 @@ namespace pidgeon_sv
 		/// </param>
         public static void Error(string Message)
         {
-            if (Configuration.Logging.Terminal)
-            {
-                Console.WriteLine(DateTime.Now.ToString() + " [ERROR]: " + Message);
-                return;
-            }
-            Core.Writer.Insert(DateTime.Now.ToString() + " [ERROR]: " + Message, Configuration.Logging.Log);
+            SystemLog.WriteLine(" [ERROR]: " + Message, false, ConsoleColor.Red);
         }
 
         public static void Warning(string Message)
         {
-            if (Configuration.Logging.Terminal)
-            {
-                Console.WriteLine(DateTime.Now.ToString() + " [WARNING]: " + Message);
-                return;
-            }
-            Core.Writer.Insert(DateTime.Now.ToString() + " [WARNING]: " + Message, Configuration.Logging.Log);
+            SystemLog.WriteLine(" [WARNING]: " + Message, false, ConsoleColor.DarkYellow);
         }
 
 		/// <summary>
@@ -53,23 +43,45 @@ namespace pidgeon_sv
 		/// <param name='Message'>
 		/// Message.
 		/// </param>
-        public static void WriteLine(string Message)
+        public static void WriteLine(string Message, bool Suffix = true, ConsoleColor Color = ConsoleColor.Black)
         {
+            string suffix = ": ";
+            if (!Suffix)
+            {
+                suffix = "";
+            }
             if (Configuration.Logging.Terminal)
             {
-                Console.WriteLine(DateTime.Now.ToString() + ": " + Message);
+                if (!Configuration.Logging.Colors)
+                {
+                    Console.WriteLine(DateTime.Now.ToString() + suffix + Message);
+                } else
+                {
+                    ConsoleColor color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write(DateTime.Now.ToString());
+                    if (Color == ConsoleColor.Black)
+                    {
+                        Console.ForegroundColor = color;
+                        Console.WriteLine(suffix + Message);
+                    } else
+                    {
+                        Console.ForegroundColor = Color;
+                        Console.WriteLine(suffix + Message);
+                        Console.ForegroundColor = color;
+                    }
+                }
                 return;
             }
-            Core.Writer.Insert(DateTime.Now.ToString() + ": " + Message, Configuration.Logging.Log);
+            Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
         }
 
 		public static void DebugLog(string text, int verbosity = 1)
         {
             if (verbosity <= Configuration.Debugging.Verbosity)
 			{
-                SystemLog.WriteLine ("DEBUG {" + verbosity.ToString() + "}: " + text);
+                SystemLog.WriteLine("DEBUG {" + verbosity.ToString() + "}: " + text, false, ConsoleColor.Green);
             }
         }
     }
 }
-

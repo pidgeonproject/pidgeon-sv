@@ -118,7 +118,7 @@ namespace pidgeon_sv
             {
                 return;
             }
-            SystemLog.WriteLine("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
+            SystemLog.Error("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
         /// <summary>

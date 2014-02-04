@@ -66,7 +66,7 @@ namespace pidgeon_sv
             /// </summary>
             public static string Log = "/var/log/pidgeonsv.log";
 			public static bool Colors = true;
-            public static bool Terminal = true;
+            public static bool Terminal = false;
 		}
 
         /// <summary>
@@ -77,12 +77,12 @@ namespace pidgeon_sv
             /// <summary>
             /// Name of file where user information is stored
             /// </summary>
-            public static string UserFile = "users";
+            public static string UserFile = "users.xml";
 
             /// <summary>
             /// Configuration file
             /// </summary>
-            public static readonly string ConfigurationFile = "pidgeon.conf";
+            public static readonly string ConfigurationFile = "pidgeon.xml";
 
             /// <summary>
             /// This is a minimal size of one chunk before it's written to storage, to free a memory
@@ -113,12 +113,12 @@ namespace pidgeon_sv
             /// <summary>
             /// Database folder (where the user database is located)
             /// </summary>
-            public static string DatabaseFolder = "db";
+            public static string DatabaseFolder = "data";
 
             /// <summary>
             /// Default folder where the user temporary data are stored
             /// </summary>
-            public static string FileDBDefaultFolder = "data";
+            public static string FileDBDefaultFolder = "buffers";
 
             /// <summary>
             /// Certificate path
@@ -138,7 +138,7 @@ namespace pidgeon_sv
             /// <summary>
             /// Version of application
             /// </summary>
-            public static string version
+            public static string PidgeonSvVersion
             {
                 get
                 {
