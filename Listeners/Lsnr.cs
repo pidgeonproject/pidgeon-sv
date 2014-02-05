@@ -25,30 +25,30 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-	/// <summary>
-	/// Listener abstract class
-	/// </summary>
-	public class Lsnr
-	{
+    /// <summary>
+    /// Listener abstract class
+    /// </summary>
+    public class Lsnr
+    {
         public int Port = 65534;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="pidgeon_sv.Lsnr"/> class.
-		/// </summary>
-		public Lsnr ()
-		{
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="pidgeon_sv.Lsnr"/> class.
+        /// </summary>
+        public Lsnr ()
+        {
+        }
 
-		public virtual bool Listen()
-		{
-			// by default we don't do anything end return false
-			return false;
-		}
+        public virtual bool Listen()
+        {
+            // by default we don't do anything end return false
+            return false;
+        }
 
-		public virtual bool Close()
-		{
-			return false;
-		}
-	}
+        public virtual bool Close()
+        {
+            return false;
+        }
+    }
 }
 

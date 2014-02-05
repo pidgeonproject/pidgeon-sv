@@ -21,12 +21,12 @@ namespace pidgeon_sv
 {
     public class SystemLog
     {
-		/// <summary>
-		/// Log the error to system log
-		/// </summary>
-		/// <param name='Message'>
-		/// Message.
-		/// </param>
+        /// <summary>
+        /// Log the error to system log
+        /// </summary>
+        /// <param name='Message'>
+        /// Message.
+        /// </param>
         public static void Error(string Message)
         {
             SystemLog.WriteLine(" [ERROR]: " + Message, false, ConsoleColor.Red);
@@ -37,12 +37,12 @@ namespace pidgeon_sv
             SystemLog.WriteLine(" [WARNING]: " + Message, false, ConsoleColor.DarkYellow);
         }
 
-		/// <summary>
-		/// Log the text message
-		/// </summary>
-		/// <param name='Message'>
-		/// Message.
-		/// </param>
+        /// <summary>
+        /// Log the text message
+        /// </summary>
+        /// <param name='Message'>
+        /// Message.
+        /// </param>
         public static void WriteLine(string Message, bool Suffix = true, ConsoleColor Color = ConsoleColor.Black)
         {
             string suffix = ": ";
@@ -76,10 +76,10 @@ namespace pidgeon_sv
             Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
         }
 
-		public static void DebugLog(string text, int verbosity = 1)
+        public static void DebugLog(string text, int verbosity = 1)
         {
             if (verbosity <= Configuration.Debugging.Verbosity)
-			{
+            {
                 SystemLog.WriteLine(" DEBUG {" + verbosity.ToString() + "}: " + text, false, ConsoleColor.Green);
             }
         }

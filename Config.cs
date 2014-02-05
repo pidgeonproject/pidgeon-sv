@@ -39,10 +39,10 @@ namespace pidgeon_sv
             /// Port SSL
             /// </summary>
             public static int ServerSSL = 22432;
-			/// <summary>
-			/// Port for internal data transfers between the components of services
-			/// </summary>
-			public static int IPC = 8428;
+            /// <summary>
+            /// Port for internal data transfers between the components of services
+            /// </summary>
+            public static int IPC = 8428;
             /// <summary>
             /// Using SSL
             /// </summary>
@@ -60,15 +60,15 @@ namespace pidgeon_sv
             public static int Verbosity = 0;
         }
 
-		public class Logging
-		{
-			/// <summary>
+        public class Logging
+        {
+            /// <summary>
             /// Log
             /// </summary>
             public static string Log = "/var/log/pidgeonsv.log";
-			public static bool Colors = true;
+            public static bool Colors = true;
             public static bool Terminal = false;
-		}
+        }
 
         /// <summary>
         /// _System
