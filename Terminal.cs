@@ -68,6 +68,7 @@ namespace pidgeon_sv
                               + "  -d (--delete) remove user\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
                               + "  -s (--daemon) will start system daemon\n"
+                              + "  --manage will manage local instance of services\n"
                               + "  --install will create a system databases\n"
                               + "  -t (--terminal) will log to terminal as well\n"
                               + "\n"
@@ -100,6 +101,76 @@ namespace pidgeon_sv
             return password;
         }
 
+        private static void Management()
+        {
+            Configuration.Logging.Terminal = true;
+            if (!File.Exists(Configuration._System.PasswordFile))
+            {
+                SystemLog.Error("There is no password file, can't continue (did you install services using --install option?)");
+                return;
+            }
+            string username = File.ReadAllText(Configuration._System.PasswordFile);
+            username = username.Replace("\n", "");
+            string password;
+            if (!username.Contains(":"))
+            {
+                SystemLog.Error("Password file is broken");
+                return;
+            }
+            Configuration.Logging.ThreadWrite = true;
+            SystemLog.Init();
+            password = username.Substring(username.IndexOf(":") + 1);
+            username = username.Substring(0, username.IndexOf(":"));
+            ProtocolSv protocol = new ProtocolSv();
+            protocol.Username = username;
+            protocol.Server = "localhost";
+            protocol.Password = password;
+            protocol.Open();
+            SystemLog.WriteLine("Connecting to services on localhost, please wait");
+            int retry = 10;
+            while (!protocol.IsConnected && retry > 0)
+            {
+                retry--;
+                Thread.Sleep(200);
+            }
+            if (!protocol.IsConnected)
+            {
+                SystemLog.Error("Unable to connect to services on localhost, port " + Configuration.Network.ServerPort.ToString());
+                Core.Halt();
+                return;
+            }
+            Thread.Sleep(200);
+            while (protocol.IsConnected)
+            {
+                Console.Write(">>");
+                string command = Console.ReadLine();
+                switch (command)
+                {
+                    case "quit":
+                    case "exit":
+                        Console.WriteLine("Good bye");
+                        Core.Halt();
+                        return;
+                    case "help":
+                        Console.WriteLine("You can use any of these commands:\n" +
+                                          "quit - disconnect\n" +
+                                          "adduser - insert a new user to services\n" +
+                                          "deluser - remove a user from services\n" +
+                                          "listuser - display a list of all users\n" +
+                                          "sessions - display a list of all sessions\n" +
+                                          "lockuser - lock a user\n" +
+                                          "unlockuser - unlock a user\n" +
+                                          "moduser - alter a user\n" +
+                                          "kill <id> - kill a session\n");
+                        break;
+                    default:
+                        Console.WriteLine("Unknown command, try help if you don't know what to do");
+                        break;
+                }
+            }
+            Core.Halt();
+        }
+        
         private static void CreateUser(Parameter parameter)
         {
             if (Configuration.Debugging.Verbosity > 0)
@@ -226,7 +297,7 @@ namespace pidgeon_sv
             user.Ident = "system";
             user.Nickname = "system";
             user.Roles = new List<pidgeon_sv.Security.SecurityRole>();
-            user.Roles.Add(Security.SecurityRole.System);
+            user.Roles.Add(Security.SecurityRole.SystemRole);
             user.RealName = "Pidgeon system";
             Core.UserList.Add(user);
             Core.SaveUser();
@@ -252,6 +323,9 @@ namespace pidgeon_sv
             {
                 switch (parameter.parameter)
                 {
+                    case "management":
+                        Management();
+                        return true;
                     case "help":
                         ShowHelp();
                         return true;
@@ -371,6 +445,11 @@ namespace pidgeon_sv
                     bool Read = false;
                     switch (data)
                     {
+                        case "--manage":
+                            parsed = id;
+                            id = "management";
+                            Read = true;
+                            break;
                         case "--help":
                             parsed = id;
                             id = "help";

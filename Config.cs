@@ -67,6 +67,7 @@ namespace pidgeon_sv
             /// </summary>
             public static string Log = "/var/log/pidgeonsv.log";
             public static bool Colors = true;
+            public static bool ThreadWrite = false;
             public static bool Terminal = false;
         }
 

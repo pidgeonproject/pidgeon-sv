@@ -179,7 +179,7 @@ namespace pidgeon_sv
                 {
                     if (!QietMode)
                     {
-                        SystemLog.Warning("There is no userfile for this instance, create one using parameter -a");
+                        SystemLog.Warning("There is no userfile for this instance, create one using parameter --install");
                     }
                 }
             }

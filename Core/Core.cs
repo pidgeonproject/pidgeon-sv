@@ -111,6 +111,11 @@ namespace pidgeon_sv
             }
             SystemLog.WriteLine("Exiting");
         }
+        
+        public static void Halt()
+        {
+            Core.isRunning = false;
+        }
 
         public static void handleException(Exception reason, bool ThreadOK = false)
         {

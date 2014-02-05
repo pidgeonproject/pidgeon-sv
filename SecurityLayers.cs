@@ -71,10 +71,18 @@ namespace pidgeon_sv.Security
         public static SecurityRole Root = new SecurityRole("Root");
         public static SecurityRole Administrator = new SecurityRole("Administrators");
         public static SecurityRole RegularUser = new SecurityRole("RegularUser");
-        public static SecurityRole System = new SecurityRole("System");
+        public static SecurityRole SystemRole = new SecurityRole("System");
 
         private List<Permission> Permissions = new List<Permission>();
         private string _Name;
+        
+        public string Name
+        {
+            get
+            {
+                return this._Name;
+            }
+        }
 
         public static SecurityRole GetRoleFromString(string role)
         {
@@ -101,14 +109,15 @@ namespace pidgeon_sv.Security
             Administrator.GrantPermission(Permission.LockUser);
             Administrator.GrantPermission(Permission.ModifyUser);
             Administrator.GrantPermission(Permission.UnlockUser);
-        }
-
-        public string Name
-        {
-            get
-            {
-                return this._Name;
-            }
+            SystemRole.GrantPermission(Permission.CreateUser);
+            SystemRole.GrantPermission(Permission.DeleteUser);
+            SystemRole.GrantPermission(Permission.KickUser);
+            SystemRole.GrantPermission(Permission.Kill);
+            SystemRole.GrantPermission(Permission.ListUsers);
+            SystemRole.GrantPermission(Permission.LockUser);
+            SystemRole.GrantPermission(Permission.ModifyUser);
+            SystemRole.GrantPermission(Permission.UnlockUser);
+            SystemRole.GrantPermission(Permission.DisplaySystemData);
         }
 
         public SecurityRole(string name)
