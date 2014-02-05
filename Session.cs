@@ -30,12 +30,12 @@ namespace pidgeon_sv
     /// <summary>
     /// Connection of pidgeon to services
     /// </summary>
-    public class Connection
+    public class Session
     {
         /// <summary>
         /// The active users.
         /// </summary>
-        public static List<Connection> ConnectedUsers = new List<Connection>();
+        public static List<Session> ConnectedUsers = new List<Session>();
         /// <summary>
         /// The system user
         /// </summary>
@@ -78,13 +78,13 @@ namespace pidgeon_sv
             }
         }
 
-        public Connection()
+        public Session()
         {
             protocol = null;
             IP = "unknown";
         }
 
-        ~Connection()
+        ~Session()
         {
             SystemLog.DebugLog("Destructor called for " + IP);
         }
@@ -93,7 +93,7 @@ namespace pidgeon_sv
         {
             try
             {
-                Connection conn = (Connection)data;
+                Session conn = (Session)data;
                 conn.Timeout();
             }
             catch (ThreadAbortException)
@@ -111,7 +111,7 @@ namespace pidgeon_sv
             if (main != null)
             {
                 Thread.Sleep(60000);
-                if (status == Connection.Status.WaitingPW)
+                if (status == Session.Status.WaitingPW)
                 {
                     SystemLog.WriteLine("Failed to authenticate in time - killing connection " + IP);
                     Core.DisableThread(main);
@@ -156,7 +156,7 @@ namespace pidgeon_sv
 
         public static void InitialiseClient(object data, bool SSL)
         {
-            Connection connection = null;
+            Session connection = null;
             try
             {
                 string ssl = "";
@@ -165,7 +165,7 @@ namespace pidgeon_sv
                     ssl = "SSL ";
                 }
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
-                connection = new Connection();
+                connection = new Session();
                 SystemLog.WriteLine("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
                 connection.main = Thread.CurrentThread;
                 connection.client = client;

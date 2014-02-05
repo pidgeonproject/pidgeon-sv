@@ -139,11 +139,11 @@ namespace pidgeon_sv
         /// <summary>
         /// Pointer to client
         /// </summary>
-        public Connection connection = null;
+        public Session connection = null;
 
         public bool Connected = false;
 
-        public ProtocolMain(Connection t)
+        public ProtocolMain(Session t)
         {
             Connected = true;
             connection = t;
@@ -236,7 +236,7 @@ namespace pidgeon_sv
         public void ParseXml(XmlNode node)
         {
             Datagram response = null;
-            if (connection.status == Connection.Status.WaitingPW)
+            if (connection.status == Session.Status.WaitingPW)
             {
                 switch (node.Name.ToUpper())
                 {

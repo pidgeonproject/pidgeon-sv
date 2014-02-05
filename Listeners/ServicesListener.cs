@@ -53,7 +53,7 @@ namespace pidgeon_sv
                 try
                 {
                     System.Net.Sockets.TcpClient connection = this.Server.AcceptTcpClient();
-                    Thread _client = new Thread(Connection.InitialiseClient);
+                    Thread _client = new Thread(Session.InitialiseClient);
                     Core.ThreadDB.Add(_client);
                     _client.Start(connection);
                     System.Threading.Thread.Sleep(200);

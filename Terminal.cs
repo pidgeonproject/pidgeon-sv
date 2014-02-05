@@ -56,7 +56,7 @@ namespace pidgeon_sv
         {
             Console.WriteLine("Usage: pidgeon-sv [options]\n"
                               + "********************************\n"
-                              + "This is pidgeon services daemon, bellow is a list of available options:\n"
+                              + "This is pidgeon services control interface, bellow is a list of available options:\n"
                               + "\n"
                               + "  -h (--help) display this help\n"
                               + "  -a (--add) insert user\n"

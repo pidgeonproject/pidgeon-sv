@@ -158,7 +158,7 @@ namespace pidgeon_sv
         {
             ProtocolMain.Datagram response = null;
             response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.PidgeonSvVersion + " I have " 
-                + Connection.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
+                + Session.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
                 + "kb private and " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() 
@@ -289,8 +289,13 @@ namespace pidgeon_sv
         public static void Auth(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            string username = node.Attributes[0].Value;
-            string pw = node.Attributes[1].Value;
+            string username = node.Attributes [0].Value;
+            string pw = node.Attributes [1].Value;
+            bool encrypted = false;
+            if (!encrypted)
+            {
+                pw = Core.CalculateMD5Hash(pw);
+            }
             lock (Core.UserList)
             {
                 foreach (SystemUser curr_user in Core.UserList)
@@ -307,7 +312,7 @@ namespace pidgeon_sv
                             SystemLog.WriteLine(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
                             response = new ProtocolMain.Datagram("AUTH", "OK");
                             response.Parameters.Add("ls", "There is " + protocol.connection.User.Clients.Count.ToString() + " connections logged in to this account");
-                            protocol.connection.status = Connection.Status.Connected;
+                            protocol.connection.status = Session.Status.Connected;
                             protocol.Deliver(response);
                             return;
                         }
