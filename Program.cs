@@ -24,17 +24,13 @@ namespace pidgeon_sv
 {
     class Program
     {
-        public static bool IsRunning = true;
-
         private static void Main(string[] args)
         {
             try
             {
                 Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
-                Configuration._System.UserFile = Configuration._System.DatabaseFolder +
-                                                 Path.DirectorySeparatorChar +
-                                                 Configuration._System.UserFile;
+                Configuration.Init();
 
                 if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {
@@ -63,7 +59,7 @@ namespace pidgeon_sv
                             SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
                             listener2.Listen();
 	                    }
-                        while (IsRunning)
+                        while (Core.IsRunning)
                         {
                             Thread.Sleep(800);
                         }

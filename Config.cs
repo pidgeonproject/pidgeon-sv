@@ -15,6 +15,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
+using System.IO;
 using System;
 using System.Collections.Generic;
 
@@ -78,6 +79,11 @@ namespace pidgeon_sv
             /// Name of file where user information is stored
             /// </summary>
             public static string UserFile = "users.xml";
+            /// <summary>
+            /// File that contains the password of system user, every user who is able to read it
+            /// will be able to manage this instance
+            /// </summary>
+            public static string PasswordFile = "password";
 
             /// <summary>
             /// Configuration file
@@ -131,7 +137,7 @@ namespace pidgeon_sv
             public static bool Daemon = false;
 
             /// <summary>
-            /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
+            /// Minimal buffer size to store
             /// </summary>
             public static int MinimumBufferSize = 800;
 
@@ -145,6 +151,17 @@ namespace pidgeon_sv
                     return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 }
             }
+        }
+
+        public static void Init()
+        {
+            Configuration._System.UserFile = Configuration._System.DatabaseFolder +
+                                                 Path.DirectorySeparatorChar +
+                                                 Configuration._System.UserFile;
+
+            Configuration._System.PasswordFile = Configuration._System.DatabaseFolder +
+                                                 Path.DirectorySeparatorChar +
+                                                 Configuration._System.PasswordFile;
         }
     }
 }

@@ -34,6 +34,7 @@ namespace pidgeon_sv.Security
         public static Permission ListUsers = new Permission("ListUsers");
         public static Permission LockUser = new Permission("LockUser");
         public static Permission UnlockUser = new Permission("UnlockUser");
+        public static Permission Kill = new Permission("Kill");
 
         public string PermissionName;
 
@@ -70,6 +71,7 @@ namespace pidgeon_sv.Security
         public static SecurityRole Root = new SecurityRole("Root");
         public static SecurityRole Administrator = new SecurityRole("Administrators");
         public static SecurityRole RegularUser = new SecurityRole("RegularUser");
+        public static SecurityRole System = new SecurityRole("System");
 
         private List<Permission> Permissions = new List<Permission>();
         private string _Name;

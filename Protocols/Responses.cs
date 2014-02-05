@@ -170,6 +170,13 @@ namespace pidgeon_sv
         public static void Connect(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
+            if (!protocol.connection.User.IsApproved(Security.Permission.Connect))
+            {
+                // this user is not approved to create new connection to the system
+                response = new ProtocolMain.Datagram("CONNECT", "PERMISSIONDENY");
+                protocol.Deliver(response);
+                return;
+            }
             bool ssl = false;
             string server = node.InnerText;
             if (server.StartsWith("$"))
@@ -215,12 +222,24 @@ namespace pidgeon_sv
             Network network = protocol.connection.User.retrieveServer(node.InnerText);
             if (network == null)
             {
-                response = new ProtocolMain.Datagram("REMOVE", "FAIL");
+                response = new ProtocolMain.Datagram("FAIL", "REMOVE");
                 response.Parameters.Add("network", node.InnerText);
+                response.Parameters.Add("code", "20");
+                response.Parameters.Add("description", "no such a network");
                 protocol.Deliver(response);
                 return;
             }
             ProtocolIrc IRC = (ProtocolIrc)network._Protocol;
+            if (IRC == null)
+            {
+                response = new ProtocolMain.Datagram("FAIL", "REMOVE");
+                response.Parameters.Add("network", node.InnerText);
+                response.Parameters.Add("code", "20");
+                response.Parameters.Add("description", "internal error (null pointer to network._Protocol)");
+                SystemLog.Error("Unable to process disconnect request because there is null pointer to network._Protocol");
+                protocol.Deliver(response);
+                return;
+            }
             IRC.Exit();
             lock (protocol.connection.User.ConnectedNetworks)
             {
@@ -232,7 +251,8 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    SystemLog.DebugLog("Can't remove the protocol from system, error #2");
+                    SystemLog.Error("Can't remove the network from system, error #2 " +
+                                    "(protocol.connection.User.ConnectedNetworks doesn't contain the network)");
                 }
             }
         }
@@ -453,7 +473,7 @@ namespace pidgeon_sv
                         {
                             target.Lock();
                             Core.SaveUser();
-                            response = new ProtocolMain.Datagram("SYSTEM", "LK");
+                            response = new ProtocolMain.Datagram("SYSTEM", "LOCKED");
                             response.Parameters.Add("username", user);
                             protocol.Deliver(response);
                             return;
@@ -462,7 +482,7 @@ namespace pidgeon_sv
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                             response.Parameters.Add("code", "5");
-                            response.Parameters.Add("description", "LK: invalid name");
+                            response.Parameters.Add("description", "LOCK: invalid name");
                             protocol.Deliver(response);
                             return;
                         }
@@ -471,7 +491,7 @@ namespace pidgeon_sv
                     {
                         response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                         response.Parameters.Add("code", "5");
-                        response.Parameters.Add("description", "LK: invalid name");
+                        response.Parameters.Add("description", "LOCK: invalid name");
                         protocol.Deliver(response);
                         return;
                     }
@@ -490,7 +510,7 @@ namespace pidgeon_sv
                         {
                             target.Unlock();
                             Core.SaveUser();
-                            response = new ProtocolMain.Datagram("SYSTEM", "UN");
+                            response = new ProtocolMain.Datagram("SYSTEM", "UNLOCKED");
                             response.Parameters.Add("username", user);
                         }
                         else

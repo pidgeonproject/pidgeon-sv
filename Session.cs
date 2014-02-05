@@ -36,6 +36,8 @@ namespace pidgeon_sv
         /// The active users.
         /// </summary>
         public static List<Session> ConnectedUsers = new List<Session>();
+        private static ulong LastSID = 0;
+        private static object LastSIDlock = new object();
         /// <summary>
         /// The system user
         /// </summary>
@@ -47,26 +49,34 @@ namespace pidgeon_sv
         /// <summary>
         /// The client
         /// </summary>
-        public System.Net.Sockets.TcpClient client = null;
+        private System.Net.Sockets.TcpClient client = null;
         private System.IO.StreamReader _StreamReader = null;
         public System.IO.StreamWriter _StreamWriter = null;
         /// <summary>
-        /// Using SSL
+        /// Whether this session is secured using SSL or not
         /// </summary>
-        public bool SSL = true;
+        public bool UsingSSL = true;
         /// <summary>
-        /// The main
+        /// The session thread.
         /// </summary>
-        private Thread main = null;
+        private Thread SessionThread = null;
         /// <summary>
         /// The IP
         /// </summary>
         public string IP;
         /// <summary>
-        /// Protocol
+        /// Protocol which this session is using to communicate with client
         /// </summary>
         private ProtocolMain protocol = null;
         private bool Connected = false;
+        public ulong SessionID
+        {
+            get
+            {
+                return this.SID;
+            }
+        }
+        private ulong SID = 0;
         /// <summary>
         /// Connected
         /// </summary>
@@ -78,18 +88,26 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="pidgeon_sv.Session"/> class.
+        /// </summary>
         public Session()
         {
-            protocol = null;
-            IP = "unknown";
+            this.protocol = null;
+            this.IP = "unknown";
+            this.SID = GetSID();
         }
 
+        /// <summary>
+        /// Releases unmanaged resources and performs other cleanup operations before the
+        /// <see cref="pidgeon_sv.Session"/> is reclaimed by garbage collection.
+        /// </summary>
         ~Session()
         {
-            SystemLog.DebugLog("Destructor called for " + IP);
+            SystemLog.DebugLog("Destructor called for session of " + IP);
         }
 
-        public static void ConnectionKiller(object data)
+        private static void ConnectionKiller(object data)
         {
             try
             {
@@ -106,22 +124,31 @@ namespace pidgeon_sv
             }
         }
 
-        public void Timeout()
+        private void Timeout()
         {
-            if (main != null)
+            if (SessionThread != null)
             {
                 Thread.Sleep(60000);
                 if (status == Session.Status.WaitingPW)
                 {
                     SystemLog.WriteLine("Failed to authenticate in time - killing connection " + IP);
-                    Core.DisableThread(main);
+                    Core.DisableThread(SessionThread);
                     Clean();
                     return;
                 }
             }
             else
             {
-                SystemLog.DebugLog("Invalid main of " + IP);
+                SystemLog.DebugLog("SessionThread is NULL for " + this.IP);
+            }
+        }
+
+        private static ulong GetSID()
+        {
+            lock (LastSIDlock)
+            {
+                LastSID++;
+                return LastSID;
             }
         }
 
@@ -130,6 +157,7 @@ namespace pidgeon_sv
         /// </summary>
         public void Disconnect()
         {
+            SystemLog.WriteLine("Disconnecting from: " + this.IP);
             lock (this)
             {
                 if (Connected)
@@ -156,7 +184,7 @@ namespace pidgeon_sv
 
         public static void InitialiseClient(object data, bool SSL)
         {
-            Session connection = null;
+            Session session = null;
             try
             {
                 string ssl = "";
@@ -165,20 +193,20 @@ namespace pidgeon_sv
                     ssl = "SSL ";
                 }
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
-                connection = new Session();
+                session = new Session();
                 SystemLog.WriteLine("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
-                connection.main = Thread.CurrentThread;
-                connection.client = client;
-                connection.IP = client.Client.RemoteEndPoint.ToString();
+                session.SessionThread = Thread.CurrentThread;
+                session.client = client;
+                session.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
                 checker.Name = "watcher";
-                connection.SSL = SSL;
-                connection.Connected = true;
-                checker.Start(connection);
+                session.UsingSSL = SSL;
+                session.Connected = true;
+                checker.Start(session);
 
                 lock (ConnectedUsers)
                 {
-                    ConnectedUsers.Add(connection);
+                    ConnectedUsers.Add(session);
                 }
 
                 if (SSL)
@@ -187,67 +215,67 @@ namespace pidgeon_sv
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
-                    connection._StreamWriter = new StreamWriter(_networkSsl);
-                    connection._StreamReader = new StreamReader(_networkSsl, Encoding.UTF8);
+                    session._StreamWriter = new StreamWriter(_networkSsl);
+                    session._StreamReader = new StreamReader(_networkSsl, Encoding.UTF8);
                 }
                 else
                 {
                     System.Net.Sockets.NetworkStream ns = client.GetStream();
-                    connection._StreamWriter = new StreamWriter(ns);
-                    connection._StreamReader = new StreamReader(ns, Encoding.UTF8);
+                    session._StreamWriter = new StreamWriter(ns);
+                    session._StreamReader = new StreamReader(ns, Encoding.UTF8);
                 }
 
-                string text = connection._StreamReader.ReadLine();
+                string text = session._StreamReader.ReadLine();
 
-                connection.protocol = new ProtocolMain(connection);
-                while (connection.IsConnected && !connection._StreamReader.EndOfStream)
+                session.protocol = new ProtocolMain(session);
+                while (session.IsConnected && !session._StreamReader.EndOfStream)
                 {
                     try
                     {
-                        text = connection._StreamReader.ReadLine();
+                        text = session._StreamReader.ReadLine();
                         if (text == "")
                         {
                             continue;
                         }
 
-                        if (ProtocolMain.Valid(text))
+                        if (ProtocolMain.Datagram.IsValid(text))
                         {
-                            connection.protocol.ParseCommand(text);
+                            session.protocol.ParseCommand(text);
                             continue;
                         }
                         else
                         {
-                            SystemLog.WriteLine("Debug: invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
+                            SystemLog.DebugLog("invalid text: " + text + " from " + client.Client.RemoteEndPoint.ToString());
                             System.Threading.Thread.Sleep(800);
                         }
                     }
                     catch (IOException)
                     {
-                        SystemLog.WriteLine("Connection closed: " + connection.IP);
-                        connection.Clean();
+                        SystemLog.WriteLine("Connection closed: " + session.IP);
+                        session.Clean();
                         return;
                     }
                     catch (ThreadAbortException)
                     {
-                        connection.Clean();
+                        session.Clean();
                         return;
                     }
                 }
-                SystemLog.WriteLine("Connection closed by remote: " + connection.IP);
-                connection.Clean();
+                SystemLog.WriteLine("Connection closed by remote: " + session.IP);
+                session.Clean();
                 return;
             }
             catch (IOException)
             {
-                SystemLog.WriteLine("Connection closed: " + connection.IP);
+                SystemLog.WriteLine("Connection closed: " + session.IP);
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
             }
-            if (connection != null)
+            if (session != null)
             {
-                connection.Clean();
+                session.Clean();
             }
         }
 
@@ -261,11 +289,14 @@ namespace pidgeon_sv
             InitialiseClient(data, true);
         }
 
-        public void Clean()
+        /// <summary>
+        /// Clean this instance.
+        /// </summary>
+        private void Clean()
         {
             try
             {
-                SystemLog.WriteLine("Disconnecting connection: " + IP);
+                SystemLog.DebugLog("Removing information about session for connection: " + IP);
                 Disconnect();
 
                 lock (ConnectedUsers)

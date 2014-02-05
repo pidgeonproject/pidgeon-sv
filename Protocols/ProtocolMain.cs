@@ -42,6 +42,23 @@ namespace pidgeon_sv
                 _InnerText = Text;
             }
 
+            public static bool IsValid(string datagram)
+            {
+                if (datagram == null)
+                {
+                    return false;
+                }
+                if (datagram == "")
+                {
+                    return false;
+                }
+                if (datagram.StartsWith("<") && datagram.EndsWith(">"))
+                {
+                    return true;
+                }
+                return false;
+            }
+
             public string ToDocumentXmlText()
             {
                 XmlDocument datagram = new XmlDocument();
@@ -64,7 +81,7 @@ namespace pidgeon_sv
 
                 if (gram.ChildNodes.Count < 1)
                 {
-                    SystemLog.DebugLog("Invalid xml for data gram");
+                    SystemLog.DebugLog("Invalid xml for datagram: " + text);
                     return null;
                 }
 
@@ -92,7 +109,6 @@ namespace pidgeon_sv
             {
                 if (_network == null)
                 {
-                    SystemLog.DebugLog("Constructor of SelfData failed, because of null network");
                     throw new Exception("Constructor of SelfData failed, because of null network");
                 }
                 nick = _network.nickname;
@@ -152,23 +168,6 @@ namespace pidgeon_sv
         ~ProtocolMain()
         {
             SystemLog.DebugLog("Destructor called for ProtocolMain of " + connection.IP);
-        }
-
-        public static bool Valid(string datagram)
-        {
-            if (datagram == null)
-            {
-                return false;
-            }
-            if (datagram == "")
-            {
-                return false;
-            }
-            if (datagram.StartsWith("<") && datagram.EndsWith(">"))
-            {
-                return true;
-            }
-            return false;
         }
 
         public void ParseCommand(string data)

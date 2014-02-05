@@ -17,6 +17,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Text;
 
 namespace pidgeon_sv
 {
@@ -65,6 +68,7 @@ namespace pidgeon_sv
                               + "  -d (--delete) remove user\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
                               + "  -s (--daemon) will start system daemon\n"
+                              + "  --install will create a system databases\n"
                               + "  -t (--terminal) will log to terminal as well\n"
                               + "\n"
                               + "for more information see http://pidgeonclient.org/wiki"
@@ -193,6 +197,42 @@ namespace pidgeon_sv
             }
         }
 
+        private static void Install()
+        {
+            Configuration.Logging.Terminal = true;
+            if (File.Exists(Configuration._System.UserFile))
+            {
+                SystemLog.Error("Not creating a user file because it already exist");
+                return;
+            }
+
+            if (File.Exists(Configuration._System.PasswordFile))
+            {
+                SystemLog.Error("Not creating a user file because password file already exist");
+                return;
+            }
+
+            Random random = new Random((int)DateTime.Now.Ticks);
+            StringBuilder password = new StringBuilder();
+            char ch;
+
+            for (int i = 0; i < 20; i++)
+            {
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65)));                 
+                password.Append(ch);
+            }
+
+            SystemUser user = new SystemUser("system", password.ToString());
+            user.Ident = "system";
+            user.Roles = new List<pidgeon_sv.Security.SecurityRole>();
+            user.Roles.Add(Security.SecurityRole.System);
+            user.RealName = "Pidgeon system";
+            Core.UserList.Add(user);
+            Core.SaveUser();
+            File.WriteAllText(Configuration._System.PasswordFile, "system:" + password.ToString());
+            SystemLog.DebugLog("Finished installing of new user list");
+        }
+
         private static void WritePid(Parameter p)
         {
             if (p.parm == null)
@@ -226,6 +266,9 @@ namespace pidgeon_sv
                     case "pid":
                         WritePid(parameter);
                         break;
+                    case "install":
+                        Install();
+                        return true;
                     case "-v":
                         Configuration.Debugging.Verbosity++;
                         break;
@@ -352,7 +395,11 @@ namespace pidgeon_sv
                             id = "-v";
                             Read = true;
                             break;
-                        case "-p":
+                        case "--install":
+                            parsed = id;
+                            id = "install";
+                            Read = true;
+                            break;
                         case "--pid":
                             parsed = id;
                             id = "pid";

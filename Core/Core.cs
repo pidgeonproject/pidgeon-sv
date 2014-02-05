@@ -129,11 +129,9 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.WriteLine("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
+                SystemLog.WriteLine("Pidgeon services " + Configuration._System.PidgeonSvVersion + " loading");
                 SystemLog.WriteLine("OS: " + Environment.OSVersion.ToString());
-
                 LoadConf();
-
                 if (!File.Exists(Configuration._System.CertificatePath) && Configuration.Network.UsingSSL)
                 {
                     try
@@ -144,11 +142,10 @@ namespace pidgeon_sv
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
-                        SystemLog.WriteLine("Unable to create cert file, ssl disabled");
+                        SystemLog.Error("Unable to create cert file, ssl disabled");
                         Configuration.Network.UsingSSL = false;
                     }
                 }
-
                 SystemLog.WriteLine("This instance of pidgeon services has following parameters:");
                 SystemLog.WriteLine("-----------------------------------------------------------");
                 SystemLog.WriteLine("Port: " + Configuration.Network.ServerPort.ToString());
@@ -172,11 +169,8 @@ namespace pidgeon_sv
                 {
                     SystemLog.WriteLine("SSL port: none");
                 }
-
                 SystemLog.WriteLine("-----------------------------------------------------------");
-
                 LoadUser();
-
                 return true;
             }
             catch (Exception fail)
@@ -214,7 +208,7 @@ namespace pidgeon_sv
             byte[] c = Certificate.CreateSelfSignCertificatePfx(
                 "CN=" + host, //host name
                 DateTime.Parse("2000-01-01"), //not valid before
-                DateTime.Parse("2020-01-01"), //not valid after
+                DateTime.Parse("2090-01-01"), //not valid after
                 "pidgeon"); //password to encrypt key file
 
             using (BinaryWriter binWriter = new BinaryWriter(File.Open(name, FileMode.Create)))
