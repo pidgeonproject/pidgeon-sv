@@ -161,6 +161,8 @@ namespace pidgeon_sv
                     {
                         SystemLog.Warning("Quit: " + fail.Message);
                         Disconnect();
+                        keep.Abort();
+                        return;
                     }
                     catch (Exception f1)
                     {
@@ -285,6 +287,8 @@ namespace pidgeon_sv
                 if (_StreamReader != null) _StreamReader.Close();
                 _StreamWriter = null;
                 _StreamReader = null;
+                this.main.Abort();
+                this.keep.Abort();
             }
         }
 

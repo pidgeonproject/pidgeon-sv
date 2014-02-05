@@ -94,6 +94,7 @@ namespace pidgeon_sv
                 {
                     SystemLog.WriteLine("You have supplied wrong password, connection closed");
                     protocol.Disconnect();
+                    protocol.Exit();
                 }
                 if (curr.InnerText == "OK")
                 {

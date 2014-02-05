@@ -62,10 +62,7 @@ namespace pidgeon_sv
                               + "This is pidgeon services control interface, bellow is a list of available options:\n"
                               + "\n"
                               + "  -h (--help) display this help\n"
-                              + "  -a (--add) insert user\n"
-                              + "  -l (--list) list user\n"
                               + "  -v increase verbosity\n"
-                              + "  -d (--delete) remove user\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
                               + "  -s (--daemon) will start system daemon\n"
                               + "  --manage will manage local instance of services\n"
@@ -139,7 +136,7 @@ namespace pidgeon_sv
                 Core.Halt();
                 return;
             }
-            Thread.Sleep(200);
+            Thread.Sleep(1200);
             while (protocol.IsConnected)
             {
                 Console.Write(">>");
@@ -149,19 +146,25 @@ namespace pidgeon_sv
                     case "quit":
                     case "exit":
                         Console.WriteLine("Good bye");
+                        protocol.Exit();
                         Core.Halt();
                         return;
                     case "help":
                         Console.WriteLine("You can use any of these commands:\n" +
-                                          "quit - disconnect\n" +
-                                          "adduser - insert a new user to services\n" +
-                                          "deluser - remove a user from services\n" +
-                                          "listuser - display a list of all users\n" +
-                                          "sessions - display a list of all sessions\n" +
-                                          "lockuser - lock a user\n" +
-                                          "unlockuser - unlock a user\n" +
-                                          "moduser - alter a user\n" +
-                                          "kill <id> - kill a session\n");
+                                          "quit        - disconnect\n" +
+                                          "adduser     - insert a new user to services\n" +
+                                          "deluser     - remove a user from services\n" +
+                                          "listuser    - display a list of all users\n" +
+                                          "sessions    - display a list of all sessions\n" +
+                                          "lockuser    - lock a user\n" +
+                                          "unlockuser  - unlock a user\n" +
+                                          "moduser     - alter a user\n" +
+                                          "kill <id>   - kill a session\n");
+                        break;
+                    case "adduser":
+                        
+                    case "deluser":
+                    case "listuser":
                         break;
                     default:
                         Console.WriteLine("Unknown command, try help if you don't know what to do");
@@ -329,15 +332,6 @@ namespace pidgeon_sv
                     case "help":
                         ShowHelp();
                         return true;
-                    case "add":
-                        CreateUser(parameter);
-                        return true;
-                    case "list":
-                        ListUser();
-                        return true;
-                    case "delete":
-                        DeleteUser(parameter);
-                        return true;
                     case "pid":
                         WritePid(parameter);
                         break;
@@ -367,18 +361,6 @@ namespace pidgeon_sv
             {
                 case 'h':
                     id = "help";
-                    Read = true;
-                    break;
-                case 'a':
-                    id = "add";
-                    Read = true;
-                    break;
-                case 'l':
-                    id = "list";
-                    Read = true;
-                    break;
-                case 'd':
-                    id = "delete";
                     Read = true;
                     break;
                 case 'v':
@@ -453,21 +435,6 @@ namespace pidgeon_sv
                         case "--help":
                             parsed = id;
                             id = "help";
-                            Read = true;
-                            break;
-                        case "--add":
-                            parsed = id;
-                            id = "add";
-                            Read = true;
-                            break;
-                        case "--list":
-                            parsed = id;
-                            id = "list";
-                            Read = true;
-                            break;
-                        case "--delete":
-                            parsed = id;
-                            id = "delete";
                             Read = true;
                             break;
                         case "--verbose":
