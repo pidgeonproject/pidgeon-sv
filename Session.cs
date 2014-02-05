@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -49,7 +49,7 @@ namespace pidgeon_sv
         /// <summary>
         /// The client
         /// </summary>
-        private System.Net.Sockets.TcpClient client = null;
+        //private System.Net.Sockets.TcpClient client = null;
         private System.IO.StreamReader _StreamReader = null;
         public System.IO.StreamWriter _StreamWriter = null;
         /// <summary>
@@ -196,7 +196,7 @@ namespace pidgeon_sv
                 session = new Session();
                 SystemLog.WriteLine("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
                 session.SessionThread = Thread.CurrentThread;
-                session.client = client;
+                //session.client = client;
                 session.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
                 checker.Name = "watcher";
