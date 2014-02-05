@@ -213,17 +213,18 @@ namespace pidgeon_sv
             }
 
             Random random = new Random((int)DateTime.Now.Ticks);
-            StringBuilder password = new StringBuilder();
-            char ch;
+            string _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890$%^&()@!#abcdefghijklmnopqrstuvwxyz_+{}?><[];";
+            char[] buffer = new char[20];
 
             for (int i = 0; i < 20; i++)
             {
-                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65)));                 
-                password.Append(ch);
+                buffer[i] = _chars[random.Next(_chars.Length)];
             }
+            string password = new string(buffer);
 
-            SystemUser user = new SystemUser("system", password.ToString());
+            SystemUser user = new SystemUser("system", Core.CalculateMD5Hash(password));
             user.Ident = "system";
+            user.Nickname = "system";
             user.Roles = new List<pidgeon_sv.Security.SecurityRole>();
             user.Roles.Add(Security.SecurityRole.System);
             user.RealName = "Pidgeon system";
