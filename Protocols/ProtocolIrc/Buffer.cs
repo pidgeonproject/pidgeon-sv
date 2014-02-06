@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -152,7 +152,7 @@ namespace pidgeon_sv
                     parent.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);
                     oldmessages.RemoveAt(0);
                 }
-                Core.DebugLog("Stored " + Count.ToString());
+                SystemLog.DebugLog("Stored " + Count.ToString());
             }
         }
     }

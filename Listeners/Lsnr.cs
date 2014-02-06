@@ -17,19 +17,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Xml;
+using System.Threading;
 using System.Text;
 
 namespace pidgeon_sv
 {
-    public class DatabaseSQL : DB
+    /// <summary>
+    /// Listener abstract class
+    /// </summary>
+    public class Lsnr
     {
-        public string Server = null;
-        public string User = null;
-        public bool Connected = false;
+        public int Port = 65534;
 
-        public DatabaseSQL(SystemUser _client)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="pidgeon_sv.Lsnr"/> class.
+        /// </summary>
+        public Lsnr ()
         {
-            this.systemUser = _client;
+        }
+
+        public virtual bool Listen()
+        {
+            // by default we don't do anything end return false
+            return false;
+        }
+
+        public virtual bool Close()
+        {
+            return false;
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -19,53 +19,152 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace pidgeon_sv
+namespace pidgeon_sv.Security
 {
-    public class SecurityRole
+    [Serializable]
+    public class Permission
     {
-        public List<SystemUser.UserLevel> AuthorizedLevels
+        public static Dictionary<string, Permission> Permissions = new Dictionary<string, Permission>();
+        public static Permission CreateUser = new Permission("CreateUser");
+        public static Permission DeleteUser = new Permission("DeleteUser");
+        public static Permission Connect = new Permission("Connect");
+        public static Permission ModifyUser = new Permission("ModifyUser");
+        public static Permission KickUser = new Permission("KickUser");
+        public static Permission DisplaySystemData = new Permission("DisplaySystemData");
+        public static Permission ListUsers = new Permission("ListUsers");
+        public static Permission LockUser = new Permission("LockUser");
+        public static Permission UnlockUser = new Permission("UnlockUser");
+        public static Permission Kill = new Permission("Kill");
+
+        public string PermissionName;
+
+        public Permission(string name)
         {
-            get
+            lock (Permissions)
             {
-                lock (Authorized)
+                if (Permissions.ContainsKey(name))
                 {
-                    List<SystemUser.UserLevel> x = new List<SystemUser.UserLevel>();
-                    x.AddRange(Authorized);
-                    return x;
+                    throw new Exception("You can't create multiple permissions with same name");
+                }
+                Permissions.Add(name, this);
+            }
+            this.PermissionName = name;
+        }
+
+        ~Permission()
+        {
+            lock (Permissions)
+            {
+                if (Permissions.ContainsKey(PermissionName))
+                {
+                    Permissions.Remove(PermissionName);
                 }
             }
         }
-
-        private List<SystemUser.UserLevel> Authorized = new List<SystemUser.UserLevel>();
-
-        public SecurityRole(SystemUser.UserLevel level)
-        {
-            Authorized.Add(level);
-        }
     }
 
-    public class SecurityLayers
+    [Serializable]
+    public class SecurityRole
     {
-        public static SecurityRole CreateUser = new SecurityRole(SystemUser.UserLevel.Admin);
-        public static SecurityRole DeleteUser = new SecurityRole(SystemUser.UserLevel.Admin);
-        public static SecurityRole RestartSystem = new SecurityRole(SystemUser.UserLevel.Root);
-        public static SecurityRole ModifyUser = new SecurityRole(SystemUser.UserLevel.Admin);
-        public static SecurityRole ReadUser = new SecurityRole(SystemUser.UserLevel.Admin);
-        public static SecurityRole ShutdownSystem = new SecurityRole(SystemUser.UserLevel.Root);
+        public static Dictionary<string, SecurityRole> Roles = new Dictionary<string, SecurityRole>();
+        // Built in roles
+        public static SecurityRole Root = new SecurityRole("Root");
+        public static SecurityRole Administrator = new SecurityRole("Administrators");
+        public static SecurityRole RegularUser = new SecurityRole("RegularUser");
+        public static SecurityRole SystemRole = new SecurityRole("System");
 
-        public static bool isAuthorized(SystemUser user, SecurityRole role)
+        private List<Permission> Permissions = new List<Permission>();
+        private string _Name;
+        
+        public string Name
         {
-            if (user.Level == SystemUser.UserLevel.Root)
+            get
             {
-                return true;
+                return this._Name;
             }
+        }
 
-            if (role.AuthorizedLevels.Contains(user.Level))
+        public static SecurityRole GetRoleFromString(string role)
+        {
+            lock (Roles)
             {
-                return true;
+                if (Roles.ContainsKey(role))
+                {
+                    return Roles[role];
+                }
             }
+            return null;
+        }
 
-            return false;
+        public static void Initialize()
+        {
+            RegularUser.GrantPermission(Permission.DisplaySystemData);
+            RegularUser.GrantPermission(Permission.Connect);
+            Administrator.GrantPermission(Permission.Connect);
+            Administrator.GrantPermission(Permission.CreateUser);
+            Administrator.GrantPermission(Permission.DeleteUser);
+            Administrator.GrantPermission(Permission.DisplaySystemData);
+            Administrator.GrantPermission(Permission.KickUser);
+            Administrator.GrantPermission(Permission.ListUsers);
+            Administrator.GrantPermission(Permission.LockUser);
+            Administrator.GrantPermission(Permission.ModifyUser);
+            Administrator.GrantPermission(Permission.UnlockUser);
+            SystemRole.GrantPermission(Permission.CreateUser);
+            SystemRole.GrantPermission(Permission.DeleteUser);
+            SystemRole.GrantPermission(Permission.KickUser);
+            SystemRole.GrantPermission(Permission.Kill);
+            SystemRole.GrantPermission(Permission.ListUsers);
+            SystemRole.GrantPermission(Permission.LockUser);
+            SystemRole.GrantPermission(Permission.ModifyUser);
+            SystemRole.GrantPermission(Permission.UnlockUser);
+            SystemRole.GrantPermission(Permission.DisplaySystemData);
+        }
+
+        public SecurityRole(string name)
+        {
+            lock (Roles)
+            {
+                if (Roles.ContainsKey(name))
+                {
+                    throw new Exception("You can't create multiple roles with same name");
+                }
+                Roles.Add(name, this);
+            }
+            this._Name = name;
+        }
+
+        public bool GrantPermission(Permission permission)
+        {
+            lock (Permissions)
+            {
+                if (this.Permissions.Contains(permission))
+                {
+                    return false;
+                }
+                this.Permissions.Add(permission);
+            }
+            return true;
+        }
+
+        public bool RevokePermission(Permission permission)
+        {
+            lock (Permissions)
+            {
+                if (!this.Permissions.Contains(permission))
+                {
+                    return false;
+                }
+                this.Permissions.Remove(permission);
+            }
+            return true;
+        }
+
+        public bool HasPermission(Permission permission)
+        {
+            lock (Permissions)
+            {
+                return this.Permissions.Contains(permission);
+            }
         }
     }
 }

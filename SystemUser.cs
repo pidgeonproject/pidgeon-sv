@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -14,7 +14,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -26,7 +25,49 @@ namespace pidgeon_sv
         /// <summary>
         /// List of active connections to services that are logged in as this user
         /// </summary>
-        public List<ProtocolMain> Clients = new List<ProtocolMain>();
+        public List<ProtocolMain> Clients
+        {
+            get
+            {
+                List<ProtocolMain> protocols = new List<ProtocolMain>();
+                foreach (Session session in Sessions)
+                {
+                        
+                    protocols.Add(session.Protocol);
+                }
+                return protocols;
+            }
+        }
+
+        /// <summary>
+        /// Gets the sessions that are open by this user
+        /// </summary>
+        /// <value>
+        /// The sessions.
+        /// </value>
+        public List<Session> Sessions
+        {
+            get
+            {
+                List<Session> s = new List<Session>();
+                lock (Session.ConnectedUsers)
+                {
+                    foreach (Session session in Session.ConnectedUsers)
+                    {
+                        if (session.User == this)
+                        {
+                            s.Add(session);
+                        }
+                    }
+                }
+                return s;
+            }
+        }
+
+        /// <summary>
+        /// The buffered list of protocols, so that we don't need to call Clients::get so often
+        /// </summary>
+        public List<ProtocolMain> ClientsBuffer = new List<ProtocolMain>();
         /// <summary>
         /// The username
         /// </summary>
@@ -60,9 +101,9 @@ namespace pidgeon_sv
         /// </summary>
         public DB DatabaseEngine = null;
         /// <summary>
-        /// Level of this user
+        /// The permission list.
         /// </summary>
-        public UserLevel Level = UserLevel.User;
+        public List<Security.SecurityRole> Roles = new List<pidgeon_sv.Security.SecurityRole>();
         private bool Locked = false;
         /// <summary>
         /// Whether this user is locked
@@ -94,9 +135,36 @@ namespace pidgeon_sv
             DatabaseEngine = new DatabaseFile(this);
             if (ro == false)
             {
-                Core.DebugLog("Cleaning DB for " + UserName);
+                SystemLog.DebugLog("Cleaning buffer for " + UserName);
                 DatabaseEngine.Clear();
             }
+        }
+
+        /// <summary>
+        /// Updates the client buffer
+        /// </summary>
+        public void UpdateCB()
+        {
+            this.ClientsBuffer = this.Clients;
+        }
+
+        public bool IsApproved(Security.Permission permission)
+        {
+            lock (this.Roles)
+            {
+                foreach (Security.SecurityRole role in this.Roles)
+                {
+                    if (role.Name == "Root")
+                    {
+                        return true;
+                    }
+                    if (role.HasPermission(permission))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -107,7 +175,6 @@ namespace pidgeon_sv
             if (!IsLocked)
             {
                 Locked = true;
-                KickUser(this);
             }
         }
 
@@ -133,7 +200,7 @@ namespace pidgeon_sv
             {
                 if (text.network == null)
                 {
-                    Core.DebugLog("network is bad");
+                    SystemLog.DebugLog("network is bad");
                     return;
                 }
                 ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);
@@ -144,26 +211,21 @@ namespace pidgeon_sv
                 data.Parameters.Add("MQID", text.MQID.ToString());
                 if (connection == null)
                 {
-                    lock (Clients)
+                    foreach (ProtocolMain pidgeon in ClientsBuffer)
                     {
-                        foreach (ProtocolMain pidgeon in Clients)
+                        if (pidgeon != null)
                         {
-                            if (pidgeon != null)
+                            if (pidgeon.IsConnected)
                             {
-                                if (pidgeon.Connected)
-                                {
-                                    pidgeon.Deliver(data);
-                                }
+                                pidgeon.Deliver(data);
                             }
                         }
                     }
-                }
-                else
+                } else
                 {
                     connection.Deliver(data);
                 }
-            }
-            catch (Exception fail)
+            } catch (Exception fail)
             {
                 Core.handleException(fail);
             }
@@ -189,8 +251,7 @@ namespace pidgeon_sv
             try
             {
                 Deliver(text);
-            }
-            catch (Exception fail)
+            } catch (Exception fail)
             {
                 Core.handleException(fail);
             }
@@ -199,12 +260,9 @@ namespace pidgeon_sv
 
         public bool Deliver(ProtocolMain.Datagram text)
         {
-            lock (Clients)
+            foreach (ProtocolMain client in ClientsBuffer)
             {
-                foreach (ProtocolMain client in Clients)
-                {
-                    client.Deliver(text);
-                }
+                client.Deliver(text);
             }
             return true;
         }
@@ -294,6 +352,25 @@ namespace pidgeon_sv
         /// </param>
         public static void KickUser(SystemUser user)
         {
+            foreach (ProtocolMain clients in user.Clients)
+            {
+                ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("FAIL", "KILLED");
+                datagram.Parameters.Add("code", "62");
+                clients.TrafficChunks = false;
+                clients.Deliver(datagram);
+            }
+            List<Session> session = new List<Session>();
+            lock (Session.ConnectedUsers)
+            {
+                session.AddRange(Session.ConnectedUsers);
+            }
+            foreach (Session s in Session.ConnectedUsers)
+            {
+                if (s.User == user)
+                {
+                    s.Kill();
+                }
+            }
             lock (user.Messages)
             {
                 user.Messages.Clear();
@@ -308,23 +385,9 @@ namespace pidgeon_sv
                     network._Protocol.Exit();
                 }
             }
-
-            lock (user.Clients)
-            {
-                List<ProtocolMain> connections = new List<ProtocolMain>();
-                connections.AddRange(user.Clients);
-                foreach (ProtocolMain clients in connections)
-                {
-                    ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("FAIL", "KILLED");
-                    datagram.Parameters.Add("code", "6");
-                    clients.TrafficChunks = false;
-                    clients.Deliver(datagram);
-                    clients.Exit();
-                }
-            }
         }
 
-        public static void DeleteUser(SystemUser user)
+        public static bool DeleteUser(SystemUser user)
         {
             lock (Core.UserList)
             {
@@ -333,18 +396,25 @@ namespace pidgeon_sv
                     user.Lock();
                     user.DatabaseEngine.Clear();
                     user.ConnectedNetworks.Clear();
-                    user.Clients.Clear();
+                    user.ClientsBuffer.Clear();
                     user.Messages.Clear();
                     Core.UserList.Remove(user);
+                    Core.SaveUser();
+                    return true;
                 }
             }
-            Core.SaveUser();
+            return false;
         }
 
-        public static void CreateEntry(string name, string password, string nick, UserLevel level, string realname, string ident)
+        public static bool CreateUser(string name, string password, string nick, List<pidgeon_sv.Security.SecurityRole> RoleList, string realname, string ident)
         {
-            SystemUser user = new SystemUser(name, password);
-            user.Level = level;
+            SystemUser user = getUser(name);
+            if (user != null)
+            {
+                return false;
+            }
+            user = new SystemUser(name, password);
+            user.Roles = RoleList;
             user.Nickname = nick;
             user.RealName = realname;
             user.Ident = ident;
@@ -353,15 +423,17 @@ namespace pidgeon_sv
                 Core.UserList.Add(user);
             }
             Core.SaveUser();
+            return true;
         }
 
         public static SystemUser getUser(string name)
         {
+            name = name.ToLower();
             lock (Core.UserList)
             {
                 foreach (SystemUser account in Core.UserList)
                 {
-                    if (account.UserName == name)
+                    if (account.UserName.ToLower() == name)
                     {
                         return account;
                     }
@@ -383,13 +455,6 @@ namespace pidgeon_sv
                 }
             }
             return false;
-        }
-
-        public enum UserLevel
-        {
-            Root,
-            Admin,
-            User
         }
     }
 }

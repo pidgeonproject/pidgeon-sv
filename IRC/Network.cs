@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -114,7 +114,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Symbol prefix of channels
         /// </summary>
-        public string channel_prefix = "#";
+        public string Channel_Prefix = "#";
         /// <summary>
         /// List of private message windows
         /// </summary>
@@ -131,10 +131,6 @@ namespace pidgeon_sv
         /// User name (real name)
         /// </summary>
         public string UserName = null;
-        /// <summary>
-        /// Randomly generated ID for this network to make it unique in case some other network would share the name
-        /// </summary>
-        public string randomuqid = null;
         /// <summary>
         /// List of all channels on network
         /// </summary>
@@ -162,7 +158,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Specifies whether this network is using SSL connection
         /// </summary>
-        public bool isSecure = false;
+        public bool IsSecure = false;
         /// <summary>
         /// If true, the channel data will be suppressed in system window
         /// </summary>
@@ -182,12 +178,12 @@ namespace pidgeon_sv
         /// <summary>
         /// Whether this network is fully loaded
         /// </summary>
-        public bool isLoaded = false;
+        public bool IsLoaded = false;
         /// <summary>
         /// Version of ircd running on this network
         /// </summary>
         public string IrcdVersion = null;
-        public string id = null;
+        public string NetworkID = null;
         public bool Connected = false;
         /// <summary>
         /// Specifies if you are connected to network
@@ -210,6 +206,19 @@ namespace pidgeon_sv
             {
                 return isDestroyed;
             }
+        }
+
+        public Network(string Server, Protocol sv)
+        {
+            ServerName = Server;
+            _Protocol = sv;
+            NetworkID = DateTime.Now.ToBinary ().ToString() + "~" + Server;
+            Quit = "Pidgeon service - http://pidgeonclient.org";
+        }
+
+        ~Network()
+        {
+            SystemLog.DebugLog("Destructor called for network " + ServerName);
         }
         
         public Channel getChannel(string name)
@@ -272,19 +281,6 @@ namespace pidgeon_sv
         public bool ShowChat(string name)
         {
             return true;
-        }
-
-        public Network(string Server, Protocol sv)
-        {
-            ServerName = Server;
-            _Protocol = sv;
-            id = DateTime.Now.ToBinary ().ToString() + "~" + Server;
-            Quit = "Pidgeon service - http://pidgeonclient.org";
-        }
-
-        ~Network()
-        {
-            Core.DebugLog("Destructor called for network " + ServerName);
         }
 
         public void Disconnect()

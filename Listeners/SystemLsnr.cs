@@ -17,19 +17,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Xml;
+using System.Threading;
 using System.Text;
 
 namespace pidgeon_sv
 {
-    public class DatabaseSQL : DB
+    public class SystemLsnr : Lsnr
     {
-        public string Server = null;
-        public string User = null;
-        public bool Connected = false;
-
-        public DatabaseSQL(SystemUser _client)
+        public SystemLsnr()
         {
-            this.systemUser = _client;
+
+        }
+
+        public override bool Close()
+        {
+            return base.Close();
         }
     }
 }
+

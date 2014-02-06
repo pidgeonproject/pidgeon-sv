@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -32,106 +32,31 @@ namespace pidgeon_sv
         /// </summary>
         public static FileSystemWatcher fs;
 
-        public class Writer
-        {
-            public class Item
-            {
-                /// <summary>
-                /// Text
-                /// </summary>
-                public string Text;
-                /// <summary>
-                /// Path
-                /// </summary>
-                public string FN;
-
-                /// <summary>
-                /// Creates a new instance of writer
-                /// </summary>
-                /// <param name="fn"></param>
-                /// <param name="text"></param>
-                public Item(string fn, string text)
-                {
-                    FN = fn;
-                    Text = text;
-                }
-            }
-
-            public static List<Item> DB = new List<Item>();
-
-            public static void Insert(string text, string file)
-            {
-                lock (DB)
-                {
-                    DB.Add(new Item(file, text));
-                }
-            }
-
-            private static void ex()
-            {
-                try
-                {
-                    while (Core.IsRunning)
-                    {
-                        List<Item> list = new List<Item>();
-                        lock (DB)
-                        {
-                            if (DB.Count > 0)
-                            {
-                                list.AddRange(DB);
-                                DB.Clear();
-                            }
-                        }
-                        foreach (Item item in list)
-                        {
-                            File.AppendAllText(item.FN, item.Text + Environment.NewLine);
-                        }
-                        System.Threading.Thread.Sleep(2000);
-                    }
-                }
-                catch (Exception fail)
-                {
-                    Core.handleException(fail);
-                }
-            }
-
-            public static void Init()
-            {
-                System.Threading.Thread logger = new Thread(ex);
-                logger.Name = "Writer";
-                lock (Core.ThreadDB)
-                {
-                    Core.ThreadDB.Add(logger);
-                }
-                logger.Start();
-            }
-        }
-
         private static void OnChanged(object source, FileSystemEventArgs e)
         {
-            Core.SL("Warning, the user file was changed, reloading it");
+            SystemLog.Warning("the user file was changed, reloading it");
             LoadUser();
         }
 
         /// <summary>
         /// Load all user data and info
         /// </summary>
-        public static void LoadUser(bool ro = false)
+        public static void LoadUser(bool QietMode = false)
         {
             try
             {
-                if (!ro)
+                if (!QietMode)
                 {
-                    SL("Loading users");
+                    SystemLog.WriteLine("Loading users");
                 }
                 if (File.Exists(Configuration._System.UserFile))
                 {
-                    if (!ro)
+                    if (!QietMode)
                     {
                         fs = new FileSystemWatcher();
                         fs.Path = Configuration._System.DatabaseFolder;
                         fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                        fs.Filter = "users";
+                        fs.Filter = Configuration._System.UserFile;
                         fs.Changed += new FileSystemEventHandler(OnChanged);
                         fs.Created += new FileSystemEventHandler(OnChanged);
                         fs.Deleted += new FileSystemEventHandler(OnChanged);
@@ -141,25 +66,20 @@ namespace pidgeon_sv
                     configuration.Load(Configuration._System.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
-                        Core.DebugLog("There is no proper information about users in config file");
+                        SystemLog.Warning("There is no proper information about users in config file");
                         return;
                     }
                     lock (UserList)
                     {
-                        Core.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
+                        SystemLog.DebugLog("Loading users: " + configuration.ChildNodes[0].ChildNodes.Count.ToString(), 2);
                         foreach (XmlNode curr in configuration.ChildNodes[0].ChildNodes)
                         {
-                            SystemUser.UserLevel UserLevel = SystemUser.UserLevel.User;
                             bool locked = false;
                             string name = null;
                             string password = null;
                             string nickname = null;
                             string ident = "pidgeon";
                             string realname = "http://pidgeonclient.org/wiki";
-                            if (Configuration._System.Rooted)
-                            {
-                                UserLevel = SystemUser.UserLevel.Root;
-                            }
                             foreach (XmlAttribute configitem in curr.Attributes)
                             {
                                 switch (configitem.Name.ToLower())
@@ -182,71 +102,84 @@ namespace pidgeon_sv
                                     case "realname":
                                         realname = configitem.Value;
                                         break;
-                                    case "level":
-                                        switch (configitem.Value.ToLower())
-                                        {
-                                            case "root":
-                                                UserLevel = SystemUser.UserLevel.Root;
-                                                break;
-                                            case "admin":
-                                                UserLevel = SystemUser.UserLevel.Admin;
-                                                break;
-                                            case "user":
-                                                UserLevel = SystemUser.UserLevel.User;
-                                                break;
-                                        }
-                                        break;
                                 }
                             }
                             if (name == null || password == null)
                             {
-                                Core.DebugLog("Invalid record for some user, skipped");
+                                SystemLog.DebugLog("Invalid record for some user, skipped");
                                 continue;
                             }
                             bool Nonexistent = false;
-                            SystemUser line = SystemUser.getUser(name);
-                            if (line == null)
+                            SystemUser user = SystemUser.getUser(name);
+                            if (user == null)
                             {
                                 Nonexistent = true;
-                                line = new SystemUser(name, password, ro);
+                                user = new SystemUser(name, password, QietMode);
                             }
                             else
                             {
-                                if (line.IsLocked != locked)
+                                if (user.IsLocked != locked)
                                 {
                                     if (locked)
                                     {
                                         // we need to lock this user
-                                        Core.DebugLog("Locking user: " + name);
-                                        line.Lock();
+                                        SystemLog.DebugLog("Locking user: " + name);
+                                        user.Lock();
                                     }
                                     else
                                     {
-                                        line.Unlock();
+                                        user.Unlock();
                                     }
                                 }
                             }
-                            line.Password = password;
-                            line.Nickname = nickname;
-                            line.Ident = ident;
-                            line.RealName = realname;
-                            line.Level = UserLevel;
+                            user.Password = password;
+                            user.Nickname = nickname;
+                            user.Ident = ident;
+                            user.RealName = realname;
+                            if (curr.ChildNodes.Count > 0)
+                            {
+                                // read the roles this user has
+                                foreach (XmlNode role in curr.ChildNodes)
+                                {
+                                    if (role.Name == "role")
+                                    {
+                                        Security.SecurityRole Role = Security.SecurityRole.GetRoleFromString(role.InnerText);
+                                        if (Role != null)
+                                        {
+                                            if (!user.Roles.Contains(Role))
+                                            {
+                                                user.Roles.Add(Role);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else
+                            {
+                                if (Configuration._System.Rooted)
+                                {
+                                    SystemLog.Warning("User " + user.UserName + " doesn't have any roles and because system is running in rooted mode, he was permanently granted root");
+                                    user.Roles.Add(Security.SecurityRole.Root);
+                                } else
+                                {
+                                    SystemLog.Warning("User " + user.UserName + " doesn't have any roles");
+                                }
+                            }
                             if (Nonexistent)
                             {
-                                UserList.Add(line);
+                                UserList.Add(user);
                             }
                         }
-                        if (!ro)
+                        if (!QietMode)
                         {
-                            SL("Loaded users: " + UserList.Count.ToString());
+                            SystemLog.WriteLine("Loaded users: " + UserList.Count.ToString());
                         }
                     }
                 }
                 else
                 {
-                    if (!ro)
+                    if (!QietMode)
                     {
-                        SL("There is no userfile for this instance, create one using parameter -a");
+                        SystemLog.Warning("There is no userfile for this instance, create one using parameter --install");
                     }
                 }
             }
@@ -271,7 +204,6 @@ namespace pidgeon_sv
                 XmlDocument configuration = new XmlDocument();
 
                 XmlNode xmlnode = configuration.CreateElement("users");
-
                 lock (UserList)
                 {
                     foreach (SystemUser user in UserList)
@@ -283,21 +215,24 @@ namespace pidgeon_sv
                         XmlAttribute ident = configuration.CreateAttribute("ident");
                         XmlAttribute realname = configuration.CreateAttribute("realname");
                         XmlAttribute locked = configuration.CreateAttribute("locked");
-                        XmlAttribute level = configuration.CreateAttribute("level");
                         name.Value = user.UserName;
                         password.Value = user.Password;
                         nick.Value = user.Nickname;
                         ident.Value = user.Ident;
                         realname.Value = user.RealName;
                         locked.Value = user.IsLocked.ToString();
-                        level.Value = user.Level.ToString();
                         item.Attributes.Append(name);
                         item.Attributes.Append(password);
                         item.Attributes.Append(nick);
                         item.Attributes.Append(ident);
                         item.Attributes.Append(realname);
                         item.Attributes.Append(locked);
-                        item.Attributes.Append(level);
+                        foreach (Security.SecurityRole ROLE in user.Roles)
+                        {
+                            XmlNode role = configuration.CreateElement("role");
+                            role.InnerText = ROLE.Name;
+                            item.AppendChild(role);
+                        }
                         xmlnode.AppendChild(item);
                     }
                 }
@@ -319,9 +254,10 @@ namespace pidgeon_sv
 
         public static void LoadConf()
         {
+            Security.SecurityRole.Initialize();
             if (!File.Exists(Configuration._System.ConfigurationFile))
             {
-                SL("WARNING: there is no configuration file");
+                SystemLog.Warning("there is no configuration file");
                 return;
             }
             else
@@ -343,7 +279,8 @@ namespace pidgeon_sv
                             value = int.Parse(curr.InnerText);
                             if (value < 100)
                             {
-                                SL("Invalid chunk size, using default: " + Configuration._System.ChunkSize);
+                                SystemLog.Warning("Invalid chunk size, using default: "
+                                           + Configuration._System.ChunkSize);
                                 break;
                             }
                             Configuration._System.ChunkSize = value;
@@ -358,7 +295,7 @@ namespace pidgeon_sv
                             Configuration.Debugging.Verbosity += int.Parse(curr.InnerText);
                             break;
                         case "log":
-                            Configuration._System.Log = curr.InnerText;
+                            Configuration.Logging.Log = curr.InnerText;
                             break;
                     }
                 }

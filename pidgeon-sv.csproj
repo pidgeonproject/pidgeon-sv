@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,22 +33,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Program Files (x86)\Mono-2.10.9\lib\mono\2.0\Mono.Posix.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Listeners.cs" />
     <Compile Include="IRC\Processor\Channel.cs" />
-    <Compile Include="IRC\Protocol\Readers.cs" />
     <Compile Include="SystemUser.cs" />
     <Compile Include="Certificate.cs" />
-    <Compile Include="Channel.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Connection.cs" />
     <Compile Include="Core\ConfigIO.cs" />
     <Compile Include="Core\Core.cs" />
     <Compile Include="Database\DatabaseFile.cs" />
@@ -56,18 +48,28 @@
     <Compile Include="Database\DB.cs" />
     <Compile Include="IRC\Formatter.cs" />
     <Compile Include="IRC\Processor\IRC.cs" />
-    <Compile Include="IRC\Protocol\Buffer.cs" />
-    <Compile Include="IRC\Protocol\Queue.cs" />
-    <Compile Include="Network.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocol.cs" />
-    <Compile Include="IRC\Protocol\ProtocolIrc.cs" />
-    <Compile Include="ProtocolMain.cs" />
-    <Compile Include="Responses.cs" />
     <Compile Include="SecurityLayers.cs" />
     <Compile Include="Terminal.cs" />
-    <Compile Include="User.cs" />
+    <Compile Include="SystemLog.cs" />
+    <Compile Include="Listeners\Lsnr.cs" />
+    <Compile Include="Listeners\ServicesListener.cs" />
+    <Compile Include="Listeners\SecuredListener.cs" />
+    <Compile Include="IRC\Network.cs" />
+    <Compile Include="IRC\Channel.cs" />
+    <Compile Include="IRC\User.cs" />
+    <Compile Include="Core\Writer.cs" />
+    <Compile Include="Session.cs" />
+    <Compile Include="Protocols\Responses.cs" />
+    <Compile Include="Protocols\ProtocolMain.cs" />
+    <Compile Include="Protocols\ProtocolIrc\Readers.cs" />
+    <Compile Include="Protocols\ProtocolIrc\Buffer.cs" />
+    <Compile Include="Protocols\ProtocolIrc\Queue.cs" />
+    <Compile Include="Protocols\ProtocolIrc\ProtocolIrc.cs" />
+    <Compile Include="Protocols\Protocol.cs" />
+    <Compile Include="Protocols\ProtocolSv.cs" />
+    <Compile Include="Protocols\ResponsesSv.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -84,10 +86,14 @@
     <MonoDevelop>
       <Properties>
         <Policies>
-          <TextStylePolicy FileWidth="120" TabWidth="4" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-csharp" />
-          <CSharpFormattingPolicy inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <TextStylePolicy inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy IndentSwitchBody="True" AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" EventRemoveBraceStyle="NextLine" StatementBraceStyle="NextLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeDelegateDeclarationParentheses="False" NewParentheses="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
         </Policies>
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <Folder Include="Listeners\" />
+    <Folder Include="Protocols\" />
+  </ItemGroup>
 </Project>

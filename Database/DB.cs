@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -41,7 +41,7 @@ namespace pidgeon_sv
         /// </summary>
         public virtual void Clear()
         {
-            Core.DebugLog("Clear() not implemented");
+            SystemLog.DebugLog("Clear() not implemented");
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace pidgeon_sv
         /// <param name="network"></param>
         public virtual void DeleteCache(string network)
         {
-            Core.DebugLog("DeleteCache(string network) not implemented");
+            SystemLog.DebugLog("DeleteCache(string network) not implemented");
         }
 
         public int GetMessageSize(string network)
@@ -75,7 +75,7 @@ namespace pidgeon_sv
         /// <param name="MQID">Initial MQID</param>
         public virtual void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
-            Core.DebugLog("MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID) not implemented");
+            SystemLog.DebugLog("MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID) not implemented");
         }
 
         public virtual int MessagePool_Backlog(int size, int mqid, string network)
@@ -85,18 +85,18 @@ namespace pidgeon_sv
 
         public virtual void Store_SM(ProtocolMain.SelfData message)
         {
-            Core.DebugLog("Store_SM(ProtocolMain.SelfData message) not implemented");
+            SystemLog.DebugLog("Store_SM(ProtocolMain.SelfData message) not implemented");
         }
 
         public virtual int MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol)
         {
-            Core.DebugLog("MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol) not implemented");
+            SystemLog.DebugLog("MessagePool_Range(int from, int to, string network, ref int id, ProtocolMain protocol) not implemented");
             return 0;
         }
 
         public virtual void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
-            Core.DebugLog("MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network) not implemented");
+            SystemLog.DebugLog("MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network) not implemented");
         }
     }
 }

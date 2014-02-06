@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -17,8 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.IO;
-using Mono.Unix;
 
 namespace pidgeon_sv
 {
@@ -30,7 +30,7 @@ namespace pidgeon_sv
             {
                 Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
-                Configuration._System.UserFile = Configuration._System.DatabaseFolder + Path.DirectorySeparatorChar + "users";
+                Configuration.Init();
 
                 if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {
@@ -40,19 +40,34 @@ namespace pidgeon_sv
                 // Check the parameters and if we can continue, launch the core
                 if (Terminal.Parameters())
                 {
-                    if (!Core.Init())
+                    if (Configuration._System.Daemon)
                     {
-                        return;
-                    }
+                        SystemLog.DebugLog("Loading core");
+                        if (!Core.Init())
+                        {
+                            return;
+                        }
 
-                    Core.Writer.Init();
+                        // load a system log writer
+                        Core.Writer.Init();
+                        // create a new regular listener
+                        ServicesListener listener = new ServicesListener(Configuration.Network.ServerPort);
+                        listener.Listen();
+                        // create a new ssl listener
+                        if (Configuration.Network.UsingSSL)
+                        {
+                            SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
+                            listener2.Listen();
+                        }
+                        while (Core.IsRunning)
+                        {
+                            Thread.Sleep(800);
+                        }
 
-                    if (Configuration.Network.UsingSSL)
+                    } else
                     {
-                        Core.SSLListenerTh = new System.Threading.Thread(Core.ListenS);
-                        Core.SSLListenerTh.Start();
+                        Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");
                     }
-                    Core.Listen();
                 }
             }
             catch (Exception fail)

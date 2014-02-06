@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -28,7 +28,7 @@ namespace pidgeon_sv
         public static void Status(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            string info = protocol.connection.status.ToString();
+            string info = protocol.session.status.ToString();
             response = new ProtocolMain.Datagram("STATUS", info);
             protocol.Deliver(response);
         }
@@ -36,7 +36,7 @@ namespace pidgeon_sv
         public static void NetworkInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network network = protocol.connection.User.retrieveServer(node.InnerText);
+            Network network = protocol.session.User.retrieveServer(node.InnerText);
             if (network == null)
             {
                 response = new ProtocolMain.Datagram("NETWORKINFO", "UNKNOWN");
@@ -76,9 +76,9 @@ namespace pidgeon_sv
                             break;
                     }
                 }
-                if (protocol.connection.User.containsNetwork(server))
+                if (protocol.session.User.containsNetwork(server))
                 {
-                    Network network = protocol.connection.User.retrieveServer(server);
+                    Network network = protocol.session.User.retrieveServer(server);
                     network._Protocol.Transfer(node.InnerText, Priority);
                 }
             }
@@ -89,7 +89,7 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             if (node.Attributes.Count > 0)
             {
-                Network network = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     response = new ProtocolMain.Datagram("NICK", network.nickname);
@@ -108,7 +108,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 2)
             {
-                Network network = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     int from = int.Parse(node.Attributes[1].Value);
@@ -118,12 +118,12 @@ namespace pidgeon_sv
                 }
                 else
                 {
-                    Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                    SystemLog.DebugLog("User " + protocol.session.IP + " requested log of unknown network");
                 }
             }
             else
             {
-                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                SystemLog.DebugLog("User " + protocol.session.IP + " requested log of unknown network");
             }
         }
 
@@ -131,7 +131,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 1)
             {
-                Network network = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     int mqid = 0;
@@ -141,24 +141,24 @@ namespace pidgeon_sv
                     }
                     ProtocolIrc _protocol = (ProtocolIrc)network._Protocol;
                     _protocol.getDepth(int.Parse(node.Attributes[1].Value), protocol, mqid);
-                    protocol.connection.User.MessageBacklog(mqid, _protocol, protocol);
+                    protocol.session.User.MessageBacklog(mqid, _protocol, protocol);
                 }
                 else
                 {
-                    Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                    SystemLog.DebugLog("User " + protocol.session.IP + " requested log of unknown network");
                 }
             }
             else
             {
-                Core.DebugLog("User " + protocol.connection.IP + " requested log of unknown network");
+                SystemLog.DebugLog("User " + protocol.session.IP + " requested log of unknown network");
             }
         }
 
         public static void Load(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.version + " I have " 
-                + Connection.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
+            response = new ProtocolMain.Datagram("LOAD", "Pidgeon service version " + Configuration._System.PidgeonSvVersion + " I have " 
+                + Session.ConnectedUsers.Count.ToString() + " connections, process info: memory usage " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1024).ToString() 
                 + "kb private and " 
                 + ((double)System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64 / 1024).ToString() 
@@ -170,6 +170,13 @@ namespace pidgeon_sv
         public static void Connect(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
+            if (!protocol.session.User.IsApproved(Security.Permission.Connect))
+            {
+                // this user is not approved to create new connection to the system
+                response = new ProtocolMain.Datagram("CONNECT", "PERMISSIONDENY");
+                protocol.Deliver(response);
+                return;
+            }
             bool ssl = false;
             string server = node.InnerText;
             if (server.StartsWith("$"))
@@ -177,7 +184,7 @@ namespace pidgeon_sv
                 server = server.Substring(1);
                 ssl = true;
             }
-            if (protocol.connection.User.containsNetwork(server))
+            if (protocol.session.User.containsNetwork(server))
             {
                 response = new ProtocolMain.Datagram("CONNECT", "CONNECTED");
                 response.Parameters.Add("network", server);
@@ -197,14 +204,14 @@ namespace pidgeon_sv
                 server = server.Substring(0, server.IndexOf(":"));
             }
 
-            protocol.connection.User.ConnectIRC(server, port, ssl);
-            Network network = protocol.connection.User.retrieveServer(server);
-            Core.SL(protocol.connection.IP + ": Connecting to " + server);
+            protocol.session.User.ConnectIRC(server, port, ssl);
+            Network network = protocol.session.User.retrieveServer(server);
+            SystemLog.WriteLine(protocol.session.IP + ": Connecting to " + server);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
             response.Parameters.Add("network", server);
             if (network != null)
             {
-                response.Parameters.Add("id", network.id);
+                response.Parameters.Add("id", network.NetworkID);
             }
             protocol.Deliver(response);
         }
@@ -212,34 +219,47 @@ namespace pidgeon_sv
         public static void DiscNw(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network network = protocol.connection.User.retrieveServer(node.InnerText);
+            Network network = protocol.session.User.retrieveServer(node.InnerText);
             if (network == null)
             {
-                response = new ProtocolMain.Datagram("REMOVE", "FAIL");
+                response = new ProtocolMain.Datagram("FAIL", "REMOVE");
                 response.Parameters.Add("network", node.InnerText);
+                response.Parameters.Add("code", "20");
+                response.Parameters.Add("description", "no such a network");
                 protocol.Deliver(response);
                 return;
             }
             ProtocolIrc IRC = (ProtocolIrc)network._Protocol;
-            IRC.Exit();
-            lock (protocol.connection.User.ConnectedNetworks)
+            if (IRC == null)
             {
-                if (protocol.connection.User.ConnectedNetworks.Contains(network))
+                response = new ProtocolMain.Datagram("FAIL", "REMOVE");
+                response.Parameters.Add("network", node.InnerText);
+                response.Parameters.Add("code", "20");
+                response.Parameters.Add("description", "internal error (null pointer to network._Protocol)");
+                SystemLog.Error("Unable to process disconnect request because there is null pointer to network._Protocol");
+                protocol.Deliver(response);
+                return;
+            }
+            IRC.Exit();
+            lock (protocol.session.User.ConnectedNetworks)
+            {
+                if (protocol.session.User.ConnectedNetworks.Contains(network))
                 {
-                    protocol.connection.User.ConnectedNetworks.Remove(network);
+                    protocol.session.User.ConnectedNetworks.Remove(network);
                     response = new ProtocolMain.Datagram("REMOVE", node.InnerText);
                     protocol.Deliver(response);
                 }
                 else
                 {
-                    Core.DebugLog("Can't remove the protocol from system, error #2");
+                    SystemLog.Error("Can't remove the network from system, error #2 " +
+                                    "(protocol.connection.User.ConnectedNetworks doesn't contain the network)");
                 }
             }
         }
 
         public static void GlobalIdent(XmlNode node, ProtocolMain protocol)
         {
-            protocol.connection.User.Ident = node.InnerText;
+            protocol.session.User.Ident = node.InnerText;
             protocol.Deliver(new ProtocolMain.Datagram("GLOBALIDENT", node.InnerText));
         }
 
@@ -247,7 +267,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 2)
             {
-                Network network = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     string target = node.Attributes[2].Value;
@@ -263,13 +283,13 @@ namespace pidgeon_sv
                             break;
                     }
                     ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._Protocol.getMQID());
-                    protocol.connection.User.Message(data);
-                    protocol.connection.User.MessageBack(data);
+                    protocol.session.User.Message(data);
+                    protocol.session.User.MessageBack(data);
                     network._Protocol.Message(node.InnerText, target, Priority);
                 }
                 else
                 {
-                    Core.DebugLog("Network was not found for " + protocol.connection.IP);
+                    SystemLog.DebugLog("Network was not found for " + protocol.session.IP);
                 }
             }
         }
@@ -278,19 +298,24 @@ namespace pidgeon_sv
         {
             if (node.InnerText == "")
             {
-                protocol.Deliver(new ProtocolMain.Datagram("GLOBALNICK", protocol.connection.User.Nickname));
+                protocol.Deliver(new ProtocolMain.Datagram("GLOBALNICK", protocol.session.User.Nickname));
                 return;
             }
             protocol.Deliver(new ProtocolMain.Datagram("GLOBALNICK", node.InnerText));
-            protocol.connection.User.Nickname = node.InnerText;
+            protocol.session.User.Nickname = node.InnerText;
             Core.SaveUser();
         }
 
         public static void Auth(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            string username = node.Attributes[0].Value;
-            string pw = node.Attributes[1].Value;
+            string username = node.Attributes [0].Value;
+            string pw = node.Attributes [1].Value;
+            bool encrypted = false;
+            if (!encrypted)
+            {
+                pw = Core.CalculateMD5Hash(pw);
+            }
             lock (Core.UserList)
             {
                 foreach (SystemUser curr_user in Core.UserList)
@@ -299,15 +324,12 @@ namespace pidgeon_sv
                     {
                         if (curr_user.Password == pw)
                         {
-                            protocol.connection.User = curr_user;
-                            lock (protocol.connection.User.Clients)
-                            {
-                                protocol.connection.User.Clients.Add(protocol);
-                            }
-                            Core.SL(protocol.connection.IP + ": Logged in as " + protocol.connection.User.UserName);
+                            protocol.session.User = curr_user;
+                            protocol.session.User.UpdateCB();
+                            SystemLog.WriteLine(protocol.session.IP + ": Logged in as " + protocol.session.User.UserName);
                             response = new ProtocolMain.Datagram("AUTH", "OK");
-                            response.Parameters.Add("ls", "There is " + protocol.connection.User.Clients.Count.ToString() + " connections logged in to this account");
-                            protocol.connection.status = Connection.Status.Connected;
+                            response.Parameters.Add("ls", "There is " + protocol.session.User.Clients.Count.ToString() + " connections logged in to this account");
+                            protocol.session.status = Session.Status.Connected;
                             protocol.Deliver(response);
                             return;
                         }
@@ -321,7 +343,7 @@ namespace pidgeon_sv
         public static void UserList(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response;
-            Network nw = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+            Network nw = protocol.session.User.retrieveServer(node.Attributes[0].Value);
             if (nw == null)
             {
                 response = new ProtocolMain.Datagram("FAIL", "USERLIST");
@@ -364,12 +386,12 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             string networks = "";
             string id = "";
-            lock (protocol.connection.User.ConnectedNetworks)
+            lock (protocol.session.User.ConnectedNetworks)
             {
-                foreach (Network current_net in protocol.connection.User.ConnectedNetworks)
+                foreach (Network current_net in protocol.session.User.ConnectedNetworks)
                 {
                     networks += current_net.ServerName + "|";
-                    id += current_net.id + "|";
+                    id += current_net.NetworkID + "|";
                 }
             }
             response = new ProtocolMain.Datagram("NETWORKLIST", networks);
@@ -380,10 +402,10 @@ namespace pidgeon_sv
         public static void Manage(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            switch (node.Value)
+            switch (node.InnerText)
             {
                 case "LIST":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ReadUser))
+                    if (!protocol.session.User.IsApproved(Security.Permission.ListUsers))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -393,13 +415,22 @@ namespace pidgeon_sv
                     {
                         foreach (SystemUser curr in Core.UserList)
                         {
-                            users += curr.UserName + ":" + curr.Nickname + ":" + curr.IsLocked.ToString() + "&";
+                            string role = "";
+                            lock (curr.Roles)
+                            {
+                                foreach (Security.SecurityRole Role in curr.Roles)
+                                {
+                                    role += Role.Name + " ";
+                                }
+                            }
+                            users += curr.UserName + ":" + curr.Nickname + ":" +curr.IsLocked.ToString() + 
+                                     ":" + role + "&";
                         }
                     }
                     response = new ProtocolMain.Datagram("USERLIST", users);
                     break;
                 case "CREATEUSER":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.CreateUser))
+                    if (!protocol.session.User.IsApproved(Security.Permission.CreateUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -416,37 +447,40 @@ namespace pidgeon_sv
 
                     if (SystemUser.IsValid(node.Attributes[0].Value))
                     {
-                        SystemUser.UserLevel level = SystemUser.UserLevel.User;
-
-                        switch (node.Attributes[3].Value.ToUpper())
+                        List<Security.SecurityRole> roles = new List<pidgeon_sv.Security.SecurityRole>();
+                        List<string> rl = new List<string>(node.Attributes[3].Value.Split(','));
+                        foreach (string role in rl)
                         {
-                            case "USER":
-                                level = SystemUser.UserLevel.User;
-                                break;
-                            case "ADMIN":
-                                level = SystemUser.UserLevel.Admin;
-                                break;
-                            case "ROOT":
-                                level = SystemUser.UserLevel.Root;
-                                break;
+                            Security.SecurityRole tr = Security.SecurityRole.GetRoleFromString(role);
+                            if (tr != null)
+                            {
+                                roles.Add(tr);
+                            }
                         }
-
-                        SystemUser.CreateEntry(node.Attributes[0].Value, node.Attributes[1].Value, node.Attributes[2].Value, level, node.Attributes[4].Value, node.Attributes[5].Value);
-
-                        response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
-                        response.Parameters.Add("name", node.Attributes[0].Value);
-                        response.Parameters.Add("result", "ok");
+                        if (SystemUser.CreateUser(node.Attributes[0].Value, node.Attributes[1].Value,
+                                                  node.Attributes[2].Value, roles,
+                                                  node.Attributes[4].Value,
+                                                  node.Attributes[5].Value))
+                        {
+                            response = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
+                            response.Parameters.Add("name", node.Attributes[0].Value);
+                            response.Parameters.Add("result", "ok");
+                            protocol.Deliver(response);
+                            return;
+                        }
+                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                        response.Parameters.Add("code", "36");
+                        response.Parameters.Add("description", "use already exist");
                         protocol.Deliver(response);
+                        return;
                     }
-
                     response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                     response.Parameters.Add("code", "3");
                     response.Parameters.Add("description", "invalid name");
                     protocol.Deliver(response);
-
                     return;
-                case "LOCKUSER":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ModifyUser))
+                case "LOCK":
+                    if (!protocol.session.User.IsApproved(Security.Permission.LockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -456,11 +490,19 @@ namespace pidgeon_sv
                     {
                         string user = node.Attributes[0].Value;
                         SystemUser target = SystemUser.getUser(user);
+                        if (target == protocol.session.User)
+                        {
+                            response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                            response.Parameters.Add("code", "32");
+                            response.Parameters.Add("description", "you can't lock yourself from system");
+                            protocol.Deliver(response);
+                            return;
+                        }
                         if (target != null)
                         {
                             target.Lock();
                             Core.SaveUser();
-                            response = new ProtocolMain.Datagram("SYSTEM", "LK");
+                            response = new ProtocolMain.Datagram("SYSTEM", "LOCK");
                             response.Parameters.Add("username", user);
                             protocol.Deliver(response);
                             return;
@@ -469,7 +511,7 @@ namespace pidgeon_sv
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                             response.Parameters.Add("code", "5");
-                            response.Parameters.Add("description", "LK: invalid name");
+                            response.Parameters.Add("description", "LOCK: invalid name");
                             protocol.Deliver(response);
                             return;
                         }
@@ -478,12 +520,12 @@ namespace pidgeon_sv
                     {
                         response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                         response.Parameters.Add("code", "5");
-                        response.Parameters.Add("description", "LK: invalid name");
+                        response.Parameters.Add("description", "LOCK: invalid name");
                         protocol.Deliver(response);
                         return;
                     }
                 case "UNLOCK":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.ModifyUser))
+                    if (!protocol.session.User.IsApproved(Security.Permission.UnlockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -497,55 +539,105 @@ namespace pidgeon_sv
                         {
                             target.Unlock();
                             Core.SaveUser();
-                            response = new ProtocolMain.Datagram("SYSTEM", "UN");
+                            response = new ProtocolMain.Datagram("SYSTEM", "UNLOCK");
                             response.Parameters.Add("username", user);
                         }
                         else
                         {
                             response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
                             response.Parameters.Add("action", "un");
-                            response.Parameters.Add("explanation", "unknown user");
+                            response.Parameters.Add("description", "unknown user");
                         }
                     }
                     else
                     {
                         response = new ProtocolMain.Datagram("SYSTEM", "FAIL");
                         response.Parameters.Add("action", "un");
-                        response.Parameters.Add("explanation", "invalid");
+                        response.Parameters.Add("description", "invalid");
                     }
                     break;
                 case "REMOVE":
-                    if (!SecurityLayers.isAuthorized(protocol.connection.User, SecurityLayers.DeleteUser))
+                    if (!protocol.session.User.IsApproved(Security.Permission.DeleteUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
 
-                    if (node.Attributes.Count > 0)
+                    if (node.Attributes.Count > 0 && node.Attributes[0].Name == "id")
                     {
                         string user = node.Attributes[0].Value;
                         SystemUser target = SystemUser.getUser(user);
-                        if (target != null)
+                        if (target == protocol.session.User)
+                        {
+                            response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                            response.Parameters.Add("code", "32");
+                            response.Parameters.Add("description", "you can't remove yourself from users");
+                            protocol.Deliver(response);
+                            return;
+                        }
+
+                        if (target == null)
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                             response.Parameters.Add("code", "7");
-                            response.Parameters.Add("explanation", "unknown user");
+                            response.Parameters.Add("description", "unknown user");
                             protocol.Deliver(response);
                             return;
                         }
                         else
                         {
-                            SystemUser.DeleteUser(target);
-                            response = new ProtocolMain.Datagram("SYSTEM", "REMOVE");
-                            response.Parameters.Add("name", node.Attributes[0].Value);
-                            protocol.Deliver(response);
+                            if (SystemUser.DeleteUser(target))
+                            {
+                                response = new ProtocolMain.Datagram("SYSTEM", "REMOVE");
+                                response.Parameters.Add("id", node.Attributes[0].Value);
+                                protocol.Deliver(response);
+                            } else
+                            {
+                                response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                                response.Parameters.Add("code", "40");
+                                response.Parameters.Add("description", "failed to delete user");
+                                protocol.Deliver(response);
+                            }
                             return;
                         }
                     }
 
                     response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                     response.Parameters.Add("code", "7");
-                    response.Parameters.Add("explanation", "unknown user");
+                    response.Parameters.Add("description", "unknown user");
+                    protocol.Deliver(response);
+                    return;
+                case "SESSION":
+                    if (!protocol.session.User.IsApproved(Security.Permission.DisplaySystemData))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+                    response = new ProtocolMain.Datagram("SYSTEM", "SESSION");
+                    string list = "";
+                    lock (Session.ConnectedUsers)
+                    {
+                        foreach (Session si in Session.ConnectedUsers)
+                        {
+                            list += si.SessionID.ToString() + ":" + si.CreatedTime.ToBinary().ToString() +
+                                    ":";
+                            if (si.User == null)
+                            {
+                                list += "unknown";
+                            } else
+                            {
+                                list += si.User.UserName;
+                            }
+                            list += "|";
+                        }
+                    }
+                    response.Parameters.Add("list", list);
+                    protocol.Deliver(response);
+                    return;
+                default:
+                    response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                    response.Parameters.Add("code", "30");
+                    response.Parameters.Add("description", "unknown request");
                     protocol.Deliver(response);
                     return;
             }
@@ -555,7 +647,7 @@ namespace pidgeon_sv
         public static void ChannelInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network nw = protocol.connection.User.retrieveServer(node.Attributes[0].Value);
+            Network nw = protocol.session.User.retrieveServer(node.Attributes[0].Value);
             switch (node.InnerText)
             {
                 case "LIST":

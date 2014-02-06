@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -123,7 +123,7 @@ namespace pidgeon_sv
                                 {
                                     if (parts.Count < CurrentParam + 1)
                                     {
-                                        Core.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
+                                        SystemLog.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
                                         return;
                                     }
 
@@ -145,7 +145,7 @@ namespace pidgeon_sv
                                 {
                                     if (parts.Count < CurrentParam + 1)
                                     {
-                                        Core.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
+                                        SystemLog.DebugLog("Mode: " + xx + " is invalid and can't be parsed");
                                         return;
                                     }
 

@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -15,6 +15,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
+using System.IO;
 using System;
 using System.Collections.Generic;
 
@@ -39,6 +40,10 @@ namespace pidgeon_sv
             /// </summary>
             public static int ServerSSL = 22432;
             /// <summary>
+            /// Port for internal data transfers between the components of services
+            /// </summary>
+            public static int IPC = 8428;
+            /// <summary>
             /// Using SSL
             /// </summary>
             public static bool UsingSSL = true;
@@ -55,6 +60,17 @@ namespace pidgeon_sv
             public static int Verbosity = 0;
         }
 
+        public class Logging
+        {
+            /// <summary>
+            /// Log
+            /// </summary>
+            public static string Log = "/var/log/pidgeonsv.log";
+            public static bool Colors = true;
+            public static bool ThreadWrite = false;
+            public static bool Terminal = false;
+        }
+
         /// <summary>
         /// _System
         /// </summary>
@@ -63,17 +79,17 @@ namespace pidgeon_sv
             /// <summary>
             /// Name of file where user information is stored
             /// </summary>
-            public static string UserFile = "users";
+            public static string UserFile = "users.xml";
+            /// <summary>
+            /// File that contains the password of system user, every user who is able to read it
+            /// will be able to manage this instance
+            /// </summary>
+            public static string PasswordFile = "password";
 
             /// <summary>
             /// Configuration file
             /// </summary>
-            public static readonly string ConfigurationFile = "pidgeon.conf";
-
-            /// <summary>
-            /// Log
-            /// </summary>
-            public static string Log = "/var/log/pidgeonsv.log";
+            public static readonly string ConfigurationFile = "pidgeon.xml";
 
             /// <summary>
             /// This is a minimal size of one chunk before it's written to storage, to free a memory
@@ -104,12 +120,12 @@ namespace pidgeon_sv
             /// <summary>
             /// Database folder (where the user database is located)
             /// </summary>
-            public static string DatabaseFolder = "db";
+            public static string DatabaseFolder = "data";
 
             /// <summary>
             /// Default folder where the user temporary data are stored
             /// </summary>
-            public static string FileDBDefaultFolder = "data";
+            public static string FileDBDefaultFolder = "buffers";
 
             /// <summary>
             /// Certificate path
@@ -122,20 +138,31 @@ namespace pidgeon_sv
             public static bool Daemon = false;
 
             /// <summary>
-            /// Minimal buffer size to store, this HAVE to be lower than maximum buffer
+            /// Minimal buffer size to store
             /// </summary>
             public static int MinimumBufferSize = 800;
 
             /// <summary>
             /// Version of application
             /// </summary>
-            public static string version
+            public static string PidgeonSvVersion
             {
                 get
                 {
                     return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 }
             }
+        }
+
+        public static void Init()
+        {
+            Configuration._System.UserFile = Configuration._System.DatabaseFolder +
+                                                 Path.DirectorySeparatorChar +
+                                                 Configuration._System.UserFile;
+
+            Configuration._System.PasswordFile = Configuration._System.DatabaseFolder +
+                                                 Path.DirectorySeparatorChar +
+                                                 Configuration._System.PasswordFile;
         }
     }
 }

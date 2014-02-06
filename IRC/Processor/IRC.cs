@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -110,7 +110,7 @@ namespace pidgeon_sv
                     if (_data2[1].Contains("PART"))
                     {
                         string channel = _data2[2];
-                        if (_data2[2].Contains(_Network.channel_prefix))
+                        if (_data2[2].Contains(_Network.Channel_Prefix))
                         {
                             channel = _data2[2];
                             Channel c = _Network.getChannel(channel);

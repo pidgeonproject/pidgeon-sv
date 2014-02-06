@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -84,7 +84,7 @@ namespace pidgeon_sv
 
             if (Thread.CurrentThread == thread)
             {
-                DebugLog("Attempt of thread to kill self: " + thread.Name);
+                SystemLog.DebugLog("Attempt of thread to kill self: " + thread.Name);
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace pidgeon_sv
         /// </summary>
         public static void Quit()
         {
-            SL("Killing all connections and running processes");
+            SystemLog.WriteLine("Killing all connections and running processes");
             foreach (Thread curr in ThreadDB)
             {
                 if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
@@ -109,7 +109,12 @@ namespace pidgeon_sv
                     curr.Abort();
                 }
             }
-            SL("Exiting");
+            SystemLog.WriteLine("Exiting");
+        }
+        
+        public static void Halt()
+        {
+            Core.isRunning = false;
         }
 
         public static void handleException(Exception reason, bool ThreadOK = false)
@@ -118,31 +123,7 @@ namespace pidgeon_sv
             {
                 return;
             }
-            SL("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
-        }
-
-        public static void DebugLog(string text, int verbosity = 1)
-        {
-            if (verbosity <= Configuration.Debugging.Verbosity)
-            {
-                SL("DEBUG: " + text);
-            }
-        }
-
-        /// <summary>
-        /// System log
-        /// </summary>
-        /// <param name='text'>
-        /// Text
-        /// </param>
-        public static void SL(string text)
-        {
-            if (!Configuration._System.Daemon)
-            {
-                Console.WriteLine(DateTime.Now.ToString() + ": " + text);
-                return;
-            }
-            Core.Writer.Insert(DateTime.Now.ToString() + ": " + text, Configuration._System.Log);
+            SystemLog.Error("Exception: " + reason.Message + " " + reason.StackTrace + " in: " + reason.Source);
         }
 
         /// <summary>
@@ -153,62 +134,72 @@ namespace pidgeon_sv
         {
             try
             {
-                SL("Pidgeon services " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + " loading");
-                SL("OS: " + Environment.OSVersion.ToString());
-
+                SystemLog.WriteLine("Pidgeon services " + Configuration._System.PidgeonSvVersion + " loading");
+                SystemLog.WriteLine("OS: " + Environment.OSVersion.ToString());
                 LoadConf();
-
                 if (!File.Exists(Configuration._System.CertificatePath) && Configuration.Network.UsingSSL)
                 {
                     try
                     {
-                        SL("There is no certificate file, creating one now");
-                        certificate(Configuration._System.CertificatePath, "pidgeonclient.org");
+                        SystemLog.WriteLine("There is no certificate file, creating one now");
+                        GenerateCertificate(Configuration._System.CertificatePath, "pidgeonclient.org");
                     }
                     catch (Exception fail)
                     {
                         Core.handleException(fail);
-                        SL("Unable to create cert file, ssl disabled");
+                        SystemLog.Error("Unable to create cert file, ssl disabled");
                         Configuration.Network.UsingSSL = false;
                     }
                 }
-
-                SL("This instance of pidgeon services has following parameters:");
-                SL("-----------------------------------------------------------");
-                SL("Port: " + Configuration.Network.ServerPort.ToString());
-                SL("WD: " + Directory.GetCurrentDirectory());
+                SystemLog.WriteLine("This instance of pidgeon services has following parameters:");
+                SystemLog.WriteLine("-----------------------------------------------------------");
+                SystemLog.WriteLine("Port: " + Configuration.Network.ServerPort.ToString());
+                SystemLog.WriteLine("WD: " + Directory.GetCurrentDirectory());
                 if (Configuration._System.MaxFileChunkSize == 0)
                 {
-                    SL("Maximum file chunk size: unlimited");
+                    SystemLog.WriteLine("Maximum file chunk size: unlimited");
                 }
                 else
                 {
-                    SL("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
+                    SystemLog.WriteLine("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
                 }
-                SL("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
-                SL("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
-                SL("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
+                SystemLog.WriteLine("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
+                SystemLog.WriteLine("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
+                SystemLog.WriteLine("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
                 if (Configuration.Network.UsingSSL)
                 {
-                    SL("SSL port: " + Configuration.Network.ServerSSL.ToString());
+                    SystemLog.WriteLine("SSL port: " + Configuration.Network.ServerSSL.ToString());
                 }
                 else
                 {
-                    SL("SSL port: none");
+                    SystemLog.WriteLine("SSL port: none");
                 }
-
-                SL("-----------------------------------------------------------");
-
+                SystemLog.WriteLine("-----------------------------------------------------------");
                 LoadUser();
-
                 return true;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                SL("Fatal error - exiting");
+                SystemLog.WriteLine("Fatal error - exiting");
                 return false;
             }
+        }
+
+        public static string CalculateMD5Hash(string input)
+        {
+            // step 1, calculate MD5 hash from input
+            System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
+            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+            byte[] hash = md5.ComputeHash(inputBytes);
+         
+            // step 2, convert byte array to hex string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hash.Length; i++)
+            {
+                sb.Append(hash[i].ToString("X2"));
+            }
+            return sb.ToString();
         }
 
         /// <summary>
@@ -217,12 +208,12 @@ namespace pidgeon_sv
         /// <param name="name"></param>
         /// <param name="host"></param>
         /// <returns></returns>
-        public static bool certificate(string name, string host)
+        public static bool GenerateCertificate(string name, string host)
         {
             byte[] c = Certificate.CreateSelfSignCertificatePfx(
                 "CN=" + host, //host name
                 DateTime.Parse("2000-01-01"), //not valid before
-                DateTime.Parse("2020-01-01"), //not valid after
+                DateTime.Parse("2090-01-01"), //not valid after
                 "pidgeon"); //password to encrypt key file
 
             using (BinaryWriter binWriter = new BinaryWriter(File.Open(name, FileMode.Create)))
