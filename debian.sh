@@ -1,15 +1,30 @@
 #!/bin/bash
 
-xbuild || exit 1
-
-if [ -d /tmp/pidgeonsv_deb ];then
-    echo "Clean /tmp/pidgeonsv before"
-    exit 1
+if [ "$#" -lt 1 ];then
+    echo "Enter version"
+    read v
+else
+    v="$1"
 fi
 
-cp -r installers /tmp/pidgeonsv_deb
-cp bin/Debug/pidgeon-sv.exe /tmp/pidgeonsv_deb/usr/share/pidgeon-sv/
+temp=/tmp/pidgeon-sv_"$v"
 
-fakeroot dpkg-deb --build /tmp/pidgeonsv_deb pidgeon-sv.deb
+if [ -d "$temp" ];then
+  echo "Remove $temp or package will not be created"
+  exit 1
+fi
 
-rm -rf /tmp/pidgeonsv_deb
+if [ -f "$temp.orig.tar.gz" ];then
+  echo "Remove $temp or package will not be created"
+  exit 1
+fi
+
+mkdir "$temp" || exit 1
+cp -vr Database Core Listeners Protocols IRC README.md *.cs *.csproj *.sln "$temp" || exit 1
+cd /tmp || exit 1
+tar -zcf "pidgeon-sv_"$v".orig.tar.gz" "$temp"
+cd "$temp"
+echo "Press enter to execute debuild -S -sa"
+read pause
+debuild -S -sa
+
