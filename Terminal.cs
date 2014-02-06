@@ -201,7 +201,8 @@ namespace pidgeon_sv
             }
             Console.Write("Enter password: ");
             string password = ReadPw();
-            Console.Write("\nEnter default user role or multiple roles separated with comma (Root | Administrators | RegularUsers) [user]: ");
+            Console.Write("\nEnter default user role or multiple roles separated with comma  " +
+                          " (Root | Administrators | RegularUsers) [RegularUsers]: ");
             string level;
             level = Console.ReadLine();
             if (level == "")

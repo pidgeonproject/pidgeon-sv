@@ -414,7 +414,7 @@ namespace pidgeon_sv
             {
                 return false;
             }
-            user = new SystemUser(name, password);
+            user = new SystemUser(name, Core.CalculateMD5Hash(password));
             user.Roles = RoleList;
             user.Nickname = nick;
             user.RealName = realname;
