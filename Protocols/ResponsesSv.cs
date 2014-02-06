@@ -35,6 +35,87 @@ namespace pidgeon_sv
                 SystemLog.WriteLine(curr.InnerText);
             }
 
+            public static void sMaintenance(XmlNode curr, ProtocolSv protocol)
+            {
+                protocol.Respond = true;
+                if (curr.InnerText == "REMOVE")
+                {
+                    if (curr.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("User was deleted from system: " + curr.Attributes [0].Value);
+                    }
+                    return;
+                }
+                if (curr.InnerText == "CREATEUSER")
+                {
+                    if (curr.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("User was created: " + curr.Attributes [0].Value);
+                    }
+                    return;
+                }
+                if (curr.InnerText == "UNLOCK")
+                {
+                    if (curr.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("User was unlocked: " + curr.Attributes [0].Value);
+                    }
+                    return;
+                }
+                if (curr.InnerText == "LOCK")
+                {
+                    if (curr.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("User was locked: " + curr.Attributes [0].Value);
+                    }
+                    return;
+                }
+            }
+
+            public static void sUserList(XmlNode curr, ProtocolSv protocol)
+            {
+                protocol.Respond = true;
+                Console.WriteLine("\nUser list:\n");
+                List<string> Users = new List<string>(curr.InnerText.Split('&'));
+                if (Users.Count == 0)
+                {
+                    Console.WriteLine("There are no users on this instance of services");
+                    return;
+                }
+                Console.WriteLine("+---------------------------------------------------------------------------+");
+                Console.WriteLine("|Username:              |Nickname:         |Status:  |Roles:                |");
+                Console.WriteLine("+---------------------------------------------------------------------------+");
+                foreach (string user in Users)
+                {
+                    if (user == "")
+                    {
+                        continue;
+                    }
+                    List<string> info = new List<string>(user.Split(':'));
+                    if (info.Count < 4)
+                    {
+                        SystemLog.Error("Corrupted record for user: " + user);
+                        return;
+                    }
+                    string username = info[0];
+                    string nick = info[1];
+                    string status = info[2];
+                    if (status.ToLower() == "true")
+                    {
+                        status = "Locked";
+                    } else
+                    {
+                        status = "Normal";
+                    }
+                    string roles = info[3];
+                    Console.WriteLine("|" + Terminal.FormatToSpecSize(username, 23) + "|" +
+                                      Terminal.FormatToSpecSize(nick, 18) + "|" +
+                                      Terminal.FormatToSpecSize(status, 9) + "|" +
+                                      Terminal.FormatToSpecSize(roles, 22) + "|");
+                }
+                Console.WriteLine("+---------------------------------------------------------------------------+");
+            }
+
             /// <summary>
             /// Status
             /// </summary>
@@ -45,10 +126,10 @@ namespace pidgeon_sv
                 switch (curr.InnerText)
                 {
                     case "Connected":
-                        protocol.ConnectionStatus = Status.Connected;
+                        //protocol.ConnectionStatus = Status.Connected;
                         break;
                     case "WaitingPW":
-                        protocol.ConnectionStatus = Status.WaitingPW;
+                        //protocol.ConnectionStatus = Status.WaitingPW;
                         break;
                 }
             }
@@ -78,7 +159,7 @@ namespace pidgeon_sv
                         }
                     }
                 }
-
+                protocol.Respond = true;
                 error += "code (" + code + ") description: " + description;
                 SystemLog.Warning(error);
             }
@@ -98,7 +179,7 @@ namespace pidgeon_sv
                 }
                 if (curr.InnerText == "OK")
                 {
-                    protocol.ConnectionStatus = Status.Connected;
+                    //protocol.ConnectionStatus = Status.Connected;
                     SystemLog.WriteLine("You are now logged in to pidgeon bnc");
                     SystemLog.WriteLine(curr.Attributes[0].Value);
                 }

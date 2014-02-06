@@ -28,6 +28,8 @@ namespace pidgeon_sv
     /// </summary>
     public class Terminal
     {
+        private static ProtocolSv protocol = null;
+
         private class Parameter
         {
             /// <summary>
@@ -118,7 +120,7 @@ namespace pidgeon_sv
             SystemLog.Init();
             password = username.Substring(username.IndexOf(":") + 1);
             username = username.Substring(0, username.IndexOf(":"));
-            ProtocolSv protocol = new ProtocolSv();
+            protocol = new ProtocolSv();
             protocol.Username = username;
             protocol.Server = "localhost";
             protocol.Password = password;
@@ -162,9 +164,22 @@ namespace pidgeon_sv
                                           "kill <id>   - kill a session\n");
                         break;
                     case "adduser":
-                        
+                        CreateUser();
+                        break;
                     case "deluser":
+                        DeleteUser();
+                        break;
                     case "listuser":
+                        ListUser();
+                        break;
+                    case "lockuser":
+                        LockUser();
+                        break;
+                    case "unlockuser":
+                        UnlockUser();
+                        break;
+                    case "sessions":
+                    case "moduser":
                         break;
                     default:
                         Console.WriteLine("Unknown command, try help if you don't know what to do");
@@ -174,17 +189,8 @@ namespace pidgeon_sv
             Core.Halt();
         }
         
-        private static void CreateUser(Parameter parameter)
+        private static void CreateUser()
         {
-            if (Configuration.Debugging.Verbosity > 0)
-            {
-                Configuration.Logging.Terminal = true;
-                Core.LoadUser();
-            } else
-            {
-                Core.LoadUser(true);
-            }
-            Configuration.Logging.Terminal = true;
             Console.Write("Enter username: ");
             string username;
             username = Console.ReadLine();
@@ -194,23 +200,19 @@ namespace pidgeon_sv
             }
             Console.Write("Enter password: ");
             string password = ReadPw();
-            password = Core.CalculateMD5Hash(password);
-            Console.Write("\nEnter default user role (root | admin | user) [user]: ");
+            Console.Write("\nEnter default user role or multiple roles separated with comma (root | admin | user) [user]: ");
             string level;
             level = Console.ReadLine();
-            List<Security.SecurityRole> Roles = new List<pidgeon_sv.Security.SecurityRole>();
-            Roles.Add(Security.SecurityRole.RegularUser);
-
-            switch (level)
+            if (level == "")
             {
-                case "root":
-                    Roles.Add(Security.SecurityRole.Root);
-                    break;
-                case "admin":
-                    Roles.Add(Security.SecurityRole.Administrator);
-                    break;
+                level = "RegularUser";
             }
-
+            Console.Write("Enter nick name [Pidgeon]: ");
+            string nickname = Console.ReadLine();
+            if (nickname.Replace(" ", "") == "")
+            {
+                nickname = "Pidgeon";
+            }
             Console.Write("Enter real name [Pidgeon]: ");
             string realname = Console.ReadLine();
             if (realname.Replace(" ", "") == "")
@@ -223,52 +225,97 @@ namespace pidgeon_sv
             {
                 ident = "pidgeon";
             }
-            SystemUser user = SystemUser.getUser(username);
-            if (user != null)
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "CREATEUSER");
+            datagram.Parameters.Add("name", username);
+            datagram.Parameters.Add("password", password);
+            datagram.Parameters.Add("nickname", nickname);
+            datagram.Parameters.Add("role", level);
+            datagram.Parameters.Add("realname", realname);
+            datagram.Parameters.Add("ident", ident);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
             {
-                Console.WriteLine("This user already exist");
-                return;
+                Thread.Sleep(200);
             }
-            user = new SystemUser(username, password);
-            user.Ident = ident;
-            user.Roles = Roles;
-            user.RealName = realname;
-            Core.UserList.Add(user);
-            Core.SaveUser();
-            Console.WriteLine("\n User created");
+            Thread.Sleep(800);
         }
 
-        private static void DeleteUser(Parameter parameter)
+        private static void UnlockUser()
         {
-            Core.LoadUser(true);
             string username;
-            Console.Write("WARNING: if you delete a user, the running process will not recognize it, if you want to delete the user on-line, you must lock it and remove it before restarting the daemon\n\n");
+            Console.Write("Enter user to unlock: ");
+            username = Console.ReadLine();
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "UNLOCK");
+            datagram.Parameters.Add("id", username);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
+            {
+                Thread.Sleep(200);
+            }
+            Thread.Sleep(800);
+        }
+
+        private static void LockUser()
+        {
+            string username;
+            Console.Write("Enter user to lock: ");
+            username = Console.ReadLine();
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "LOCK");
+            datagram.Parameters.Add("id", username);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
+            {
+                Thread.Sleep(200);
+            }
+            Thread.Sleep(800);
+        }
+
+        private static void DeleteUser()
+        {
+            string username;
             Console.Write("Enter user to delete: ");
             username = Console.ReadLine();
-            SystemUser user = SystemUser.getUser(username);
-            if (user != null)
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "REMOVE");
+            datagram.Parameters.Add("id", username);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
             {
-                Core.UserList.Remove(user);
-                Console.WriteLine("User deleted");
-                Core.SaveUser();
-                return;
+                Thread.Sleep(200);
             }
-            Console.WriteLine("User was not found");
+            Thread.Sleep(800);
+        }
+
+        public static string FormatToSpecSize(string st, int size)
+        {
+            if (st.Length > size)
+            {
+                st = st.Substring(0, st.Length - ((st.Length - size) + 3));
+                st += "...";
+            } else
+            {
+                while (st.Length < size)
+                {
+                    st += " ";
+                }
+            }
+            return st;
         }
 
         private static void ListUser()
         {
-            Core.LoadUser(true);
-            if (Core.UserList.Count == 0)
+            Console.WriteLine("Retrieving list of users");
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "LIST");
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
             {
-                return;
+                Thread.Sleep(200);
             }
-
-            Console.WriteLine("List of all users:\n=========================================\n");
-            foreach (SystemUser user in Core.UserList)
-            {
-                Console.WriteLine(user.UserName + " locked: " + user.IsLocked.ToString() + " name: " + user.RealName);
-            }
+            Thread.Sleep(800);
         }
 
         private static void Install()

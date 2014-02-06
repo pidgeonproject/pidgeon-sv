@@ -60,10 +60,31 @@ namespace pidgeon_sv
         /// The session thread.
         /// </summary>
         private Thread SessionThread = null;
+        public DateTime CreatedTime
+        {
+            get
+            {
+                return createdtime;
+            }
+        }
+        private DateTime createdtime;
         /// <summary>
         /// The IP
         /// </summary>
         public string IP;
+        /// <summary>
+        /// Gets the protocol.
+        /// </summary>
+        /// <value>
+        /// The protocol.
+        /// </value>
+        public ProtocolMain Protocol
+        {
+            get
+            {
+                return protocol;
+            }
+        }
         /// <summary>
         /// Protocol which this session is using to communicate with client
         /// </summary>
@@ -95,6 +116,7 @@ namespace pidgeon_sv
         {
             this.protocol = null;
             this.IP = "unknown";
+            this.createdtime = DateTime.Now;
             this.SID = GetSID();
         }
 
@@ -152,6 +174,13 @@ namespace pidgeon_sv
             }
         }
 
+        public void Kill()
+        {
+            SystemLog.WriteLine("Killing session " + this.SessionID.ToString());
+            this.Disconnect();
+            Core.DisableThread(this.SessionThread);
+        }
+
         /// <summary>
         /// Disconnect from client and close all underlying objects
         /// </summary>
@@ -160,6 +189,11 @@ namespace pidgeon_sv
             SystemLog.WriteLine("Disconnecting from: " + this.IP);
             lock (this)
             {
+                Connected = false;
+                if (this.protocol != null && this.protocol.IsConnected)
+                {
+                    this.protocol.Disconnect();
+                }
                 if (Connected)
                 {
                     if (protocol != null)
@@ -177,7 +211,14 @@ namespace pidgeon_sv
                         _StreamWriter.Close();
                         _StreamWriter = null;
                     }
-                    Connected = false;
+                }
+                SystemUser user = this.User;
+                if (user != null)
+                {
+                    // remove the reference to user who owned this session so that it can be cleaned up
+                    this.User = null;
+                    // remove the reference to this session from the user
+                    user.UpdateCB();
                 }
             }
         }

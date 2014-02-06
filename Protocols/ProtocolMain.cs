@@ -155,19 +155,27 @@ namespace pidgeon_sv
         /// <summary>
         /// Pointer to client
         /// </summary>
-        public Session connection = null;
+        public Session session = null;
 
-        public bool Connected = false;
+        public bool IsConnected
+        {
+            get
+            {
+                return Connected;
+            }
+        }
+
+        private bool Connected = false;
 
         public ProtocolMain(Session t)
         {
             Connected = true;
-            connection = t;
+            session = t;
         }
 
         ~ProtocolMain()
         {
-            SystemLog.DebugLog("Destructor called for ProtocolMain of " + connection.IP);
+            SystemLog.DebugLog("Destructor called for ProtocolMain of " + session.IP);
         }
 
         public void ParseCommand(string data)
@@ -190,9 +198,12 @@ namespace pidgeon_sv
                 }
                 Connected = false;
 
-                if (connection != null)
+                if (session != null)
                 {
-                    connection.Disconnect();
+                    if (session.IsConnected)
+                    {
+                        session.Disconnect();
+                    }
                 }
             }
             catch (Exception fail)
@@ -208,24 +219,8 @@ namespace pidgeon_sv
                 return;
             }
             Disconnect();
-            if (connection != null)
-            {
-                if (connection.User != null)
-                {
-                    if (connection.User.Clients != null)
-                    {
-                        lock (connection.User.Clients)
-                        {
-                            if (connection.User.Clients.Contains(this))
-                            {
-                                connection.User.Clients.Remove(this);
-                            }
-                        }
-                    }
-                }
-            }
             isDestroyed = true;
-            connection = null;
+            session = null;
         }
 
         /// <summary>
@@ -235,7 +230,7 @@ namespace pidgeon_sv
         public void ParseXml(XmlNode node)
         {
             Datagram response = null;
-            if (connection.status == Session.Status.WaitingPW)
+            if (session.status == Session.Status.WaitingPW)
             {
                 switch (node.Name.ToUpper())
                 {
@@ -328,7 +323,7 @@ namespace pidgeon_sv
             }
             catch (Exception fail)
             {
-                SystemLog.DebugLog(fail.ToString());
+                Core.handleException(fail);
                 response = new ProtocolMain.Datagram("FAIL", "GENERIC");
                 response.Parameters.Add("code", "6");
                 response.Parameters.Add("description", "internal error: " + fail.Message.ToString());
@@ -340,7 +335,7 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
-                SystemLog.WriteLine("Error: sending a text to closed connection " + connection.IP);
+                SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
                 return;
             }
             XmlDocument datagram = new XmlDocument();
@@ -361,22 +356,22 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
-                SystemLog.WriteLine("Error: sending a text to closed connection " + connection.IP);
+                SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
                 return false;
             }
             try
             {
-                lock (connection._StreamWriter)
+                lock (session._StreamWriter)
                 {
                     if (!TrafficChunks)
                     {
-                        connection._StreamWriter.WriteLine(text);
+                        session._StreamWriter.WriteLine(text);
                         if (TrafficChunk != "")
                         {
-                            connection._StreamWriter.WriteLine(TrafficChunk);
+                            session._StreamWriter.WriteLine(TrafficChunk);
                             TrafficChunk = "";
                         }
-                        connection._StreamWriter.Flush();
+                        session._StreamWriter.Flush();
                         return true;
                     }
                     else
@@ -386,8 +381,8 @@ namespace pidgeon_sv
                             TrafficChunk += text + "\n";
                             if (TrafficChunk.Length > 2000 || Enforced)
                             {
-                                connection._StreamWriter.WriteLine(TrafficChunk);
-                                connection._StreamWriter.Flush();
+                                session._StreamWriter.WriteLine(TrafficChunk);
+                                session._StreamWriter.Flush();
                                 TrafficChunk = "";
                             }
                         }

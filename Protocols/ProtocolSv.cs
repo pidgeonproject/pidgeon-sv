@@ -41,7 +41,7 @@ namespace pidgeon_sv
         /// Password
         /// </summary>
         public string Password = "";
-        private Status ConnectionStatus = Status.WaitingPW;
+        //private Status ConnectionStatus = Status.WaitingPW;
         private SslStream _networkSsl = null;
         /// <summary>
         /// Whether the services have finished loading
@@ -58,6 +58,7 @@ namespace pidgeon_sv
         private bool disposed = false;
         public string Server = "unknown";
         public bool SSL = false;
+        public bool Respond = false;
         public int Port = Configuration.Network.ServerPort;
         public bool IsConnected
         {
@@ -156,7 +157,8 @@ namespace pidgeon_sv
             {
                 if (IsConnected && !disconnecting)
                 {
-                    // we need to wrap this in another exception handler because the following functions are easy to throw some
+                    // we need to wrap this in another exception handler because the 
+                    // following functions are easy to throw some
                     try
                     {
                         SystemLog.Warning("Quit: " + fail.Message);
@@ -253,8 +255,14 @@ namespace pidgeon_sv
                         case "SAUTH":
                             ResponsesSv.sAuth(curr, this);
                             break;
+                        case "SSYSTEM":
+                            ResponsesSv.sMaintenance(curr, this);
+                            break;
                         case "SFAIL":
                             ResponsesSv.sError(curr, this);
+                            break;
+                        case "SUSERLIST":
+                            ResponsesSv.sUserList(curr, this);
                             break;
                     }
                 }

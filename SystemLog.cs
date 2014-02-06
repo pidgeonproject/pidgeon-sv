@@ -65,10 +65,10 @@ namespace pidgeon_sv
                 lines.AddRange(data);
                 data.Clear();
             }
-            bool suffix = false;
             foreach (MessageLine line in lines)
             {
                 ConsoleColor color = Console.ForegroundColor;
+                bool suffix = false;
                 switch (line.t)
                 {
                     case MessageLine.Type.Debug:
