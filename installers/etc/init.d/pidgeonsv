@@ -18,7 +18,7 @@ PIDFILE=/var/run/$NAME.pid
 PIDFILEMONO="/var/run/$NAME"_MONO.pid
 SCRIPTNAME=/etc/init.d/$NAME
 FOLDER=/usr/share/pidgeon-sv
-DAEMON_ARGS="pidgeon-sv.exe -p $PIDFILE --daemon"
+DAEMON_ARGS="pidgeon-sv.exe --log /var/log/pidgeonsv.log -p $PIDFILE --daemon"
 SERVICE_USER=pidgeonsv
 #DAEMON_ARGS="-p $PIDFILEMONO"
 
@@ -50,7 +50,7 @@ do_start()
         #   2 if daemon could not be started
         start-stop-daemon -d $FOLDER -c $SERVICE_USER -b --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
                 || return 1
-        start-stop-daemon -d $FOLDER -c pidgeonsv -b --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+        start-stop-daemon -d $FOLDER -c $SERVICE_USER -b --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
                 $DAEMON_ARGS \
                 || return 2
         # Add code here, if necessary, that waits for the process to be ready

@@ -184,9 +184,12 @@ namespace pidgeon_sv
                         Console.ForegroundColor = color;
                     }
                 }
-                return;
             }
-            Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
+            // TODO: fix this
+            if (Configuration.Logging.Log != "none")
+            {
+                Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
+            }
         }
         
         /// <summary>
@@ -223,9 +226,11 @@ namespace pidgeon_sv
                         Console.ForegroundColor = color;
                     }
                 }
-                return;
             }
-            Core.Writer.Insert(Date.ToString() + suffix + Message, Configuration.Logging.Log);
+            if (Configuration.Logging.Log != "none")
+            {
+                Core.Writer.Insert(Date.ToString() + suffix + Message, Configuration.Logging.Log);
+            }
         }
 
         public static void DebugLog(string text, int verbosity = 1)

@@ -70,6 +70,7 @@ namespace pidgeon_sv
                               + "  --manage will manage local instance of services\n"
                               + "  --install will create a system databases\n"
                               + "  -t (--terminal) will log to terminal as well\n"
+                              + "  --log [none|syslog|path] path to syslog\n"
                               + "\n"
                               + "for more information see http://pidgeonclient.org/wiki"
                               + "\npidgeon is open source.");
@@ -200,12 +201,12 @@ namespace pidgeon_sv
             }
             Console.Write("Enter password: ");
             string password = ReadPw();
-            Console.Write("\nEnter default user role or multiple roles separated with comma (root | admin | user) [user]: ");
+            Console.Write("\nEnter default user role or multiple roles separated with comma (Root | Administrators | RegularUsers) [user]: ");
             string level;
             level = Console.ReadLine();
             if (level == "")
             {
-                level = "RegularUser";
+                level = "RegularUsers";
             }
             Console.Write("Enter nick name [Pidgeon]: ");
             string nickname = Console.ReadLine();
@@ -355,6 +356,17 @@ namespace pidgeon_sv
             SystemLog.DebugLog("Finished installing of new user list");
         }
 
+        private static void WriteLog(Parameter p)
+        {
+            if (p.parm == null)
+            {
+                throw new Exception("Parameter --log requires argument");
+            }
+
+            string file = p.parm[0];
+            Configuration.Logging.Log = file;
+        }
+
         private static void WritePid(Parameter p)
         {
             if (p.parm == null)
@@ -393,6 +405,9 @@ namespace pidgeon_sv
                         break;
                     case "terminal":
                         Configuration.Logging.Terminal = true;
+                        break;
+                    case "log":
+                        WriteLog(parameter);
                         break;
                 }
             }
@@ -470,6 +485,7 @@ namespace pidgeon_sv
                             tx = tx.Substring(1);
                             ParameterList.Add(p);
                         }
+                        continue;
                     }
                     bool Read = false;
                     switch (data)
@@ -507,6 +523,11 @@ namespace pidgeon_sv
                         case "--daemon":
                             parsed = id;
                             id = "daemon";
+                            Read = true;
+                            break;
+                        case "--log":
+                            parsed = id;
+                            id = "log";
                             Read = true;
                             break;
                     }

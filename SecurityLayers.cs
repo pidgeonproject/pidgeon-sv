@@ -70,7 +70,7 @@ namespace pidgeon_sv.Security
         // Built in roles
         public static SecurityRole Root = new SecurityRole("Root");
         public static SecurityRole Administrator = new SecurityRole("Administrators");
-        public static SecurityRole RegularUser = new SecurityRole("RegularUser");
+        public static SecurityRole RegularUsers = new SecurityRole("RegularUsers");
         public static SecurityRole SystemRole = new SecurityRole("System");
 
         private List<Permission> Permissions = new List<Permission>();
@@ -98,8 +98,8 @@ namespace pidgeon_sv.Security
 
         public static void Initialize()
         {
-            RegularUser.GrantPermission(Permission.DisplaySystemData);
-            RegularUser.GrantPermission(Permission.Connect);
+            RegularUsers.GrantPermission(Permission.DisplaySystemData);
+            RegularUsers.GrantPermission(Permission.Connect);
             Administrator.GrantPermission(Permission.Connect);
             Administrator.GrantPermission(Permission.CreateUser);
             Administrator.GrantPermission(Permission.DeleteUser);

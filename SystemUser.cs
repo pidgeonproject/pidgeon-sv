@@ -394,6 +394,7 @@ namespace pidgeon_sv
                 if (Core.UserList.Contains(user))
                 {
                     user.Lock();
+                    KickUser(user);
                     user.DatabaseEngine.Clear();
                     user.ConnectedNetworks.Clear();
                     user.ClientsBuffer.Clear();

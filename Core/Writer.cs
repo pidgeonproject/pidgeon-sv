@@ -87,6 +87,7 @@ namespace pidgeon_sv
                 catch (Exception fail)
                 {
                     Core.handleException(fail);
+                    SystemLog.Error("Writer thread is down");
                 }
             }
 
