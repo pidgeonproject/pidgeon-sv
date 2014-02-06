@@ -322,6 +322,12 @@ namespace pidgeon_sv
                 {
                     if (curr_user.UserName == username)
                     {
+                        if (curr_user.IsLocked)
+                        {
+                            response = new ProtocolMain.Datagram("AUTH", "LOCKED");
+                            protocol.Deliver(response);
+                            return;
+                        }
                         if (curr_user.Password == pw)
                         {
                             protocol.session.User = curr_user;
@@ -619,8 +625,8 @@ namespace pidgeon_sv
                     {
                         foreach (Session si in Session.ConnectedUsers)
                         {
-                            list += si.SessionID.ToString() + ":" + si.CreatedTime.ToBinary().ToString() +
-                                    ":";
+                            list += si.SessionID.ToString() + "&" + si.CreatedTime.ToBinary().ToString() +
+                                    "&";
                             if (si.User == null)
                             {
                                 list += "unknown";
@@ -628,6 +634,7 @@ namespace pidgeon_sv
                             {
                                 list += si.User.UserName;
                             }
+                            list += "&" + si.IP;
                             list += "|";
                         }
                     }

@@ -335,7 +335,7 @@ namespace pidgeon_sv
         {
             if (!Connected)
             {
-                SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
+                SystemLog.Error("sending a text to closed connection " + session.IP);
                 return;
             }
             XmlDocument datagram = new XmlDocument();
