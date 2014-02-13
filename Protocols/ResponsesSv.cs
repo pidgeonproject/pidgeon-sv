@@ -70,6 +70,32 @@ namespace pidgeon_sv
                     }
                     return;
                 }
+                if (curr.InnerText == "SESSION")
+                {
+                    protocol.Respond = true;
+                    Console.WriteLine("\nSession list:\n");
+                    List<string> Sessions = new List<string>(curr.Attributes["list"].Value.Split('|'));
+                    if (Sessions.Count == 0)
+                    {
+                        Console.WriteLine("There are no sessions on this instance of services (weird heh)");
+                        return;
+                    }
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:                       |");
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    foreach (string session in Sessions)
+                    {
+                        if (session == "")
+                        {
+                            continue;
+                        }
+                        List<string> info = new List<string>(session.Split('&'));
+                        Console.WriteLine("|" + Terminal.FormatToSpecSize(info[0] ,6) + "|" + Terminal.FormatToSpecSize(info[2], 14)
+                                          + "|" + Terminal.FormatToSpecSize(DateTime.FromBinary(long.Parse(info[1])).ToString(), 26)
+                                          + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|");
+                    }
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    }
             }
 
             public static void sUserList(XmlNode curr, ProtocolSv protocol)

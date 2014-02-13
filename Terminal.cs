@@ -180,6 +180,8 @@ namespace pidgeon_sv
                         UnlockUser();
                         break;
                     case "sessions":
+                        Session();
+                        break;
                     case "moduser":
                         break;
                     default:
@@ -267,6 +269,18 @@ namespace pidgeon_sv
             protocol.Respond = false;
             ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "LOCK");
             datagram.Parameters.Add("id", username);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
+            {
+                Thread.Sleep(200);
+            }
+            Thread.Sleep(800);
+        }
+
+        private static void Session()
+        {
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "SESSION");
             protocol.Deliver(datagram);
             while (!protocol.Respond)
             {
