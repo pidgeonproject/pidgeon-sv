@@ -111,7 +111,7 @@ namespace pidgeon_sv
                 {
                     throw new Exception("Constructor of SelfData failed, because of null network");
                 }
-                nick = _network.nickname;
+                nick = _network.Nickname;
                 text = _text;
                 target = _target;
                 time = date;

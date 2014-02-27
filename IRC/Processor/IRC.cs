@@ -70,7 +70,7 @@ namespace pidgeon_sv
 
         public bool ProcessThis(string source, string[] data, string _value)
         {
-            if (source.StartsWith(_Network.nickname + "!"))
+            if (source.StartsWith(_Network.Nickname + "!"))
             {
                 string[] _data2 = data[1].Split(' ');
                 if (_data2.Length > 2)
@@ -105,7 +105,7 @@ namespace pidgeon_sv
                                 _new = _new.Substring(0, _new.IndexOf(" "));
                             }
                         }
-                        _Network.nickname = _new;
+                        _Network.Nickname = _new;
                     }
                     if (_data2[1].Contains("PART"))
                     {

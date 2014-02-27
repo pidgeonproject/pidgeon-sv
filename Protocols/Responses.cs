@@ -53,6 +53,7 @@ namespace pidgeon_sv
             }
             response = new ProtocolMain.Datagram("NETWORKINFO", "ONLINE");
             response.Parameters.Add("network", node.InnerText);
+            response.Parameters.Add("nick", network.Nickname);
             protocol.Deliver(response);
         }
 
@@ -92,7 +93,7 @@ namespace pidgeon_sv
                 Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
-                    response = new ProtocolMain.Datagram("NICK", network.nickname);
+                    response = new ProtocolMain.Datagram("NICK", network.Nickname);
                     response.Parameters.Add("network", network.ServerName);
                     protocol.Deliver(response);
                     return;

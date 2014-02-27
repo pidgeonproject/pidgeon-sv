@@ -116,7 +116,7 @@ namespace pidgeon_sv
         {
             get
             {
-                return (Nick.ToLower() == _Network.nickname.ToLower());
+                return (Nick.ToLower() == _Network.Nickname.ToLower());
             }
         }
 

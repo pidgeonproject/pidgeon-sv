@@ -291,7 +291,7 @@ namespace pidgeon_sv
             ProtocolIrc server = new ProtocolIrc();
             server.SSL = ssl;
             Network networkid = new Network(network, server);
-            networkid.nickname = Nickname;
+            networkid.Nickname = Nickname;
             networkid.Ident = Ident;
             networkid.UserName = RealName;
             networkid.Quit = "http://pidgeonclient.org";

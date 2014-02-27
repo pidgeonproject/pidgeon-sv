@@ -142,7 +142,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Nickname of this user
         /// </summary>
-        public string nickname = null;
+        public string Nickname = null;
         /// <summary>
         /// Identification of user
         /// </summary>

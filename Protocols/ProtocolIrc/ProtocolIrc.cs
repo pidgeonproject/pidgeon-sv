@@ -118,7 +118,7 @@ namespace pidgeon_sv
                 }
 
                 _writer.WriteLine("USER " + _network.Ident + " 8 * :" + _network.UserName);
-                _writer.WriteLine("NICK " + _network.nickname);
+                _writer.WriteLine("NICK " + _network.Nickname);
                 _writer.Flush();
 
                 keep = new System.Threading.Thread(_Ping);
