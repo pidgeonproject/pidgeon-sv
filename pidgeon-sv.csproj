@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Commandlineparameters>-st</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -35,9 +36,11 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <Reference Include="libirc">
+      <HintPath>libirc.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IRC\Processor\Channel.cs" />
     <Compile Include="SystemUser.cs" />
     <Compile Include="Certificate.cs" />
     <Compile Include="Config.cs" />
@@ -46,8 +49,6 @@
     <Compile Include="Database\DatabaseFile.cs" />
     <Compile Include="Database\DatabaseSQL.cs" />
     <Compile Include="Database\DB.cs" />
-    <Compile Include="IRC\Formatter.cs" />
-    <Compile Include="IRC\Processor\IRC.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Security.cs" />
@@ -57,17 +58,13 @@
     <Compile Include="Listeners\ServicesListener.cs" />
     <Compile Include="Listeners\SecuredListener.cs" />
     <Compile Include="IRC\Network.cs" />
-    <Compile Include="IRC\Channel.cs" />
-    <Compile Include="IRC\User.cs" />
     <Compile Include="Core\Writer.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="Protocols\Responses.cs" />
     <Compile Include="Protocols\ProtocolMain.cs" />
     <Compile Include="Protocols\ProtocolIrc\Readers.cs" />
     <Compile Include="Protocols\ProtocolIrc\Buffer.cs" />
-    <Compile Include="Protocols\ProtocolIrc\Queue.cs" />
     <Compile Include="Protocols\ProtocolIrc\ProtocolIrc.cs" />
-    <Compile Include="Protocols\Protocol.cs" />
     <Compile Include="Protocols\ProtocolSv.cs" />
     <Compile Include="Protocols\ResponsesSv.cs" />
   </ItemGroup>

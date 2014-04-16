@@ -271,7 +271,7 @@ namespace pidgeon_sv
         public bool ConnectIRC(string network, int port = 6667, bool ssl = false)
         {
             ProtocolIrc server = new ProtocolIrc();
-            server.SSL = ssl;
+            server.UsingSSL = ssl;
             Network networkid = new Network(network, server);
             networkid.Nickname = Nickname;
             networkid.Ident = Ident;
@@ -283,6 +283,7 @@ namespace pidgeon_sv
             }
             server.Server = network;
             server.Port = port;
+            server.IRCNetwork = networkid;
             server._network = networkid;
             server.owner = this;
             server.buffer = new ProtocolIrc.Buffer(this, network);
@@ -296,7 +297,7 @@ namespace pidgeon_sv
         /// <param name="mqid"></param>
         /// <param name="_protocol"></param>
         /// <param name="protocol"></param>
-        public void MessageBacklog(int mqid, Protocol _protocol, ProtocolMain protocol)
+        public void MessageBacklog(int mqid, libirc.Protocols.ProtocolIrc protocolIrc, ProtocolMain protocol)
         {
             lock (Messages)
             {
@@ -304,7 +305,7 @@ namespace pidgeon_sv
                 {
                     if (message.MQID > mqid)
                     {
-                        if (message.network.ServerName == _protocol.Server)
+                        if (message.network.ServerName == protocolIrc.Server)
                         {
                             MessageBack(message, protocol);
                         }

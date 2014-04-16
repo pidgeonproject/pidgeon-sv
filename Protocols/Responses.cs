@@ -44,7 +44,7 @@ namespace pidgeon_sv
                 protocol.Deliver(response);
                 return;
             }
-            if (network.Connected == false)
+            if (!network.IsConnected)
             {
                 response = new ProtocolMain.Datagram("NETWORKINFO", "OFFLINE");
                 response.Parameters.Add("network", node.InnerText);
@@ -63,24 +63,24 @@ namespace pidgeon_sv
             {
                 string server = node.Attributes[0].Value;
                 string priority = "Normal";
-                ProtocolIrc.Priority Priority = ProtocolIrc.Priority.Normal;
+                libirc.Defs.Priority Priority = libirc.Defs.Priority.Normal;
                 if (node.Attributes.Count > 1)
                 {
                     priority = node.Attributes[1].Value;
                     switch (priority)
                     {
                         case "High":
-                            Priority = ProtocolIrc.Priority.High;
+                            Priority = libirc.Defs.Priority.High;
                             break;
                         case "Low":
-                            Priority = ProtocolIrc.Priority.Low;
+                            Priority = libirc.Defs.Priority.Low;
                             break;
                     }
                 }
                 if (protocol.session.User.containsNetwork(server))
                 {
                     Network network = protocol.session.User.retrieveServer(server);
-                    network._Protocol.Transfer(node.InnerText, Priority);
+                    network.Transfer(node.InnerText, Priority);
                 }
             }
         }
@@ -273,20 +273,20 @@ namespace pidgeon_sv
                 {
                     string target = node.Attributes[2].Value;
                     string ff = node.Attributes[1].Value;
-                    ProtocolIrc.Priority Priority = ProtocolIrc.Priority.Normal;
+                    libirc.Defs.Priority Priority = libirc.Defs.Priority.Normal;
                     switch (ff)
                     {
                         case "Low":
-                            Priority = ProtocolIrc.Priority.Low;
+                            Priority = libirc.Defs.Priority.Low;
                             break;
                         case "High":
-                            Priority = ProtocolIrc.Priority.High;
+                            Priority = libirc.Defs.Priority.High;
                             break;
                     }
-                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network._Protocol.getMQID());
+                    ProtocolMain.SelfData data = new ProtocolMain.SelfData(network, node.InnerText, DateTime.Now, target, network.getMQID());
                     protocol.session.User.Message(data);
                     protocol.session.User.MessageBack(data);
-                    network._Protocol.Message(node.InnerText, target, Priority);
+                    network.Message(node.InnerText, target, Priority);
                 }
                 else
                 {
@@ -359,7 +359,7 @@ namespace pidgeon_sv
                 protocol.Deliver(response);
                 return;
             }
-            Channel xx = nw.getChannel(node.Attributes[1].Value);
+            libirc.Channel xx = nw.GetChannel(node.Attributes[1].Value);
             if (xx == null)
             {
                 response = new ProtocolMain.Datagram("FAIL", "USERLIST");
@@ -368,22 +368,19 @@ namespace pidgeon_sv
                 protocol.Deliver(response);
                 return;
             }
+            List<libirc.User> userlist = new List<libirc.User>(xx.RetrieveUL().Values);
             response = new ProtocolMain.Datagram("USERLIST");
-            lock (xx.UserList)
+            response.Parameters.Add("network", node.Attributes[0].Value);
+            response.Parameters.Add("channel", node.Attributes[1].Value);
+            response.Parameters.Add("uc", userlist.Count.ToString());
+            int id = 0;
+            foreach (libirc.User i in userlist)
             {
-                response.Parameters.Add("network", node.Attributes[0].Value);
-                response.Parameters.Add("channel", node.Attributes[1].Value);
-                response.Parameters.Add("uc", xx.UserList.Count.ToString());
-                int id = 0;
-            
-                foreach (User i in xx.UserList)
-                {
-                    response.Parameters.Add("nickname" + id.ToString(), i.Nick);
-                    response.Parameters.Add("realname" + id.ToString(), i.RealName);
-                    response.Parameters.Add("away" + id.ToString(), i.Away.ToString());
-                    response.Parameters.Add("awaymessage" + id.ToString(), i.AwayMessage);
-                    id++;
-                }
+                response.Parameters.Add("nickname" + id.ToString(), i.Nick);
+                response.Parameters.Add("realname" + id.ToString(), i.RealName);
+                response.Parameters.Add("away" + id.ToString(), i.Away.ToString());
+                response.Parameters.Add("awaymessage" + id.ToString(), i.AwayMessage);
+                id++;
             }
             protocol.Deliver(response);
         }
@@ -650,7 +647,7 @@ namespace pidgeon_sv
                     string list = "";
                     lock (nw.Channels)
                     {
-                        foreach (Channel curr in nw.Channels)
+                        foreach (libirc.Channel curr in nw.Channels.Values)
                         {
                             if (curr.ChannelWork)
                             {
@@ -671,7 +668,7 @@ namespace pidgeon_sv
                     }
                     if (node.Attributes.Count > 1)
                     {
-                        Channel channel = nw.getChannel(node.Attributes[1].Value);
+                        libirc.Channel channel = nw.GetChannel(node.Attributes[1].Value);
                         if (channel == null)
                         {
                             Console.WriteLine(nw.Channels.Count.ToString());
@@ -683,7 +680,7 @@ namespace pidgeon_sv
 
                         }
                         string userli = "";
-                        foreach (User l2 in channel.UserList)
+                        foreach (libirc.User l2 in channel.RetrieveUL().Values)
                         {
                             userli += l2.Nick + "!" + l2.Ident + "@" + l2.Host + l2.ChannelMode.ToString() + ":";
                         }

@@ -189,7 +189,7 @@ namespace pidgeon_sv
                 return null;
             }
 
-            message._Priority = ProtocolIrc.Priority.Normal;
+            message._Priority = libirc.Defs.Priority.Normal;
             message.time = DateTime.FromBinary(long.Parse(text.ChildNodes[0].Attributes[1].Value));
             message.message = ProtocolMain.Datagram.FromText(text.ChildNodes[0].InnerText);
             

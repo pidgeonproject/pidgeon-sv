@@ -163,11 +163,6 @@ namespace pidgeon_sv
             session = t;
         }
 
-        ~ProtocolMain()
-        {
-            SystemLog.DebugLog("Destructor called for ProtocolMain of " + session.IP);
-        }
-
         public void ParseCommand(string data)
         {
             XmlDocument datagram = new XmlDocument();

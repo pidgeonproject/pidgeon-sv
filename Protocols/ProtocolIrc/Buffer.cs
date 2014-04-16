@@ -26,13 +26,13 @@ using System.Xml;
 
 namespace pidgeon_sv
 {
-    public partial class ProtocolIrc : Protocol
+    public partial class ProtocolIrc : libirc.Protocols.ProtocolIrc
     {
         public class Buffer
         {
             public class Message
             {
-                public Priority _Priority = Priority.Normal;
+                public libirc.Defs.Priority _Priority = libirc.Defs.Priority.Normal;
                 public DateTime time;
                 public ProtocolMain.Datagram message = null;
 
@@ -72,7 +72,7 @@ namespace pidgeon_sv
                 parent = _account;
             }
 
-            public void DeliverMessage(ProtocolMain.Datagram Message, Priority Pr = Priority.Normal)
+            public void DeliverMessage(ProtocolMain.Datagram Message, libirc.Defs.Priority Pr = libirc.Defs.Priority.Normal)
             {
                 Message text = new Message();
                 text._Priority = Pr;

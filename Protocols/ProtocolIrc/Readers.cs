@@ -26,7 +26,7 @@ using System.Xml;
 
 namespace pidgeon_sv
 {
-    public partial class ProtocolIrc : Protocol
+    public partial class ProtocolIrc : libirc.Protocols.ProtocolIrc
     {
         /// <summary>
         /// Get a size of backlog that starts from given id and has a specific maximal size
