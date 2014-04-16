@@ -31,8 +31,7 @@ namespace pidgeon_sv
             {
                 List<ProtocolMain> protocols = new List<ProtocolMain>();
                 foreach (Session session in Sessions)
-                {
-                        
+                {                      
                     protocols.Add(session.Protocol);
                 }
                 return protocols;

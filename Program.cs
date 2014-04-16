@@ -31,12 +31,12 @@ namespace pidgeon_sv
                 Core.StartTime = DateTime.Now;
                 Core.Parameters = args;
                 Configuration.Init();
-
+                
                 if (!Directory.Exists(Configuration._System.DatabaseFolder))
                 {
                     Directory.CreateDirectory(Configuration._System.DatabaseFolder);
                 }
-
+                
                 // Check the parameters and if we can continue, launch the core
                 if (Terminal.Parameters())
                 {
@@ -44,10 +44,7 @@ namespace pidgeon_sv
                     {
                         SystemLog.DebugLog("Loading core");
                         if (!Core.Init())
-                        {
-                            return;
-                        }
-
+                              return;
                         // load a system log writer
                         Core.Writer.Init();
                         // create a new regular listener

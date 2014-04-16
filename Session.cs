@@ -186,31 +186,26 @@ namespace pidgeon_sv
         /// </summary>
         public void Disconnect()
         {
+            if (!Connected)
+                return;
+            Connected = false;
             SystemLog.WriteLine("Disconnecting from: " + this.IP);
             lock (this)
             {
-                Connected = false;
-                if (this.protocol != null && this.protocol.IsConnected)
+                if (protocol != null)
                 {
-                    this.protocol.Disconnect();
+                    protocol.Exit();
+                    protocol = null;
                 }
-                if (Connected)
+                if (_StreamReader != null)
                 {
-                    if (protocol != null)
-                    {
-                        protocol.Exit();
-                        protocol = null;
-                    }
-                    if (_StreamReader != null)
-                    {
-                        _StreamReader.Close();
-                        _StreamReader = null;
-                    }
-                    if (_StreamWriter != null)
-                    {
-                        _StreamWriter.Close();
-                        _StreamWriter = null;
-                    }
+                    _StreamReader.Close();
+                    _StreamReader = null;
+                }
+                if (_StreamWriter != null)
+                {
+                    _StreamWriter.Close();
+                    _StreamWriter = null;
                 }
                 SystemUser user = this.User;
                 if (user != null)

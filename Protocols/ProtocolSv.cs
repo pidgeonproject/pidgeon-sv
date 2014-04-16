@@ -28,7 +28,7 @@ namespace pidgeon_sv
     /// <summary>
     /// Protocol for pidgeon services
     /// </summary>
-    public partial class ProtocolSv : IDisposable
+    public partial class ProtocolSv
     {   
         private System.Threading.Thread main = null;
         private System.Threading.Thread keep = null;
@@ -55,7 +55,6 @@ namespace pidgeon_sv
         /// This needs to be true when the services are in process of disconnecting
         /// </summary>
         private bool disconnecting = false;
-        private bool disposed = false;
         public string Server = "unknown";
         public bool SSL = false;
         public bool Respond = false;
@@ -201,30 +200,6 @@ namespace pidgeon_sv
             {
                 _StreamWriter.Dispose();
                 _StreamWriter = null;
-            }
-        }
-
-        /// <summary>
-        /// Releases all resources used by this class
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases all resources used by this class
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    ReleaseNetwork();
-                }
-                disposed = true;
             }
         }
 

@@ -44,14 +44,8 @@ namespace pidgeon_sv
 
             public static bool IsValid(string datagram)
             {
-                if (datagram == null)
-                {
+                if (string.IsNullOrEmpty(datagram))
                     return false;
-                }
-                if (datagram == "")
-                {
-                    return false;
-                }
                 if (datagram.StartsWith("<") && datagram.EndsWith(">"))
                 {
                     return true;
@@ -107,10 +101,6 @@ namespace pidgeon_sv
 
             public SelfData(Network _network, string _text, DateTime date, string _target, int curr)
             {
-                if (_network == null)
-                {
-                    throw new Exception("Constructor of SelfData failed, because of null network");
-                }
                 nick = _network.Nickname;
                 text = _text;
                 target = _target;
@@ -150,10 +140,9 @@ namespace pidgeon_sv
         /// </summary>
         public bool TrafficChunks = false;
         private string TrafficChunk = "";
-        private bool isDestroyed = false;
 
         /// <summary>
-        /// Pointer to client
+        /// Pointer to session that is using this protocol
         /// </summary>
         public Session session = null;
 
@@ -161,15 +150,16 @@ namespace pidgeon_sv
         {
             get
             {
-                return Connected;
+                if (session != null)
+                {
+                    return session.IsConnected;
+                }
+                return false;
             }
         }
 
-        private bool Connected = false;
-
         public ProtocolMain(Session t)
         {
-            Connected = true;
             session = t;
         }
 
@@ -188,38 +178,8 @@ namespace pidgeon_sv
             }
         }
 
-        public void Disconnect()
-        {
-            try
-            {
-                if (!Connected)
-                {
-                    return;
-                }
-                Connected = false;
-
-                if (session != null)
-                {
-                    if (session.IsConnected)
-                    {
-                        session.Disconnect();
-                    }
-                }
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
-        }
-
         public void Exit()
         {
-            if (isDestroyed)
-            {
-                return;
-            }
-            Disconnect();
-            isDestroyed = true;
             session = null;
         }
 
@@ -333,7 +293,7 @@ namespace pidgeon_sv
 
         public void Deliver(Datagram message)
         {
-            if (!Connected)
+            if (!IsConnected)
             {
                 SystemLog.Error("sending a text to closed connection " + session.IP);
                 return;
@@ -354,7 +314,7 @@ namespace pidgeon_sv
 
         public bool Send(string text, bool Enforced = false)
         {
-            if (!Connected)
+            if (!IsConnected)
             {
                 SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
                 return false;
@@ -397,7 +357,7 @@ namespace pidgeon_sv
             catch (IOException fail)
             {
                 SystemLog.WriteLine("Connection closed: " + fail.ToString());
-                Disconnect();
+                session.Disconnect();
                 return false;
             }
             catch (Exception fail)
