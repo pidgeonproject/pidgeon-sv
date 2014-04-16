@@ -96,14 +96,11 @@ namespace pidgeon_sv
         /// The messages
         /// </summary>
         public List<ProtocolMain.SelfData> Messages = new List<ProtocolMain.SelfData>();
+        public string Role;
         /// <summary>
         /// Pointer to database engine used by this user
         /// </summary>
         public DB DatabaseEngine = null;
-        /// <summary>
-        /// The permission list.
-        /// </summary>
-        public List<Security.SecurityRole> Roles = new List<pidgeon_sv.Security.SecurityRole>();
         private bool Locked = false;
         /// <summary>
         /// Whether this user is locked
@@ -148,23 +145,9 @@ namespace pidgeon_sv
             this.ClientsBuffer = this.Clients;
         }
 
-        public bool IsApproved(Security.Permission permission)
+        public bool IsApproved(string permission)
         {
-            lock (this.Roles)
-            {
-                foreach (Security.SecurityRole role in this.Roles)
-                {
-                    if (role.Name == "Root")
-                    {
-                        return true;
-                    }
-                    if (role.HasPermission(permission))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+             return Security.HasPermission(this.Role, permission);
         }
 
         /// <summary>
@@ -407,7 +390,7 @@ namespace pidgeon_sv
             return false;
         }
 
-        public static bool CreateUser(string name, string password, string nick, List<pidgeon_sv.Security.SecurityRole> RoleList, string realname, string ident)
+        public static bool CreateUser(string name, string password, string nick, string role, string realname, string ident)
         {
             SystemUser user = getUser(name);
             if (user != null)
@@ -415,7 +398,7 @@ namespace pidgeon_sv
                 return false;
             }
             user = new SystemUser(name, Core.CalculateMD5Hash(password));
-            user.Roles = RoleList;
+            user.Role = role;
             user.Nickname = nick;
             user.RealName = realname;
             user.Ident = ident;

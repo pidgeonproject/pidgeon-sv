@@ -143,14 +143,7 @@ namespace pidgeon_sv
                                 {
                                     if (role.Name == "role")
                                     {
-                                        Security.SecurityRole Role = Security.SecurityRole.GetRoleFromString(role.InnerText);
-                                        if (Role != null)
-                                        {
-                                            if (!user.Roles.Contains(Role))
-                                            {
-                                                user.Roles.Add(Role);
-                                            }
-                                        }
+                                        user.Role = role.InnerText;
                                     }
                                 }
                             } else
@@ -158,7 +151,7 @@ namespace pidgeon_sv
                                 if (Configuration._System.Rooted)
                                 {
                                     SystemLog.Warning("User " + user.UserName + " doesn't have any roles and because system is running in rooted mode, he was permanently granted root");
-                                    user.Roles.Add(Security.SecurityRole.Root);
+                                    user.Role = "root";
                                 } else
                                 {
                                     SystemLog.Warning("User " + user.UserName + " doesn't have any roles");
@@ -227,12 +220,9 @@ namespace pidgeon_sv
                         item.Attributes.Append(ident);
                         item.Attributes.Append(realname);
                         item.Attributes.Append(locked);
-                        foreach (Security.SecurityRole ROLE in user.Roles)
-                        {
-                            XmlNode role = configuration.CreateElement("role");
-                            role.InnerText = ROLE.Name;
-                            item.AppendChild(role);
-                        }
+                        XmlNode role = configuration.CreateElement("role");
+                        role.InnerText = user.Role;
+                        item.AppendChild(role);
                         xmlnode.AppendChild(item);
                     }
                 }
@@ -254,7 +244,7 @@ namespace pidgeon_sv
 
         public static void LoadConf()
         {
-            Security.SecurityRole.Initialize();
+            Security.Initialize();
             if (!File.Exists(Configuration._System.ConfigurationFile))
             {
                 SystemLog.Warning("there is no configuration file");

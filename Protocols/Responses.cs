@@ -171,7 +171,7 @@ namespace pidgeon_sv
         public static void Connect(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            if (!protocol.session.User.IsApproved(Security.Permission.Connect))
+            if (!protocol.session.User.IsApproved(Permission.Connect))
             {
                 // this user is not approved to create new connection to the system
                 response = new ProtocolMain.Datagram("CONNECT", "PERMISSIONDENY");
@@ -412,7 +412,7 @@ namespace pidgeon_sv
             switch (node.InnerText)
             {
                 case "LIST":
-                    if (!protocol.session.User.IsApproved(Security.Permission.ListUsers))
+                    if (!protocol.session.User.IsApproved(Permission.ListUsers))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -422,22 +422,14 @@ namespace pidgeon_sv
                     {
                         foreach (SystemUser curr in Core.UserList)
                         {
-                            string role = "";
-                            lock (curr.Roles)
-                            {
-                                foreach (Security.SecurityRole Role in curr.Roles)
-                                {
-                                    role += Role.Name + " ";
-                                }
-                            }
                             users += curr.UserName + ":" + curr.Nickname + ":" +curr.IsLocked.ToString() + 
-                                     ":" + role + "&";
+                                     ":" +  curr.Role + "&";
                         }
                     }
                     response = new ProtocolMain.Datagram("USERLIST", users);
                     break;
                 case "CREATEUSER":
-                    if (!protocol.session.User.IsApproved(Security.Permission.CreateUser))
+                    if (!protocol.session.User.IsApproved(Permission.CreateUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -454,18 +446,9 @@ namespace pidgeon_sv
 
                     if (SystemUser.IsValid(node.Attributes[0].Value))
                     {
-                        List<Security.SecurityRole> roles = new List<pidgeon_sv.Security.SecurityRole>();
-                        List<string> rl = new List<string>(node.Attributes[3].Value.Split(','));
-                        foreach (string role in rl)
-                        {
-                            Security.SecurityRole tr = Security.SecurityRole.GetRoleFromString(role);
-                            if (tr != null)
-                            {
-                                roles.Add(tr);
-                            }
-                        }
+                        string role = node.Attributes[3].Value;
                         if (SystemUser.CreateUser(node.Attributes[0].Value, node.Attributes[1].Value,
-                                                  node.Attributes[2].Value, roles,
+                                                  node.Attributes[2].Value, role,
                                                   node.Attributes[4].Value,
                                                   node.Attributes[5].Value))
                         {
@@ -487,7 +470,7 @@ namespace pidgeon_sv
                     protocol.Deliver(response);
                     return;
                 case "LOCK":
-                    if (!protocol.session.User.IsApproved(Security.Permission.LockUser))
+                    if (!protocol.session.User.IsApproved(Permission.LockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -532,7 +515,7 @@ namespace pidgeon_sv
                         return;
                     }
                 case "UNLOCK":
-                    if (!protocol.session.User.IsApproved(Security.Permission.UnlockUser))
+                    if (!protocol.session.User.IsApproved(Permission.UnlockUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -564,7 +547,7 @@ namespace pidgeon_sv
                     }
                     break;
                 case "REMOVE":
-                    if (!protocol.session.User.IsApproved(Security.Permission.DeleteUser))
+                    if (!protocol.session.User.IsApproved(Permission.DeleteUser))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
@@ -615,7 +598,7 @@ namespace pidgeon_sv
                     protocol.Deliver(response);
                     return;
                 case "SESSION":
-                    if (!protocol.session.User.IsApproved(Security.Permission.DisplaySystemData))
+                    if (!protocol.session.User.IsApproved(Permission.DisplaySystemData))
                     {
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;

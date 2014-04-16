@@ -66,7 +66,7 @@ namespace pidgeon_sv
                               + "  -h (--help) display this help\n"
                               + "  -v increase verbosity\n"
                               + "  -p (--pid) <file> write a process id to file in parameter\n"
-                              + "  -s (--daemon) will start system daemon\n"
+                              + "  -s (--daemon) will start services as a system daemon\n"
                               + "  --manage will manage local instance of services\n"
                               + "  --install will create a system databases\n"
                               + "  -t (--terminal) will log to terminal as well\n"
@@ -362,8 +362,7 @@ namespace pidgeon_sv
             SystemUser user = new SystemUser("system", Core.CalculateMD5Hash(password));
             user.Ident = "system";
             user.Nickname = "system";
-            user.Roles = new List<pidgeon_sv.Security.SecurityRole>();
-            user.Roles.Add(Security.SecurityRole.SystemRole);
+            user.Role = "System";
             user.RealName = "Pidgeon system";
             Core.UserList.Add(user);
             Core.SaveUser();
