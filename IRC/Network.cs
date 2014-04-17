@@ -35,6 +35,26 @@ namespace pidgeon_sv
                 case "PING":
                 case "PONG":
                     return base.__evt__IncomingData(args);
+                case "367":
+                    if (args.Parameters.Count > 1)
+                    {
+                        libirc.Channel channel = this.GetChannel(args.Parameters [1]);
+                        if (!channel.IsParsingWhoData)
+                        {
+                            return base.__evt__IncomingData(args);
+                        }
+                    }
+                    break;
+                case "368":
+                    if (args.Parameters.Count > 1)
+                    {
+                        libirc.Channel channel = this.GetChannel(args.Parameters [1]);
+                        if (!channel.IsParsingBanData)
+                        {
+                            return base.__evt__IncomingData(args);
+                        }
+                    }
+                    break;
             }
             ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", args.ServerLine);
             dt.Parameters.Add("network", _Protocol.Server);
@@ -48,6 +68,11 @@ namespace pidgeon_sv
         {
             this.NetworkID = DateTime.Now.ToBinary ().ToString() + "~" + Server;
             this.Quit = "Pidgeon services - http://pidgeonclient.org";
+            this.Config.AggressiveBans = false;
+            this.Config.AggressiveExceptions = false;
+            this.Config.AggressiveInvites = false;
+            this.Config.AggressiveMode = false;
+            this.Config.AggressiveUsers = false;
         }
 
         ~Network()
