@@ -203,13 +203,11 @@ namespace pidgeon_sv
             }
             Console.Write("Enter password: ");
             string password = ReadPw();
-            Console.Write("\nEnter default user role or multiple roles separated with comma  " +
-                          " (Root | Administrators | RegularUsers) [RegularUsers]: ");
-            string level;
-            level = Console.ReadLine();
-            if (level == "")
+            Console.Write("\nEnter default user role (Root | Sysadmin | RegularUser) [RegularUser]: ");
+            string level = Console.ReadLine();
+            if (level.Length == 0)
             {
-                level = "RegularUsers";
+                level = "RegularUser";
             }
             Console.Write("Enter nick name [Pidgeon]: ");
             string nickname = Console.ReadLine();

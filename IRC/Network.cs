@@ -33,6 +33,7 @@ namespace pidgeon_sv
             switch(args.Command)
             {
                 case "PING":
+                case "PONG":
                     return base.__evt__IncomingData(args);
             }
             ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", args.ServerLine);
