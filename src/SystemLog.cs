@@ -50,7 +50,6 @@ namespace pidgeon_sv
             this.text = Text;
         }
     }
-        
     
     public class SystemLog
     {
@@ -141,23 +140,8 @@ namespace pidgeon_sv
             SystemLog.WriteLine(" [WARNING]: " + Message, false, ConsoleColor.DarkYellow);
         }
 
-        /// <summary>
-        /// Log the text message
-        /// </summary>
-        /// <param name='Message'>
-        /// Message.
-        /// </param>
-        public static void WriteLine(string Message, bool Suffix = true, ConsoleColor Color = ConsoleColor.Black)
+        public static void WriteNow(string Message, bool Suffix = true, ConsoleColor Color = ConsoleColor.Black)
         {
-            if (Configuration.Logging.ThreadWrite)
-            {
-                lock (data)
-                {
-                    data.Add(new MessageLine(Message));
-                }
-                return;
-            }
-            
             string suffix = ": ";
             if (!Suffix)
             {
@@ -190,6 +174,25 @@ namespace pidgeon_sv
             {
                 Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
             }
+        }
+
+        /// <summary>
+        /// Log the text message
+        /// </summary>
+        /// <param name='Message'>
+        /// Message.
+        /// </param>
+        public static void WriteLine(string Message, bool Suffix = true, ConsoleColor Color = ConsoleColor.Black)
+        {
+            if (Configuration.Logging.ThreadWrite)
+            {
+                lock (data)
+                {
+                    data.Add(new MessageLine(Message));
+                }
+                return;
+            }
+            WriteNow(Message, Suffix, Color);
         }
         
         /// <summary>

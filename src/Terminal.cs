@@ -144,7 +144,14 @@ namespace pidgeon_sv
             {
                 Console.Write(">>");
                 string command = Console.ReadLine();
-                switch (command)
+                string parameters = "";
+                if (command.Contains(" "))
+                {
+                    int ip = command.IndexOf(" ");
+                    parameters = command.Substring(ip + 1);
+                    command = command.Substring(0, ip);
+                }
+                switch (command.ToLower())
                 {
                     case "quit":
                     case "exit":
@@ -184,6 +191,9 @@ namespace pidgeon_sv
                         break;
                     case "moduser":
                         break;
+                    case "kill":
+                        Kill(parameters);
+                        break;
                     default:
                         Console.WriteLine("Unknown command, try help if you don't know what to do");
                         break;
@@ -191,7 +201,25 @@ namespace pidgeon_sv
             }
             Core.Halt();
         }
-        
+
+        private static void Kill(string data)
+        {
+            if (String.IsNullOrEmpty(data))
+            {
+                Console.WriteLine("Usage: kill SID (where SID is id of session that you need to end)");
+                return;
+            }
+            protocol.Respond = false;
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("SYSTEM", "KILL");
+            datagram.Parameters.Add("sid", data);
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
+            {
+                Thread.Sleep(200);
+            }
+            Thread.Sleep(20);
+        }
+
         private static void CreateUser()
         {
             Console.Write("Enter username: ");
@@ -240,7 +268,7 @@ namespace pidgeon_sv
             {
                 Thread.Sleep(200);
             }
-            Thread.Sleep(800);
+            Thread.Sleep(20);
         }
 
         private static void UnlockUser()
@@ -256,7 +284,7 @@ namespace pidgeon_sv
             {
                 Thread.Sleep(200);
             }
-            Thread.Sleep(800);
+            Thread.Sleep(20);
         }
 
         private static void LockUser()
@@ -272,7 +300,7 @@ namespace pidgeon_sv
             {
                 Thread.Sleep(200);
             }
-            Thread.Sleep(800);
+            Thread.Sleep(20);
         }
 
         private static void Session()
@@ -284,7 +312,7 @@ namespace pidgeon_sv
             {
                 Thread.Sleep(200);
             }
-            Thread.Sleep(800);
+            Thread.Sleep(20);
         }
 
         private static void DeleteUser()
@@ -300,7 +328,7 @@ namespace pidgeon_sv
             {
                 Thread.Sleep(200);
             }
-            Thread.Sleep(800);
+            Thread.Sleep(20);
         }
 
         public static string FormatToSpecSize(string st, int size)

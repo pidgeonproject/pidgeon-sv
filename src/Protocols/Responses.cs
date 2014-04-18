@@ -403,6 +403,15 @@ namespace pidgeon_sv
             protocol.Deliver(response);
         }
 
+        private static void InvalidParameters(ProtocolMain protocol)
+        {
+            var response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+            response.Parameters.Add("code", "2");
+            response.Parameters.Add("description", "invalid number of parameters");
+            protocol.Deliver(response);
+            return;
+        }
+
         public static void Manage(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
@@ -431,16 +440,11 @@ namespace pidgeon_sv
                         response = new ProtocolMain.Datagram("DENIED", "LIST");
                         break;
                     }
-
                     if (node.Attributes.Count < 4)
                     {
-                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
-                        response.Parameters.Add("code", "2");
-                        response.Parameters.Add("description", "invalid number of parameters");
-                        protocol.Deliver(response);
+                        InvalidParameters(protocol);
                         return;
                     }
-
                     if (SystemUser.IsValid(node.Attributes[0].Value))
                     {
                         string role = node.Attributes[3].Value;
@@ -457,13 +461,44 @@ namespace pidgeon_sv
                         }
                         response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                         response.Parameters.Add("code", "36");
-                        response.Parameters.Add("description", "use already exist");
+                        response.Parameters.Add("description", "user already exist");
                         protocol.Deliver(response);
                         return;
                     }
                     response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
                     response.Parameters.Add("code", "3");
                     response.Parameters.Add("description", "invalid name");
+                    protocol.Deliver(response);
+                    return;
+                case "KILL":
+                    if (!protocol.session.User.IsApproved(Permission.Kill))
+                    {
+                        response = new ProtocolMain.Datagram("DENIED", "LIST");
+                        break;
+                    }
+                    if (node.Attributes.Count < 1)
+                    {
+                        InvalidParameters(protocol);
+                        return;
+                    }
+                    ulong sessionID;
+                    if (!ulong.TryParse(node.Attributes [0].Value, out sessionID))
+                    {
+                        InvalidParameters(protocol);
+                        return;
+                    }
+                    Session session = Session.FromSID(sessionID);
+                    if (session == null)
+                    {
+                        response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
+                        response.Parameters.Add("code", "21");
+                        response.Parameters.Add("description", "there is no such a session");
+                        protocol.Deliver(response);
+                        return;
+                    }
+                    session.Kill();
+                    response = new ProtocolMain.Datagram("SYSTEM", "KILL");
+                    response.Parameters.Add("sid", node.Attributes [0].Value);
                     protocol.Deliver(response);
                     return;
                 case "LOCK":
@@ -607,7 +642,7 @@ namespace pidgeon_sv
                         foreach (Session si in Session.ConnectedUsers)
                         {
                             list += si.SessionID.ToString() + "&" + si.CreatedTime.ToBinary().ToString() +
-                                    "&";
+                                "&";
                             if (si.User == null)
                             {
                                 list += "unknown";

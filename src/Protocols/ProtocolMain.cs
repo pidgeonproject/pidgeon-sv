@@ -303,7 +303,6 @@ namespace pidgeon_sv
             }
             b1.InnerText = message._InnerText;
             datagram.AppendChild(b1);
-
             Send(datagram.InnerXml);
         }
 

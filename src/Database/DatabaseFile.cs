@@ -64,8 +64,7 @@ namespace pidgeon_sv
                 {
                     Running = true;
                 }
-            }
-            catch (Exception fail)
+            } catch (Exception fail)
             {
                 Running = false;
                 Core.handleException(fail);

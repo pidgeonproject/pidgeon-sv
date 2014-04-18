@@ -29,46 +29,37 @@ namespace pidgeon_sv
             try
             {
                 Core.StartTime = DateTime.Now;
-                Core.Parameters = args;
+                Core.Parameters = new List<string>(args);
                 Configuration.Init();
-                
-                if (!Directory.Exists(Configuration._System.DatabaseFolder))
-                {
-                    Directory.CreateDirectory(Configuration._System.DatabaseFolder);
-                }
-                
                 // Check the parameters and if we can continue, launch the core
-                if (Terminal.Parameters())
+                if (!Terminal.Parameters())
+                    return;
+                if (Configuration._System.Daemon)
                 {
-                    if (Configuration._System.Daemon)
+                    SystemLog.DebugLog("Loading core");
+                    if (!Core.Init())
+                          return;
+                    // load a system log writer
+                    Core.Writer.Init();
+                    // create a new regular listener
+                    ServicesListener listener = new ServicesListener(Configuration.Network.ServerPort);
+                    listener.Listen();
+                    if (Configuration.Network.UsingSSL)
                     {
-                        SystemLog.DebugLog("Loading core");
-                        if (!Core.Init())
-                              return;
-                        // load a system log writer
-                        Core.Writer.Init();
-                        // create a new regular listener
-                        ServicesListener listener = new ServicesListener(Configuration.Network.ServerPort);
-                        listener.Listen();
                         // create a new ssl listener
-                        if (Configuration.Network.UsingSSL)
-                        {
-                            SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
-                            listener2.Listen();
-                        }
-                        while (Core.IsRunning)
-                        {
-                            Thread.Sleep(800);
-                        }
-
-                    } else
-                    {
-                        Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");
+                        SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
+                        listener2.Listen();
                     }
-                }
+                    while (Core.IsRunning)
+                    {
+                        Thread.Sleep(800);
+                    }
+                } else
+                    Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");
             }
             catch (Exception fail)
             {
+                Console.WriteLine("FATAL: " + fail.Message);
                 Core.handleException(fail);
                 return;
             }

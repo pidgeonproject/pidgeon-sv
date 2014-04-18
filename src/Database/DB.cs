@@ -36,6 +36,8 @@ namespace pidgeon_sv
         /// </summary>
         public bool Running = false;
 
+        public virtual void Init()    {}
+
         /// <summary>
         /// Remove all data from DB
         /// </summary>
