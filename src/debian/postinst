@@ -10,5 +10,5 @@ echo "Initializing user database for pidgeon-sv"
 
 chown -R pidgeon /opt/pidgeon-sv || exit 1
 cd /opt/pidgeon-sv || exit 1
-su $serviceuser -c "mono ./pidgeon-sv --install" || exit 1
+su $serviceuser -c "mono ./pidgeon-sv.exe --install" || exit 1
 
