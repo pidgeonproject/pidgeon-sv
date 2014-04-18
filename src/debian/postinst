@@ -1,0 +1,14 @@
+#!/bin/sh
+
+serviceuser=pidgeon
+if [ ! id -u $serviceuser >/dev/null 2>&1 ];then
+    echo "Creating pidgeon service user..."
+    useradd -r $serviceuser -d /opt/pidgeon-sv || exit 1
+fi
+
+echo "Initializing user database for pidgeon-sv"
+
+chown -R pidgeon /opt/pidgeon-sv || exit 1
+cd /opt/pidgeon-sv || exit 1
+su $serviceuser -c "mono ./pidgeon-sv --install" || exit 1
+
