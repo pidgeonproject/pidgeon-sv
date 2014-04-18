@@ -47,8 +47,12 @@ fi
 if [ ! -d "$DEST"usr/share/man/man1 ];then
   mkdir -p "$DEST"usr/share/man/man1 || exit 1
 fi
+if [ ! -d "$DEST"etc/init.d/ ];then
+  mkdir -p "$DEST"etc/init.d/ || exit 1
+fi
 
 cp -v build/pidgeon-sv "$DEST"/usr/bin || exit 1
+cp -v build/service "$DEST"/etc/init.d || exit 1
 cp -v bin/Debug/*.dll "$DEST"$TARGET/ || exit 1
 cp -v bin/Debug/*.exe "$DEST"$TARGET/ || exit 1
 
