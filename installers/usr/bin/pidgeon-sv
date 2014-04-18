@@ -1,20 +1,5 @@
 #!/bin/bash
 
-# check if a current user is a superuser or service user and if not, we try to bump the level
-
-if [ "`whoami`" != "pidgeonsv" ];then
-  if [ "$UID" -ne 0 ];then
-    if [ -f /usr/bin/sudo ];then
-      /usr/bin/sudo su pidgeonsv -c "pidgeon-sv $*"
-      exit 0
-    fi
-    echo "This tool needs to be run either as superuser or as a service user"
-    exit 1
-  fi
-  su pidgeonsv -c "pidgeon-sv $*"
-  exit 0
-fi
-
 root=/usr/share/pidgeon-sv
 
 if [ ! -d "$root" ];then
