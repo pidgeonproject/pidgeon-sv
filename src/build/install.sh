@@ -52,7 +52,7 @@ if [ ! -d "$DEST"etc/init.d/ ];then
 fi
 
 cp -v build/pidgeon-sv "$DEST"/usr/bin || exit 1
-cp -v build/service "$DEST"/etc/init.d || exit 1
+cp -v build/service "$DEST"/etc/init.d/pidgeon-sv || exit 1
 cp -v bin/Debug/*.dll "$DEST"$TARGET/ || exit 1
 cp -v bin/Debug/*.exe "$DEST"$TARGET/ || exit 1
 
