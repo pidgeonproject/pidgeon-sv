@@ -1,3 +1,5 @@
+DESTDIR =
+
 all:
 	xbuild
 forced-clean:
@@ -5,5 +7,5 @@ forced-clean:
 clean:
 	./build/clean.sh
 install:
-	./build/install.sh
+	./build/install.sh "$(DESTDIR)"
 
