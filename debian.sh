@@ -24,7 +24,7 @@ cp -vr src/* "$temp" || exit 1
 cd /tmp || exit 1
 tar -zcf "pidgeon-sv_"$v".orig.tar.gz" "$temp"
 cd "$temp"
-echo "Press enter to execute debuild -S -sa"
+echo "Press enter to execute debuild"
 read pause
-debuild -S -sa
+debuild
 
