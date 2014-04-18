@@ -90,10 +90,7 @@ namespace pidgeon_sv
         {
             System.Threading.Thread logger = new Thread(ex);
             logger.Name = "Writer";
-            lock (Core.ThreadDB)
-            {
-                Core.ThreadDB.Add(logger);
-            }
+            ThreadPool.RegisterThread(logger);
             logger.Start();
         }
     }

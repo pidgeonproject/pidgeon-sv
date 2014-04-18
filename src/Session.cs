@@ -162,7 +162,7 @@ namespace pidgeon_sv
                 if (status == Session.Status.WaitingPW)
                 {
                     SystemLog.WriteLine("Failed to authenticate in time - killing connection " + IP);
-                    Core.DisableThread(SessionThread);
+                    ThreadPool.KillThread(SessionThread);
                     Clean();
                     return;
                 }
@@ -186,7 +186,7 @@ namespace pidgeon_sv
         {
             SystemLog.WriteLine("Killing session " + this.SessionID.ToString());
             this.Disconnect();
-            Core.DisableThread(this.SessionThread);
+            ThreadPool.KillThread(this.SessionThread);
         }
 
         /// <summary>

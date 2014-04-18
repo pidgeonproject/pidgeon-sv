@@ -57,44 +57,6 @@ namespace pidgeon_sv
         /// List of all existing accounts in system
         /// </summary>
         public static List<SystemUser> UserList = new List<SystemUser>();
-        /// <summary>
-        /// List of all threads in core
-        /// </summary>
-        public static List<Thread> ThreadDB = new List<Thread>();
-
-        /// <summary>
-        /// Remove a thread from system, in case it's running it will also abort it - in case you call this function
-        /// on a same thread as which you are in, it will only remove the thread from the list but it won't abort it
-        /// </summary>
-        /// <param name="thread"></param>
-        public static void DisableThread(Thread thread)
-        {
-            if (thread == null)
-            {
-                return;
-            }
-
-            lock (ThreadDB)
-            {
-                if (ThreadDB.Contains(thread))
-                {
-                    ThreadDB.Remove(thread);
-                }
-            }
-
-            if (Thread.CurrentThread == thread)
-            {
-                SystemLog.DebugLog("Attempt of thread to kill self: " + thread.Name);
-                return;
-            }
-
-            if (thread.ThreadState == ThreadState.Running ||
-                thread.ThreadState == ThreadState.WaitSleepJoin ||
-                thread.ThreadState == ThreadState.Background)
-            {
-                thread.Abort();
-            }
-        }
 
         /// <summary>
         /// Quit
@@ -102,7 +64,7 @@ namespace pidgeon_sv
         public static void Quit()
         {
             SystemLog.WriteLine("Killing all connections and running processes");
-            foreach (Thread curr in ThreadDB)
+            foreach (Thread curr in ThreadPool.Threads)
             {
                 if (curr.ThreadState == ThreadState.WaitSleepJoin || curr.ThreadState == ThreadState.Running)
                 {
