@@ -172,7 +172,7 @@ namespace pidgeon_sv
             // TODO: fix this
             if (Configuration.Logging.Log != "none")
             {
-                Core.Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
+                Writer.Insert(DateTime.Now.ToString() + suffix + Message, Configuration.Logging.Log);
             }
         }
 
@@ -232,7 +232,7 @@ namespace pidgeon_sv
             }
             if (Configuration.Logging.Log != "none")
             {
-                Core.Writer.Insert(Date.ToString() + suffix + Message, Configuration.Logging.Log);
+                Writer.Insert(Date.ToString() + suffix + Message, Configuration.Logging.Log);
             }
         }
 

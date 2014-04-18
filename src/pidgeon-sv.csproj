@@ -67,6 +67,7 @@
     <Compile Include="Protocols\ProtocolIrc\ProtocolIrc.cs" />
     <Compile Include="Protocols\ProtocolSv.cs" />
     <Compile Include="Protocols\ResponsesSv.cs" />
+    <Compile Include="ThreadPool.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -25,82 +25,76 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public partial class Core
+    public class Writer
     {
-        public class Writer
+        public class Item
         {
-            public class Item
-            {
-                /// <summary>
-                /// Text
-                /// </summary>
-                public string Text;
-                /// <summary>
-                /// Path
-                /// </summary>
-                public string FN;
+            public string Text;
+            /// <summary>
+            /// Path
+            /// </summary>
+            public string FN;
 
-                /// <summary>
-                /// Creates a new instance of writer
-                /// </summary>
-                /// <param name="fn"></param>
-                /// <param name="text"></param>
-                public Item(string fn, string text)
-                {
-                    FN = fn;
-                    Text = text;
-                }
+            /// <summary>
+            /// Creates a new instance of writer
+            /// </summary>
+            /// <param name="fn"></param>
+            /// <param name="text"></param>
+            public Item(string fn, string text)
+            {
+                FN = fn;
+                Text = text;
             }
+        }
 
-            public static List<Item> DB = new List<Item>();
+        public static List<Item> DB = new List<Item>();
 
-            public static void Insert(string text, string file)
+        public static void Insert(string text, string file)
+        {
+            lock (DB)
             {
-                lock (DB)
-                {
-                    DB.Add(new Item(file, text));
-                }
+                DB.Add(new Item(file, text));
             }
+        }
 
-            private static void ex()
+        private static void ex()
+        {
+            try
             {
-                try
+                while (Core.IsRunning)
                 {
-                    while (Core.IsRunning)
+                    List<Item> list = new List<Item>();
+                    lock (DB)
                     {
-                        List<Item> list = new List<Item>();
-                        lock (DB)
+                        if (DB.Count > 0)
                         {
-                            if (DB.Count > 0)
-                            {
-                                list.AddRange(DB);
-                                DB.Clear();
-                            }
+                            list.AddRange(DB);
+                            DB.Clear();
                         }
-                        foreach (Item item in list)
-                        {
-                            File.AppendAllText(item.FN, item.Text + Environment.NewLine);
-                        }
-                        System.Threading.Thread.Sleep(2000);
                     }
-                }
-                catch (Exception fail)
-                {
-                    Core.handleException(fail);
-                    SystemLog.Error("Writer thread is down");
+                    foreach (Item item in list)
+                    {
+                        File.AppendAllText(item.FN, item.Text + Environment.NewLine);
+                    }
+                    System.Threading.Thread.Sleep(2000);
                 }
             }
-
-            public static void Init()
+            catch (Exception fail)
             {
-                System.Threading.Thread logger = new Thread(ex);
-                logger.Name = "Writer";
-                lock (Core.ThreadDB)
-                {
-                    Core.ThreadDB.Add(logger);
-                }
-                logger.Start();
+                Core.handleException(fail);
+                SystemLog.Error("Writer thread is down");
             }
+        }
+
+        public static void Init()
+        {
+            System.Threading.Thread logger = new Thread(ex);
+            logger.Name = "Writer";
+            lock (Core.ThreadDB)
+            {
+                Core.ThreadDB.Add(logger);
+            }
+            logger.Start();
         }
     }
 }

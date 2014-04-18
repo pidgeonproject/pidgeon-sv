@@ -40,7 +40,7 @@ namespace pidgeon_sv
                     if (!Core.Init())
                           return;
                     // load a system log writer
-                    Core.Writer.Init();
+                    Writer.Init();
                     // create a new regular listener
                     ServicesListener listener = new ServicesListener(Configuration.Network.ServerPort);
                     listener.Listen();
