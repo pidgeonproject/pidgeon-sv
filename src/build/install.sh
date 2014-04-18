@@ -29,7 +29,7 @@
 #  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 DEST=/
-TARGET=opt/pidgeon-sv
+TARGET=/opt/pidgeon-sv
 
 if [ "$#" -gt 0 ];then
   if [ x"$1" != x"" ];then
@@ -37,14 +37,18 @@ if [ "$#" -gt 0 ];then
   fi
 fi
 
-echo "Installing pidgeon-sv to "$DEST"$TARGET"
+echo "Installing pidgeon-sv to $DEST/$TARGET"
 if [ ! -d "$DEST"$TARGET ];then
   mkdir -p "$DEST"$TARGET || exit 1
+fi
+if [ ! -d "$DEST"usr/bin/ ];then
+  mkdir -p "$DEST"usr/bin/ || exit 1
 fi
 if [ ! -d "$DEST"usr/share/man/man1 ];then
   mkdir -p "$DEST"usr/share/man/man1 || exit 1
 fi
 
+cp -v build/pidgeon-sv "$DEST"/usr/bin || exit 1
 cp -v bin/Debug/*.dll "$DEST"$TARGET/ || exit 1
 cp -v bin/Debug/*.exe "$DEST"$TARGET/ || exit 1
 
