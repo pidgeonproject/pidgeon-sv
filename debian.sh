@@ -20,7 +20,7 @@ if [ -f "$temp.orig.tar.gz" ];then
 fi
 
 mkdir "$temp" || exit 1
-cp -vr Properties Database Core debian Listeners Protocols IRC README.md *.cs *.csproj *.sln "$temp" || exit 1
+cp -vr src/* "$temp" || exit 1
 cd /tmp || exit 1
 tar -zcf "pidgeon-sv_"$v".orig.tar.gz" "$temp"
 cd "$temp"
