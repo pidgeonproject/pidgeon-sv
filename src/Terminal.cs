@@ -153,6 +153,8 @@ namespace pidgeon_sv
                 }
                 switch (command.ToLower())
                 {
+                    case "":
+                        break;
                     case "quit":
                     case "exit":
                         Console.WriteLine("Good bye");
