@@ -54,7 +54,7 @@ namespace pidgeon_sv
                     if (!QietMode)
                     {
                         fs = new FileSystemWatcher();
-                        fs.Path = Configuration._System.DatabaseFolder;
+                        fs.Path = Configuration._System.ConfigurationFolder;
                         fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
                         fs.Filter = Configuration._System.UserFile;
                         fs.Changed += new FileSystemEventHandler(OnChanged);
@@ -245,6 +245,10 @@ namespace pidgeon_sv
         public static void LoadConf()
         {
             Security.Initialize();
+            if (!Directory.Exists(Configuration._System.ConfigurationFolder))
+            {
+                Directory.CreateDirectory(Configuration._System.ConfigurationFolder);
+            }
             if (!File.Exists(Configuration._System.ConfigurationFile))
             {
                 SystemLog.Warning("there is no configuration file");
@@ -260,7 +264,7 @@ namespace pidgeon_sv
                     switch (curr.Name.ToLower())
                     {
                         case "databasefolder":
-                            Configuration._System.DatabaseFolder = curr.InnerText;
+                            Configuration._System.ConfigurationFolder = curr.InnerText;
                             break;
                         case "server_port":
                             Configuration.Network.ServerPort = int.Parse(curr.InnerText);

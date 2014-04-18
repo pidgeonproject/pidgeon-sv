@@ -49,7 +49,6 @@ namespace pidgeon_sv
         /// <summary>
         /// The client
         /// </summary>
-        //private System.Net.Sockets.TcpClient client = null;
         private System.IO.StreamReader _StreamReader = null;
         public System.IO.StreamWriter _StreamWriter = null;
         /// <summary>
@@ -107,6 +106,15 @@ namespace pidgeon_sv
             {
                 return Connected;
             }
+        }
+
+        public static Session FromSID(ulong SID)
+        {
+            lock (ConnectedUsers)
+                foreach (Session session in ConnectedUsers)
+                    if (session.SessionID == SID)
+                        return session;
+            return null;
         }
 
         /// <summary>
@@ -189,6 +197,7 @@ namespace pidgeon_sv
             if (!Connected)
                 return;
             Connected = false;
+            status = Status.Disconnecting;
             SystemLog.WriteLine("Disconnecting from: " + this.IP);
             lock (this)
             {
@@ -216,6 +225,7 @@ namespace pidgeon_sv
                     user.UpdateCB();
                 }
             }
+            status = Status.Disconnected;
         }
 
         public static void InitialiseClient(object data, bool SSL)
@@ -359,6 +369,8 @@ namespace pidgeon_sv
             WaitingPW,
             Connected,
             Disconnected,
+            Disconnecting,
+            Killing,
         }
     }
 }

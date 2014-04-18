@@ -120,7 +120,7 @@ namespace pidgeon_sv
             /// <summary>
             /// Database folder (where the user database is located)
             /// </summary>
-            public static string DatabaseFolder = "data";
+            public static string ConfigurationFolder = "data";
 
             /// <summary>
             /// Default folder where the user temporary data are stored
@@ -156,11 +156,11 @@ namespace pidgeon_sv
 
         public static void Init()
         {
-            Configuration._System.UserFile = Configuration._System.DatabaseFolder +
+            Configuration._System.UserFile = Configuration._System.ConfigurationFolder +
                                                  Path.DirectorySeparatorChar +
                                                  Configuration._System.UserFile;
 
-            Configuration._System.PasswordFile = Configuration._System.DatabaseFolder +
+            Configuration._System.PasswordFile = Configuration._System.ConfigurationFolder +
                                                  Path.DirectorySeparatorChar +
                                                  Configuration._System.PasswordFile;
         }

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd /opt/pidgeon-sv || exit 1
+mono ./pidgeon-sv.exe $* || exit 1

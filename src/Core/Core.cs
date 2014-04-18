@@ -30,7 +30,7 @@ namespace pidgeon_sv
         /// <summary>
         /// Parameters of the application
         /// </summary>
-        public static string[] Parameters = null;
+        public static List<string> Parameters = null;
         /// <summary>
         /// SSL listener thread
         /// </summary>

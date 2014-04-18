@@ -70,6 +70,14 @@ namespace pidgeon_sv
                     }
                     return;
                 }
+                if (curr.InnerText == "KILL")
+                {
+                    if (curr.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("Session was terminated: " + curr.Attributes [0].Value);
+                    }
+                    return;
+                }
                 if (curr.InnerText == "SESSION")
                 {
                     protocol.Respond = true;
