@@ -127,7 +127,7 @@ namespace pidgeon_sv
             protocol.Password = password;
             protocol.Open();
             SystemLog.WriteLine("Connecting to services on localhost, please wait");
-            int retry = 10;
+            int retry = 80;
             while (!protocol.IsConnected && retry > 0)
             {
                 retry--;
