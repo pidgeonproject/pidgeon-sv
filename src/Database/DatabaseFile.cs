@@ -364,7 +364,6 @@ namespace pidgeon_sv
                     return 0;
                 }
                 //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
-                string line = null;
                 Dictionary<int, Index> index = Indexes[network];
                 while (current_line < size && (current_line + 1) < Indexes[network].Count)
                 {
@@ -373,8 +372,6 @@ namespace pidgeon_sv
                         skip--;
                         continue;
                     }
-                    if (String.IsNullOrEmpty(line))
-                        continue;
                     if (mqid < index[current_line].mqid)
                         messages++;
                     current_line++;
