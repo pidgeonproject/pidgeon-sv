@@ -58,7 +58,7 @@ namespace pidgeon_sv
                 return 0;
             }
             // now search the disk
-            backlog_size = backlog_size + owner.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
+            backlog_size += owner.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
             SystemLog.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
             return backlog_size;
         }
@@ -106,9 +106,7 @@ namespace pidgeon_sv
 
                         // in case that user should get more messages than he requested we fix it
                         if (backlog_size > total_requested_size)
-                        {
                             backlog_size = total_requested_size;
-                        }
                         SystemLog.DebugLog("Delivering backlog messages to peer: " + backlog_size.ToString());
                         ProtocolMain.Datagram count = new ProtocolMain.Datagram("BACKLOG", backlog_size.ToString());
                         count.Parameters.Add("network", Server);

@@ -82,7 +82,7 @@ namespace pidgeon_sv
         public override void Exit ()
         {
             ClearBuffers();
-            return;
+            base.Exit();
         }
 
         public override Thread Open()

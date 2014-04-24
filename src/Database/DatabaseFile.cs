@@ -181,34 +181,25 @@ namespace pidgeon_sv
                 SystemLog.DebugLog("Invalid xml for message");
                 return null;
             }
-
             if (text.ChildNodes[0].Name != "message")
             {
                 SystemLog.DebugLog("Invalid xml for message");
                 return null;
             }
-
             message._Priority = libirc.Defs.Priority.Normal;
             message.time = DateTime.FromBinary(long.Parse(text.ChildNodes[0].Attributes[1].Value));
             message.message = ProtocolMain.Datagram.FromText(text.ChildNodes[0].InnerText);
-            
             return message;
         }
 
         public override void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
-            if (!Running)
-            {
-                return;
-            }
-            if (!System.IO.File.Exists(MessagePool(network)))
-            {
-                return;
-            }
-            Lock(network);
+            if (!Running || !System.IO.File.Exists(MessagePool(network)))
+                    return;
             int sent = 0;
             try
             {
+                Lock(network);
                 int skip = 0;
                 lock (MessageSize)
                 { 
@@ -241,11 +232,8 @@ namespace pidgeon_sv
                         skip--;
                         continue;
                     }
-                    if (line == "")
-                    {
+                    if (String.IsNullOrEmpty(line))
                         continue;
-                    }
-
                     if ((current_line + 1) < Indexes[network].Count)
                     {
                         if (MQID < index[current_line].mqid)
@@ -303,7 +291,6 @@ namespace pidgeon_sv
                     }
                 }
                 int current_line = 0;
-
                 if (!File.Exists(MessagePool(network)))
                 {
                     Unlock(network);
@@ -312,12 +299,10 @@ namespace pidgeon_sv
                 }
                 //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
-
                 Dictionary<int, Index> index = Indexes[network];
-
                 while ((current_line + 1) < Indexes[network].Count)
                 {
-                    if (line == "")
+                    if (line.Length == 0)
                     {
                         continue;
                     }
@@ -373,7 +358,6 @@ namespace pidgeon_sv
                     skip = MessageSize[network] - size;
                 }
                 int current_line = 0;
-
                 if (!File.Exists(MessagePool(network)))
                 {
                     Unlock(network);
@@ -381,9 +365,7 @@ namespace pidgeon_sv
                 }
                 //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                 string line = null;
-
                 Dictionary<int, Index> index = Indexes[network];
-
                 while (current_line < size && (current_line + 1) < Indexes[network].Count)
                 {
                     if (skip > 0)
@@ -391,14 +373,10 @@ namespace pidgeon_sv
                         skip--;
                         continue;
                     }
-                    if (line == "")
-                    {
+                    if (String.IsNullOrEmpty(line))
                         continue;
-                    }
                     if (mqid < index[current_line].mqid)
-                    {
                         messages++;
-                    }
                     current_line++;
                 }
                 Unlock(network);
@@ -416,12 +394,10 @@ namespace pidgeon_sv
         public override void MessagePool_InsertData(ProtocolIrc.Buffer.Message message, string network)
         {
             if (!Running)
-            {
                 return;
-            }
-            Lock(network);
             try
             {
+                Lock(network);
                 lock (MessageSize)
                 {
                     if (!MessageSize.ContainsKey(network))
