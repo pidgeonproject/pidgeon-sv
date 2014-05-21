@@ -223,6 +223,7 @@ namespace pidgeon_sv
             Network network = protocol.session.User.retrieveServer(node.InnerText);
             if (network == null)
             {
+                SystemLog.DebugLog("User " + protocol.session.User.UserName + " requested to disconnect a network, which is unknown: " + node.InnerText);
                 response = new ProtocolMain.Datagram("FAIL", "REMOVE");
                 response.Parameters.Add("network", node.InnerText);
                 response.Parameters.Add("code", "20");
@@ -241,21 +242,23 @@ namespace pidgeon_sv
                 protocol.Deliver(response);
                 return;
             }
+            SystemLog.DebugLog("User " + protocol.session.User.UserName + " requested to disconnect a network: " + node.InnerText);
             IRC.Exit();
             lock (protocol.session.User.ConnectedNetworks)
             {
                 if (protocol.session.User.ConnectedNetworks.Contains(network))
                 {
+                    SystemLog.DebugLog("User " + protocol.session.User.UserName + " removing network from memory: " + node.InnerText);
                     protocol.session.User.ConnectedNetworks.Remove(network);
-                    response = new ProtocolMain.Datagram("REMOVE", node.InnerText);
-                    protocol.Deliver(response);
                 }
                 else
                 {
-                    SystemLog.Error("Can't remove the network from system, error #2 " +
-                                    "(protocol.connection.User.ConnectedNetworks doesn't contain the network)");
+                    SystemLog.Error("Can't remove the network from system, error #2 (protocol.connection.User.ConnectedNetworks doesn't contain this network)");
+                    return;
                 }
             }
+            response = new ProtocolMain.Datagram("REMOVE", node.InnerText);
+            protocol.Deliver(response);
         }
 
         public static void GlobalIdent(XmlNode node, ProtocolMain protocol)
