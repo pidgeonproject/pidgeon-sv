@@ -28,7 +28,7 @@ using System.Text;
 namespace pidgeon_sv
 {
     /// <summary>
-    /// Connection of pidgeon to services
+    /// Connection of a user (for example pidgeon) to services
     /// </summary>
     public class Session
     {

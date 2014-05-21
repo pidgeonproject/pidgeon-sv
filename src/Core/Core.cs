@@ -50,7 +50,7 @@ namespace pidgeon_sv
             }
         }
         /// <summary>
-        /// Uptime
+        /// Exact point in time when the process was started
         /// </summary>
         public static DateTime StartTime;
         /// <summary>

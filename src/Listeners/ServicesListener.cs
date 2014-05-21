@@ -25,7 +25,7 @@ using System.Text;
 
 namespace pidgeon_sv
 {
-    public class ServicesListener : Lsnr
+    public class ServicesListener : Listener
     {
         /// <summary>
         /// This is a thread used by listener in order to wait

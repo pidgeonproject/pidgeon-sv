@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -54,7 +54,7 @@
     <Compile Include="Security.cs" />
     <Compile Include="Terminal.cs" />
     <Compile Include="SystemLog.cs" />
-    <Compile Include="Listeners\Lsnr.cs" />
+    <Compile Include="Listeners\Listener.cs" />
     <Compile Include="Listeners\ServicesListener.cs" />
     <Compile Include="Listeners\SecuredListener.cs" />
     <Compile Include="IRC\Network.cs" />
@@ -87,8 +87,5 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <ItemGroup>
-    <Folder Include="Listeners\" />
-    <Folder Include="Protocols\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

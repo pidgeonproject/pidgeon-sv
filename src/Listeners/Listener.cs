@@ -17,25 +17,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Xml;
-using System.Threading;
-using System.Text;
 
 namespace pidgeon_sv
 {
     /// <summary>
     /// Listener abstract class
     /// </summary>
-    public class Lsnr
+    public class Listener
     {
         public int Port = 65534;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="pidgeon_sv.Lsnr"/> class.
+        /// Initializes a new instance of the <see cref="pidgeon_sv.Listener"/> class.
         /// </summary>
-        public Lsnr ()
+        public Listener ()
         {
         }
 
