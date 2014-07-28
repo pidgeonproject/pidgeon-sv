@@ -236,6 +236,9 @@ namespace pidgeon_sv
                         case "SFAIL":
                             ResponsesSv.sError(curr, this);
                             break;
+                        case "SDEBUG":
+                            ResponsesSv.sDebug(curr, this);
+                            break;
                         case "SUSERLIST":
                             ResponsesSv.sUserList(curr, this);
                             break;

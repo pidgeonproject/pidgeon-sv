@@ -101,6 +101,17 @@ namespace pidgeon_sv
             return password;
         }
 
+        private static void Debug_Thread()
+        {
+            ProtocolMain.Datagram datagram = new ProtocolMain.Datagram("DEBUG", "THREAD");
+            protocol.Deliver(datagram);
+            while (!protocol.Respond)
+            {
+                Thread.Sleep(200);
+            }
+            Thread.Sleep(20);
+        }
+
         private static void Management()
         {
             Configuration.Logging.Terminal = true;
@@ -163,15 +174,16 @@ namespace pidgeon_sv
                         return;
                     case "help":
                         Console.WriteLine("You can use any of these commands:\n" +
-                                          "quit        - disconnect\n" +
-                                          "adduser     - insert a new user to services\n" +
-                                          "deluser     - remove a user from services\n" +
-                                          "listuser    - display a list of all users\n" +
-                                          "sessions    - display a list of all sessions\n" +
-                                          "lockuser    - lock a user\n" +
-                                          "unlockuser  - unlock a user\n" +
-                                          "moduser     - alter a user\n" +
-                                          "kill <id>   - kill a session\n");
+                                          "quit          - disconnect\n" +
+                                          "adduser       - insert a new user to services\n" +
+                                          "deluser       - remove a user from services\n" +
+                                          "listuser      - display a list of all users\n" +
+                                          "sessions      - display a list of all sessions\n" +
+                                          "lockuser      - lock a user\n" +
+                                          "unlockuser    - unlock a user\n" +
+                                          "moduser       - alter a user\n" +
+                                          "debug_thread  - retrieve a debug information for threads\n" +
+                                          "kill <id>     - kill a session\n");
                         break;
                     case "adduser":
                         CreateUser();
@@ -192,6 +204,9 @@ namespace pidgeon_sv
                         Session();
                         break;
                     case "moduser":
+                        break;
+                    case "debug_thread":
+                        Debug_Thread();
                         break;
                     case "kill":
                         Kill(parameters);

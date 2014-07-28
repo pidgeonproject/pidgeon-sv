@@ -25,6 +25,24 @@ namespace pidgeon_sv
 {
     class Responses
     {
+        public static void Debug(XmlNode node, ProtocolMain protocol)
+        {
+            ProtocolMain.Datagram response;
+            if (!protocol.session.User.IsApproved(Permission.DebugCore))
+            {
+                response = new ProtocolMain.Datagram("DENIED", "DEBUG");
+                protocol.Deliver(response);
+                return;
+            }
+            // get a list of all threads we use
+            response = new ProtocolMain.Datagram("DEBUG", "THREAD");
+            List<System.Threading.Thread> threads = ThreadPool.Threads;
+            foreach (System.Threading.Thread thread in threads)
+                response.Parameters.Add(thread.ManagedThreadId.ToString(), thread.Name + ":" + thread.Priority.ToString() + ":" + thread.Name + ":" + thread.ThreadState.ToString());
+
+            protocol.Deliver(response);
+        }
+
         public static void Status(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;

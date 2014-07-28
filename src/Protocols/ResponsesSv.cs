@@ -25,6 +25,25 @@ namespace pidgeon_sv
     {
         private static class ResponsesSv
         {
+            public static void sDebug(XmlNode curr, ProtocolSv protocol)
+            {
+                if (curr.InnerText == "THREAD")
+                {
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |name:          |priority:        |status:                           |");
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    foreach (XmlAttribute thread in curr.Attributes)
+                    {
+                        List<string> info = new List<string>(thread.Value.Split(':'));
+                        if (info.Count < 3)
+                            continue;
+                        Console.WriteLine("|" + Terminal.FormatToSpecSize(thread.Name, 6) + "|" + Terminal.FormatToSpecSize(info[0], 14)
+                                          + "|" + Terminal.FormatToSpecSize(info[1], 26)  + "|" + Terminal.FormatToSpecSize(info[2], 26) + "|");
+                    }
+                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                }
+            }
+
             /// <summary>
             /// Load
             /// </summary>

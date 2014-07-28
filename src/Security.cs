@@ -111,6 +111,7 @@ namespace pidgeon_sv
         public static readonly string ListUsers = "ListUsers";
         public static readonly string LockUser = "LockUser";
         public static readonly string UnlockUser = "UnlockUser";
+        public static readonly string DebugCore = "DebugCore";
         public static readonly string Kill = "Kill";
     }
 
@@ -156,6 +157,7 @@ namespace pidgeon_sv
                 Roles["System"].Grant(Permission.Kill);
                 Roles["System"].Grant(Permission.ListUsers);
                 Roles["System"].Grant(Permission.LockUser);
+                Roles["System"].Grant(Permission.DebugCore);
                 Roles["System"].Grant(Permission.ModifyUser);
                 Roles["System"].Grant(Permission.UnlockUser);
                 Roles["System"].Grant(Permission.DisplaySystemData);
