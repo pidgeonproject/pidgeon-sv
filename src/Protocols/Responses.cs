@@ -38,7 +38,7 @@ namespace pidgeon_sv
             response = new ProtocolMain.Datagram("DEBUG", "THREAD");
             List<System.Threading.Thread> threads = ThreadPool.Threads;
             foreach (System.Threading.Thread thread in threads)
-                response.Parameters.Add(thread.ManagedThreadId.ToString(), thread.Name + ":" + thread.Priority.ToString() + ":" + thread.Name + ":" + thread.ThreadState.ToString());
+                response.Parameters.Add("t" + thread.ManagedThreadId.ToString(), thread.Name + ";" + thread.Priority.ToString() + ";" + thread.ThreadState.ToString());
 
             protocol.Deliver(response);
         }

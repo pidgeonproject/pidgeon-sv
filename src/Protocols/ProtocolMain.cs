@@ -190,6 +190,7 @@ namespace pidgeon_sv
                 switch (node.Name.ToUpper())
                 {
                     case "CHANNELINFO":
+                    case "DEBUG":
                     case "RAW":
                     case "GLOBALNICK":
                     case "GLOBALIDENT":
@@ -240,6 +241,9 @@ namespace pidgeon_sv
                         return;
                     case "CONNECT":
                         Responses.Connect(node, this);
+                        return;
+                    case "DEBUG":
+                        Responses.Debug(node, this);
                         return;
                     case "GLOBALIDENT":
                         Responses.GlobalIdent(node, this);

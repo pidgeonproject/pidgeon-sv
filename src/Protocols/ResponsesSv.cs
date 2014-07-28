@@ -29,19 +29,20 @@ namespace pidgeon_sv
             {
                 if (curr.InnerText == "THREAD")
                 {
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
-                    Console.WriteLine("|ID:   |name:          |priority:        |status:                           |");
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("+----------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |name:                    |priority: |status:                         |");
+                    Console.WriteLine("+----------------------------------------------------------------------------+");
                     foreach (XmlAttribute thread in curr.Attributes)
                     {
-                        List<string> info = new List<string>(thread.Value.Split(':'));
+                        List<string> info = new List<string>(thread.Value.Split(';'));
                         if (info.Count < 3)
                             continue;
-                        Console.WriteLine("|" + Terminal.FormatToSpecSize(thread.Name, 6) + "|" + Terminal.FormatToSpecSize(info[0], 14)
-                                          + "|" + Terminal.FormatToSpecSize(info[1], 26)  + "|" + Terminal.FormatToSpecSize(info[2], 26) + "|");
+                        Console.WriteLine("|" + Terminal.FormatToSpecSize(thread.Name, 6) + "|" + Terminal.FormatToSpecSize(info[0], 25)
+                                          + "|" + Terminal.FormatToSpecSize(info[1], 10)  + "|" + Terminal.FormatToSpecSize(info[2], 32) + "|");
                     }
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("+----------------------------------------------------------------------------+");
                 }
+                protocol.Respond = true;
             }
 
             /// <summary>
