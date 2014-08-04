@@ -26,13 +26,13 @@ namespace pidgeon_sv
     {
         public string text;
         public DateTime date;
-        public Type t;
+        public Type type;
         
         public MessageLine(string Text)
         {
             this.text = Text;
             this.date = DateTime.Now;
-            this.t = Type.Text;
+            this.type = Type.Text;
         }
         
         public enum Type
@@ -43,9 +43,9 @@ namespace pidgeon_sv
             Debug
         }
         
-        public MessageLine(string Text, DateTime Date, Type type)
+        public MessageLine(string Text, DateTime Date, Type Type)
         {
-            this.t = type;
+            this.type = Type;
             this.date = Date;
             this.text = Text;
         }
@@ -68,7 +68,7 @@ namespace pidgeon_sv
             {
                 ConsoleColor color = Console.ForegroundColor;
                 bool suffix = false;
-                switch (line.t)
+                switch (line.type)
                 {
                     case MessageLine.Type.Debug:
                         color = ConsoleColor.Green;

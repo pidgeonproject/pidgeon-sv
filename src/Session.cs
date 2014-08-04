@@ -43,7 +43,7 @@ namespace pidgeon_sv
         /// </summary>
         public SystemUser User = null;
         /// <summary>
-        /// The status
+        /// The current status of this session
         /// </summary>
         public Status status = Status.WaitingPW;
         /// <summary>
@@ -117,6 +117,32 @@ namespace pidgeon_sv
             return null;
         }
 
+        private static ulong GetSID()
+        {
+            lock (LastSIDlock)
+            {
+                LastSID++;
+                return LastSID;
+            }
+        }
+
+        private static void ConnectionKiller(object data)
+        {
+            try
+            {
+                Session conn = (Session)data;
+                conn.Timeout();
+            }
+            catch (ThreadAbortException)
+            {
+                return;
+            }
+            catch (Exception fail)
+            {
+                Core.handleException(fail);
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="pidgeon_sv.Session"/> class.
         /// </summary>
@@ -137,23 +163,9 @@ namespace pidgeon_sv
             SystemLog.DebugLog("Destructor called for session of " + IP);
         }
 
-        private static void ConnectionKiller(object data)
-        {
-            try
-            {
-                Session conn = (Session)data;
-                conn.Timeout();
-            }
-            catch (ThreadAbortException)
-            {
-                return;
-            }
-            catch (Exception fail)
-            {
-                Core.handleException(fail);
-            }
-        }
-
+        /// <summary>
+        /// This function is used to kill a session which wasn't logged in within a given time
+        /// </summary>
         private void Timeout()
         {
             if (SessionThread != null)
@@ -170,15 +182,6 @@ namespace pidgeon_sv
             else
             {
                 SystemLog.DebugLog("SessionThread is NULL for " + this.IP);
-            }
-        }
-
-        private static ulong GetSID()
-        {
-            lock (LastSIDlock)
-            {
-                LastSID++;
-                return LastSID;
             }
         }
 
@@ -295,9 +298,9 @@ namespace pidgeon_sv
                             System.Threading.Thread.Sleep(800);
                         }
                     }
-                    catch (IOException)
+                    catch (IOException io)
                     {
-                        SystemLog.WriteLine("Connection closed: " + session.IP);
+                        SystemLog.WriteLine("Connection closed (" + io.Message + "): " + session.IP);
                         session.Clean();
                         return;
                     }

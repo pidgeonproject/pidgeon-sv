@@ -36,6 +36,9 @@ namespace pidgeon_sv
             }
         }
 
+        /// <summary>
+        /// Path to a folder where data are located
+        /// </summary>
         private string db = "data";
         private Dictionary <string, bool> locked = new Dictionary<string,bool>();
         private Dictionary <string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
@@ -77,13 +80,10 @@ namespace pidgeon_sv
             lock (locked)
             {
                 if (!locked.ContainsKey(network))
-                {
                     locked.Add(network, false);
-                }
                 if (!locked[network])
-                {
                     throw new Exception("Tried to free a lock on item which wasn't locked - fix me!!");
-                }
+
                 locked[network] = false;
             }
         }
@@ -93,14 +93,10 @@ namespace pidgeon_sv
             lock (locked)
             {
                 if (!locked.ContainsKey(network))
-                {
                     locked.Add(network, false);
-                }
             }
             while (locked[network])
-            {
                 System.Threading.Thread.Sleep(100);
-            }
             locked[network] = true;
         }
 
@@ -109,9 +105,7 @@ namespace pidgeon_sv
             ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
             text._InnerText = message.message._InnerText;
             foreach (KeyValuePair<string, string> current in message.message.Parameters)
-            {
                 text.Parameters.Add(current.Key, current.Value);
-            }
             text.Parameters.Add("range", index.ToString());
             index++;
             protocol.Deliver(text);
@@ -124,25 +118,18 @@ namespace pidgeon_sv
             {
                 Lock(network);
                 if (MessageSize.ContainsKey(network))
-                {
                     MessageSize.Remove(network);
-                }
                 if (!System.IO.File.Exists(MessagePool(network)))
-                {
                     return;
-                }
                 System.IO.File.Delete(MessagePool(network));
                 if (Indexes.ContainsKey(network))
-                {
                     Indexes.Remove(network);
-                }
                 Unlock(network);
                 lock (locked)
                 {
                     if (locked.ContainsKey(network))
-                    {
                         locked.Remove(network);
-                    }
+
                 }
             }
             catch (Exception fail)
@@ -157,9 +144,7 @@ namespace pidgeon_sv
             ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
             text._InnerText = message.message._InnerText;
             foreach (KeyValuePair<string, string> current in message.message.Parameters)
-            {
                 text.Parameters.Add(current.Key, current.Value);
-            }
             index++;
             text.Parameters.Add("buffer", index.ToString());
             protocol.Deliver(text);
@@ -204,13 +189,9 @@ namespace pidgeon_sv
                 lock (MessageSize)
                 { 
                     if (!MessageSize.ContainsKey(network))
-                    {
                         MessageSize.Add(network, 0);
-                    }
                     if (!Indexes.ContainsKey(network))
-                    {
                         Indexes.Add(network, new Dictionary<int, Index>());
-                    }
                 }
                 if (MessageSize[network] < number)
                 {
@@ -282,13 +263,9 @@ namespace pidgeon_sv
                 lock (MessageSize)
                 {
                     if (!MessageSize.ContainsKey(network))
-                    {
                         MessageSize.Add(network, 0);
-                    }
                     if (!Indexes.ContainsKey(network))
-                    {
                         Indexes.Add(network, new Dictionary<int, Index>());
-                    }
                 }
                 int current_line = 0;
                 if (!File.Exists(MessagePool(network)))
@@ -303,9 +280,7 @@ namespace pidgeon_sv
                 while ((current_line + 1) < Indexes[network].Count)
                 {
                     if (line.Length == 0)
-                    {
                         continue;
-                    }
                     if (from <= index[current_line].mqid && to >= index[current_line].mqid)
                     {
                         ProtocolIrc.Buffer.Message message = str2M(line);
@@ -340,13 +315,9 @@ namespace pidgeon_sv
                 lock (MessageSize)
                 {
                     if (!MessageSize.ContainsKey(network))
-                    {
                         MessageSize.Add(network, 0);
-                    }
                     if (!Indexes.ContainsKey(network))
-                    {
                         Indexes.Add(network, new Dictionary<int, Index>());
-                    }
                 }
                 if (MessageSize[network] < size)
                 {

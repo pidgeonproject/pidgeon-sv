@@ -21,10 +21,13 @@ using System.Text;
 
 namespace pidgeon_sv
 {
+    /// <summary>
+    /// This is an abstract class that can be used to represent some DB access used to store various, mostly temporary data
+    /// </summary>
     public class DB
     {
         /// <summary>
-        /// Owner of this
+        /// Owner of this database session
         /// </summary>
         public SystemUser systemUser = null;
         /// <summary>
@@ -46,10 +49,20 @@ namespace pidgeon_sv
             SystemLog.DebugLog("Clear() not implemented");
         }
 
+        public virtual void Rollback()
+        {
+            
+        }
+
+        public virtual void Commit()
+        {
+        
+        }
+
         /// <summary>
-        /// Delete cache
+        /// Delete cache for a network
         /// </summary>
-        /// <param name="network"></param>
+        /// <param name="network">Network to delete</param>
         public virtual void DeleteCache(string network)
         {
             SystemLog.DebugLog("DeleteCache(string network) not implemented");
@@ -60,9 +73,9 @@ namespace pidgeon_sv
             lock (MessageSize)
             {
                 if (!MessageSize.ContainsKey(network))
-                {
                     MessageSize.Add(network, 0);
-                }
+
+
             }
             return MessageSize[network];
         }

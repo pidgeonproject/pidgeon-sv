@@ -27,42 +27,6 @@ namespace pidgeon_sv
         public string NetworkID = null;
         private bool Locked = false;
         private int Current_ID = 0;
-
-        public override bool __evt__IncomingData (libirc.Network.IncomingDataEventArgs args)
-        {
-            switch(args.Command)
-            {
-                case "PING":
-                case "PONG":
-                    return base.__evt__IncomingData(args);
-                case "367":
-                    if (args.Parameters.Count > 1)
-                    {
-                        libirc.Channel channel = this.GetChannel(args.Parameters [1]);
-                        if (!channel.IsParsingWhoData)
-                        {
-                            return base.__evt__IncomingData(args);
-                        }
-                    }
-                    break;
-                case "368":
-                    if (args.Parameters.Count > 1)
-                    {
-                        libirc.Channel channel = this.GetChannel(args.Parameters [1]);
-                        if (!channel.IsParsingBanData)
-                        {
-                            return base.__evt__IncomingData(args);
-                        }
-                    }
-                    break;
-            }
-            ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", args.ServerLine);
-            dt.Parameters.Add("network", _Protocol.Server);
-            dt.Parameters.Add("MQID", getMQID().ToString());
-            ProtocolIrc protocol = (ProtocolIrc)_Protocol;
-            protocol.buffer.DeliverMessage(dt);
-            return base.__evt__IncomingData(args);
-        }
         
         public Network(string Server, libirc.Protocol sv) : base(Server, sv)
         {
@@ -78,6 +42,42 @@ namespace pidgeon_sv
         ~Network()
         {
             SystemLog.DebugLog("Destructor called for network " + ServerName);
+        }
+
+        public override bool __evt__IncomingData(libirc.Network.IncomingDataEventArgs args)
+        {
+            switch (args.Command)
+            {
+                case "PING":
+                case "PONG":
+                    return base.__evt__IncomingData(args);
+                case "367":
+                    if (args.Parameters.Count > 1)
+                    {
+                        libirc.Channel channel = this.GetChannel(args.Parameters[1]);
+                        if (!channel.IsParsingWhoData)
+                        {
+                            return base.__evt__IncomingData(args);
+                        }
+                    }
+                    break;
+                case "368":
+                    if (args.Parameters.Count > 1)
+                    {
+                        libirc.Channel channel = this.GetChannel(args.Parameters[1]);
+                        if (!channel.IsParsingBanData)
+                        {
+                            return base.__evt__IncomingData(args);
+                        }
+                    }
+                    break;
+            }
+            ProtocolMain.Datagram dt = new ProtocolMain.Datagram("DATA", args.ServerLine);
+            dt.Parameters.Add("network", _Protocol.Server);
+            dt.Parameters.Add("MQID", getMQID().ToString());
+            ProtocolIrc protocol = (ProtocolIrc)_Protocol;
+            protocol.buffer.DeliverMessage(dt);
+            return base.__evt__IncomingData(args);
         }
         
         public int getMQID()
