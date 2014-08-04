@@ -45,7 +45,7 @@ namespace pidgeon_sv
             {
                 foreach (Buffer.Message message in buffer.oldmessages)
                 {
-                    if (int.Parse(message.message.Parameters["MQID"]) > mqid)
+                    if (int.Parse(message.Data.Parameters["MQID"]) > mqid)
                     {
                         FoundNewer = true;
                         backlog_size++;
@@ -58,7 +58,7 @@ namespace pidgeon_sv
                 return 0;
             }
             // now search the disk
-            backlog_size += owner.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
+            backlog_size += systemUser.DatabaseEngine.MessagePool_Backlog(size, mqid, Server);
             SystemLog.DebugLog("Parsed size " + backlog_size.ToString() + " in " + (DateTime.Now - start_time).ToString());
             return backlog_size;
         }
@@ -67,7 +67,7 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of data starting from " + mqid.ToString());
+                SystemLog.DebugLog("User " + systemUser.Nickname + " requested a backlog of data starting from " + mqid.ToString());
                 user.TrafficChunks = true;
                 int total_count = RequestedSize;
                 int total_requested_size = RequestedSize;
@@ -78,7 +78,7 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count == 0)
                     {
                         // we don't need to deliver any backlog
-                        SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog, there are no data");
+                        SystemLog.DebugLog("User " + systemUser.Nickname + " requested a backlog, there are no data");
                         ProtocolMain.Datagram size = new ProtocolMain.Datagram("BACKLOG", "0");
                         size.Parameters.Add("network", Server);
                         user.Deliver(size);
@@ -87,12 +87,12 @@ namespace pidgeon_sv
                     if (buffer.oldmessages.Count < RequestedSize)
                     {
                         // the backlog needs to be parsed from file
-                        SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
+                        SystemLog.DebugLog("User " + systemUser.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory as they requested, recovering some from storage");
                         // we get the total size of memory and disk
-                        total_count = buffer.oldmessages.Count + owner.DatabaseEngine.GetMessageSize(Server);
+                        total_count = buffer.oldmessages.Count + systemUser.DatabaseEngine.GetMessageSize(Server);
                         if (total_count < RequestedSize)
                         {
-                            SystemLog.DebugLog("User " + owner.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
+                            SystemLog.DebugLog("User " + systemUser.Nickname + " requested a backlog of " + RequestedSize.ToString() + " datagrams, but there are not so many in memory neither in the storage in total only " + total_count.ToString() + " right now :o");
                         }
                         // we get a backlog size in case that user has some mqid
                         if (mqid > 0)
@@ -112,7 +112,7 @@ namespace pidgeon_sv
                         count.Parameters.Add("network", Server);
                         user.Deliver(count);
                         // we send the data using the storage
-                        owner.DatabaseEngine.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
+                        systemUser.DatabaseEngine.MessagePool_DeliverData(total_count - buffer.oldmessages.Count, ref index, user, Server, mqid);
                         if (index < 0)
                         {
                             // this makes no sense, the datafile was probably corrupted
@@ -145,11 +145,11 @@ namespace pidgeon_sv
 
                     while (i < backlog_size)
                     {
-                        if (int.Parse(buffer.oldmessages[i].message.Parameters["MQID"]) > mqid)
+                        if (int.Parse(buffer.oldmessages[i].Data.Parameters["MQID"]) > mqid)
                         {
-                            ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].message._Datagram);
-                            text._InnerText = buffer.oldmessages[i].message._InnerText;
-                            foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].message.Parameters)
+                            ProtocolMain.Datagram text = new ProtocolMain.Datagram(buffer.oldmessages[i].Data._Datagram);
+                            text._InnerText = buffer.oldmessages[i].Data._InnerText;
+                            foreach (KeyValuePair<string, string> current in buffer.oldmessages[i].Data.Parameters)
                             {
                                 text.Parameters.Add(current.Key, current.Value);
                             }
@@ -172,18 +172,18 @@ namespace pidgeon_sv
 
         public void getRange(ProtocolMain user, int from, int last)
         {
-            SystemLog.DebugLog("User " + owner.Nickname + " requested a range of data starting from " + from.ToString());
+            SystemLog.DebugLog("User " + systemUser.Nickname + " requested a range of data starting from " + from.ToString());
             int index = 0;
             lock (buffer.oldmessages)
             {
                 foreach (Buffer.Message curr in buffer.oldmessages)
                 {
-                    int mq = int.Parse(curr.message.Parameters["MQID"]);
+                    int mq = int.Parse(curr.Data.Parameters["MQID"]);
                     if (from >= mq && last <= mq)
                     {
-                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(curr.message._Datagram);
-                        text._InnerText = curr.message._InnerText;
-                        foreach (KeyValuePair<string, string> current in curr.message.Parameters)
+                        ProtocolMain.Datagram text = new ProtocolMain.Datagram(curr.Data._Datagram);
+                        text._InnerText = curr.Data._InnerText;
+                        foreach (KeyValuePair<string, string> current in curr.Data.Parameters)
                         {
                             text.Parameters.Add(current.Key, current.Value);
                         }
@@ -194,7 +194,7 @@ namespace pidgeon_sv
                 }
             }
 
-            owner.DatabaseEngine.MessagePool_Range(from, last, Server, ref index, user);
+            systemUser.DatabaseEngine.MessagePool_Range(from, last, Server, ref index, user);
         }
     }
 }

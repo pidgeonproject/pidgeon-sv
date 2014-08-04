@@ -32,14 +32,14 @@ namespace pidgeon_sv
         public Network _network = null;
         public Thread BufferTh = null;
         public Buffer buffer = null;
-        public SystemUser owner = null;
+        public SystemUser systemUser = null;
         
         protected override void DisconnectExec (string reason, Exception ex)
         {
             ProtocolMain.Datagram dt = new ProtocolMain.Datagram("CONNECTION", "PROBLEM");
             dt.Parameters.Add("network", Server);
             dt.Parameters.Add("info", ex.Message);
-            owner.FailSafeDeliver(dt);
+            systemUser.FailSafeDeliver(dt);
             Core.handleException(ex);
         }
         
@@ -58,24 +58,20 @@ namespace pidgeon_sv
             SystemLog.DebugLog("Removing all buffers for " + Server);
             lock (buffer)
             {
-                owner.DatabaseEngine.DeleteCache(Server);
+                systemUser.DatabaseEngine.DeleteCache(Server);
                 buffer.oldmessages.Clear();
                 buffer.messages.Clear();
             }
-            lock (owner.Messages)
+            lock (systemUser.Messages)
             {
                 List<ProtocolMain.SelfData> delete = new List<ProtocolMain.SelfData>();
-                foreach (ProtocolMain.SelfData ms in owner.Messages)
+                foreach (ProtocolMain.SelfData ms in systemUser.Messages)
                 {
                     if (ms.network == _network)
-                    {
                         delete.Add(ms);
-                    }
                 }
                 foreach (ProtocolMain.SelfData ms in delete)
-                {
-                    owner.Messages.Remove(ms);
-                }
+                    systemUser.Messages.Remove(ms);
             }
         }
         
@@ -89,6 +85,8 @@ namespace pidgeon_sv
         {
             buffer.protocol = this;
             BufferTh = new Thread(buffer.Run);
+            BufferTh.Name = "BufferThread";
+            ThreadPool.RegisterThread(BufferTh);
             BufferTh.Start();
             return base.Open();
         }

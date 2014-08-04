@@ -32,13 +32,13 @@ namespace pidgeon_sv
         {
             public class Message
             {
-                public libirc.Defs.Priority _Priority = libirc.Defs.Priority.Normal;
-                public DateTime time;
-                public ProtocolMain.Datagram message = null;
+                public libirc.Defs.Priority Priority = libirc.Defs.Priority.Normal;
+                public DateTime MessageTime;
+                public ProtocolMain.Datagram Data = null;
 
                 public Message()
                 {
-                    time = DateTime.Now;
+                    MessageTime = DateTime.Now;
                 }
 
                 public string ToDocumentXmlText()
@@ -46,37 +46,37 @@ namespace pidgeon_sv
                     XmlDocument datagram = new XmlDocument();
                     XmlNode b1 = datagram.CreateElement("message");
                     Dictionary<string, string> Parameters = new Dictionary<string, string>();
-                    Parameters.Add("priority", _Priority.ToString());
-                    Parameters.Add("time", time.ToBinary().ToString());
+                    Parameters.Add("priority", Priority.ToString());
+                    Parameters.Add("time", MessageTime.ToBinary().ToString());
                     foreach (KeyValuePair<string, string> curr in Parameters)
                     {
                         XmlAttribute b2 = datagram.CreateAttribute(curr.Key);
                         b2.Value = curr.Value;
                         b1.Attributes.Append(b2);
                     }
-                    b1.InnerText = message.ToDocumentXmlText();
+                    b1.InnerText = Data.ToDocumentXmlText();
                     datagram.AppendChild(b1);
                     return datagram.InnerXml;
                 }
             }
 
-            public SystemUser parent = null;
+            public SystemUser ParentUser = null;
             public string Network = null;
-            public List<Message> messages = new List<Message>();
-            public List<Message> oldmessages = new List<Message>();
+            protected internal List<Message> messages = new List<Message>();
+            protected internal List<Message> oldmessages = new List<Message>();
             public ProtocolIrc protocol = null;
 
             public Buffer(SystemUser _account, string server)
             {
                 Network = server;
-                parent = _account;
+                ParentUser = _account;
             }
 
             public void DeliverMessage(ProtocolMain.Datagram Message, libirc.Defs.Priority Pr = libirc.Defs.Priority.Normal)
             {
                 Message text = new Message();
-                text._Priority = Pr;
-                text.message = Message;
+                text.Priority = Pr;
+                text.Data = Message;
                 lock (messages)
                 {
                     messages.Add(text);
@@ -88,7 +88,7 @@ namespace pidgeon_sv
             {
                 try
                 {
-                    while (true)
+                    while (Core.IsRunning)
                     {
                         try
                         {
@@ -109,12 +109,12 @@ namespace pidgeon_sv
 
                             if (newmessages.Count > 0)
                             {
-                                if (protocol.owner != null)
+                                if (protocol.systemUser != null)
                                 {
                                     foreach (Message message in newmessages)
                                     {
-                                        message.message.Parameters.Add("time", message.time.ToBinary().ToString());
-                                        protocol.owner.Deliver(message.message);
+                                        message.Data.Parameters.Add("time", message.MessageTime.ToBinary().ToString());
+                                        protocol.systemUser.Deliver(message.Data);
                                     }
                                 }
 
@@ -133,12 +133,14 @@ namespace pidgeon_sv
                         }
                         catch (System.Threading.ThreadAbortException)
                         {
+                            ThreadPool.UnregisterThis();
                             return;
                         }
                     }
                 }
                 catch (Exception fail)
                 {
+                    ThreadPool.UnregisterThis();
                     Core.handleException(fail, true);
                 }
             }
@@ -149,7 +151,7 @@ namespace pidgeon_sv
                 while (oldmessages.Count > Configuration._System.MinimumBufferSize)
                 {
                     Count++;
-                    parent.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);
+                    ParentUser.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);
                     oldmessages.RemoveAt(0);
                 }
                 SystemLog.DebugLog("Stored " + Count.ToString());

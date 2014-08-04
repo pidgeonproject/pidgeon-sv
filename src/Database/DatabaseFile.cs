@@ -102,9 +102,9 @@ namespace pidgeon_sv
 
         private void SendRange(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
         {
-            ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
-            text._InnerText = message.message._InnerText;
-            foreach (KeyValuePair<string, string> current in message.message.Parameters)
+            ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.Data._Datagram);
+            text._InnerText = message.Data._InnerText;
+            foreach (KeyValuePair<string, string> current in message.Data.Parameters)
                 text.Parameters.Add(current.Key, current.Value);
             text.Parameters.Add("range", index.ToString());
             index++;
@@ -141,9 +141,9 @@ namespace pidgeon_sv
 
         private void SendData(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
         {
-            ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.message._Datagram);
-            text._InnerText = message.message._InnerText;
-            foreach (KeyValuePair<string, string> current in message.message.Parameters)
+            ProtocolMain.Datagram text = new ProtocolMain.Datagram(message.Data._Datagram);
+            text._InnerText = message.Data._InnerText;
+            foreach (KeyValuePair<string, string> current in message.Data.Parameters)
                 text.Parameters.Add(current.Key, current.Value);
             index++;
             text.Parameters.Add("buffer", index.ToString());
@@ -171,9 +171,9 @@ namespace pidgeon_sv
                 SystemLog.DebugLog("Invalid xml for message");
                 return null;
             }
-            message._Priority = libirc.Defs.Priority.Normal;
-            message.time = DateTime.FromBinary(long.Parse(text.ChildNodes[0].Attributes[1].Value));
-            message.message = ProtocolMain.Datagram.FromText(text.ChildNodes[0].InnerText);
+            message.Priority = libirc.Defs.Priority.Normal;
+            message.MessageTime = DateTime.FromBinary(long.Parse(text.ChildNodes[0].Attributes[1].Value));
+            message.Data = ProtocolMain.Datagram.FromText(text.ChildNodes[0].InnerText);
             return message;
         }
 
@@ -220,7 +220,7 @@ namespace pidgeon_sv
                         if (MQID < index[current_line].mqid)
                         {
                             ProtocolIrc.Buffer.Message message = str2M(line);
-                            if (MQID < int.Parse(message.message.Parameters["MQID"]))
+                            if (MQID < int.Parse(message.Data.Parameters["MQID"]))
                             {
                                 SendData(message, ref no, protocol);
                                 sent++;
@@ -231,7 +231,7 @@ namespace pidgeon_sv
                     {
                         SystemLog.DebugLog("Invalid index (browsing slowly) for " + network);
                         ProtocolIrc.Buffer.Message message = str2M(line);
-                        if (MQID < int.Parse(message.message.Parameters["MQID"]))
+                        if (MQID < int.Parse(message.Data.Parameters["MQID"]))
                         {
                             SendData(message, ref no, protocol);
                             sent++;
@@ -378,7 +378,7 @@ namespace pidgeon_sv
                     }
                 }
                 System.IO.File.AppendAllText(MessagePool(network), message.ToDocumentXmlText() + "\n");
-                Indexes[network].Add(MessageSize[network], new Index(int.Parse(message.message.Parameters["MQID"])));
+                Indexes[network].Add(MessageSize[network], new Index(int.Parse(message.Data.Parameters["MQID"])));
                 MessageSize[network]= (MessageSize[network] + 1);
                 Unlock(network);
             }

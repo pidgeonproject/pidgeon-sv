@@ -285,7 +285,7 @@ namespace pidgeon_sv
             server.Port = port;
             server.IRCNetwork = networkid;
             server._network = networkid;
-            server.owner = this;
+            server.systemUser = this;
             server.buffer = new ProtocolIrc.Buffer(this, network);
             server.Open();
             return true;
