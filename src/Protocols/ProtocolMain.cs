@@ -261,7 +261,7 @@ namespace pidgeon_sv
                         Responses.Manage(node, this);
                         return;
                     case "REMOVE":
-                        Responses.DiscNw(node, this);
+                        Responses.Remove(node, this);
                         return;
                     case "BACKLOGRANGE":
                         Responses.BacklogRange(node, this);

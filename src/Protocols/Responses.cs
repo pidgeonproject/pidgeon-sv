@@ -235,7 +235,7 @@ namespace pidgeon_sv
             protocol.Deliver(response);
         }
 
-        public static void DiscNw(XmlNode node, ProtocolMain protocol)
+        public static void Remove(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
             Network network = protocol.session.User.retrieveServer(node.InnerText);
@@ -256,7 +256,7 @@ namespace pidgeon_sv
                 response.Parameters.Add("network", node.InnerText);
                 response.Parameters.Add("code", "20");
                 response.Parameters.Add("description", "internal error (null pointer to network._Protocol)");
-                SystemLog.Error("Unable to process disconnect request because there is null pointer to network._Protocol");
+                SystemLog.Error("Unable to process disconnect request because there is null pointer to network._Protocol, requested network: " + node.InnerText);
                 protocol.Deliver(response);
                 return;
             }
