@@ -314,7 +314,9 @@ namespace pidgeon_sv
         {
             if (!IsConnected)
             {
-                SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
+                Session sx = this.session;
+                if (sx != null)
+                    SystemLog.WriteLine("Error: sending a text to closed connection " + session.IP);
                 return false;
             }
             try
