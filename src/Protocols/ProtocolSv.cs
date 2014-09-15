@@ -34,9 +34,9 @@ namespace pidgeon_sv
         private System.Threading.Thread keep = null;
         private object StreamLock = new object();
 
-        private System.Net.Sockets.NetworkStream _networkStream;
-        private System.IO.StreamReader _StreamReader = null;
-        private System.IO.StreamWriter _StreamWriter = null;
+        private System.Net.Sockets.NetworkStream networkStream;
+        private System.IO.StreamReader streamReader = null;
+        private System.IO.StreamWriter streamWriter = null;
         /// <summary>
         /// Password
         /// </summary>
@@ -96,9 +96,9 @@ namespace pidgeon_sv
 
                 if (!SSL)
                 {
-                    _networkStream = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
-                    _StreamWriter = new System.IO.StreamWriter(_networkStream);
-                    _StreamReader = new System.IO.StreamReader(_networkStream, Encoding.UTF8);
+                    networkStream = new System.Net.Sockets.TcpClient(Server, Port).GetStream();
+                    streamWriter = new System.IO.StreamWriter(networkStream);
+                    streamReader = new System.IO.StreamReader(networkStream, Encoding.UTF8);
                 }
 
                 if (SSL)
@@ -107,8 +107,8 @@ namespace pidgeon_sv
                     _networkSsl = new System.Net.Security.SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(Session.ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsClient(Server);
-                    _StreamWriter = new System.IO.StreamWriter(_networkSsl);
-                    _StreamReader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
+                    streamWriter = new System.IO.StreamWriter(_networkSsl);
+                    streamReader = new System.IO.StreamReader(_networkSsl, Encoding.UTF8);
                 }
 
                 Connected = true;
@@ -138,9 +138,9 @@ namespace pidgeon_sv
             string text = "";
             try
             {
-                while (!_StreamReader.EndOfStream && Connected)
+                while (!streamReader.EndOfStream && Connected)
                 {
-                    text = _StreamReader.ReadLine();
+                    text = streamReader.ReadLine();
                     if (Valid(text))
                     {
                         // if this return false the thread must be stopped now
@@ -186,20 +186,20 @@ namespace pidgeon_sv
 
         private void ReleaseNetwork()
         {
-            if (_StreamReader != null)
+            if (streamReader != null)
             {
-                _StreamReader.Dispose();
-                _StreamReader = null;
+                streamReader.Dispose();
+                streamReader = null;
             }
             if (_networkSsl != null)
             {
                 _networkSsl.Dispose();
                 _networkSsl = null;
             }
-            if (_StreamWriter != null)
+            if (streamWriter != null)
             {
-                _StreamWriter.Dispose();
-                _StreamWriter = null;
+                streamWriter.Dispose();
+                streamWriter = null;
             }
         }
 
@@ -269,10 +269,10 @@ namespace pidgeon_sv
                 }
                 disconnecting = true;
 
-                if (_StreamWriter != null) _StreamWriter.Close();
-                if (_StreamReader != null) _StreamReader.Close();
-                _StreamWriter = null;
-                _StreamReader = null;
+                if (streamWriter != null) streamWriter.Close();
+                if (streamReader != null) streamReader.Close();
+                streamWriter = null;
+                streamReader = null;
                 this.main.Abort();
                 this.keep.Abort();
             }
@@ -295,8 +295,8 @@ namespace pidgeon_sv
                 }
                 try
                 {
-                    if (_StreamWriter != null) _StreamWriter.Close();
-                    if (_StreamReader != null) _StreamReader.Close();
+                    if (streamWriter != null) streamWriter.Close();
+                    if (streamReader != null) streamReader.Close();
                     if (SSL)
                     {
                         if (_networkSsl != null)
@@ -306,9 +306,9 @@ namespace pidgeon_sv
                     }
                     else
                     {
-                        if (_networkStream != null)
+                        if (networkStream != null)
                         {
-                            _networkStream.Close();
+                            networkStream.Close();
                         }
                     }
                 }
@@ -381,8 +381,8 @@ namespace pidgeon_sv
                 {
                     lock (StreamLock)
                     {
-                        _StreamWriter.WriteLine(text);
-                        _StreamWriter.Flush();
+                        streamWriter.WriteLine(text);
+                        streamWriter.Flush();
                     }
                 }
                 catch (System.IO.IOException er)

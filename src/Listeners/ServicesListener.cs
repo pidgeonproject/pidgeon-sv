@@ -54,7 +54,7 @@ namespace pidgeon_sv
                 {
                     System.Net.Sockets.TcpClient connection = this.Server.AcceptTcpClient();
                     Thread _client = new Thread(Session.InitialiseClient);
-                    _client.Name = "Client:" + connection.Client.RemoteEndPoint.ToString();
+                    _client.Name = "Listener/IP:" + connection.Client.RemoteEndPoint.ToString();
                     ThreadPool.RegisterThread(_client);
                     _client.Start(connection);
                     System.Threading.Thread.Sleep(200);

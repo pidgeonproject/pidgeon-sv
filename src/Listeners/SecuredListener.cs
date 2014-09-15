@@ -54,6 +54,7 @@ namespace pidgeon_sv
                 {
                     System.Net.Sockets.TcpClient connection = this.Server.AcceptTcpClient();
                     Thread _client = new Thread(Session.InitialiseClientSSL);
+                    _client.Name = "Listener/SSL:" + connection.Client.RemoteEndPoint.ToString();
                     ThreadPool.RegisterThread(_client);
                     _client.Start(connection);
                     System.Threading.Thread.Sleep(200);

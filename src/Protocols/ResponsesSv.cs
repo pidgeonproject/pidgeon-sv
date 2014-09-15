@@ -108,21 +108,22 @@ namespace pidgeon_sv
                         Console.WriteLine("There are no sessions on this instance of services (weird heh)");
                         return;
                     }
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
-                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:                       |");
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:             |Status:            |");
+                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
                     foreach (string session in Sessions)
                     {
-                        if (session == "")
-                        {
+                        if (String.IsNullOrEmpty(session))
                             continue;
-                        }
                         List<string> info = new List<string>(session.Split('&'));
+                        string status = "unknown";
+                        if (info.Count > 4)
+                            status = info[4];
                         Console.WriteLine("|" + Terminal.FormatToSpecSize(info[0] ,6) + "|" + Terminal.FormatToSpecSize(info[2], 14)
                                           + "|" + Terminal.FormatToSpecSize(DateTime.FromBinary(long.Parse(info[1])).ToString(), 26)
-                                          + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|");
+                                          + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|" + Terminal.FormatToSpecSize(status, 10) + "|");
                     }
-                    Console.WriteLine("+---------------------------------------------------------------------------+");
+                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
                     }
             }
 

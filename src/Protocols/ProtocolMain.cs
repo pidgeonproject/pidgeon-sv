@@ -31,11 +31,6 @@ namespace pidgeon_sv
             public string _Datagram;
             public Dictionary<string, string> Parameters = new Dictionary<string, string>();
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="Name">Name of a datagram</param>
-            /// <param name="Text">Value</param>
             public Datagram(string Name, string Text = "")
             {
                 _Datagram = Name;
@@ -72,40 +67,34 @@ namespace pidgeon_sv
             {
                 XmlDocument gram = new XmlDocument();
                 gram.LoadXml(text);
-
                 if (gram.ChildNodes.Count < 1)
                 {
                     SystemLog.DebugLog("Invalid xml for datagram: " + text);
                     return null;
                 }
-
                 ProtocolMain.Datagram datagram = new ProtocolMain.Datagram(gram.ChildNodes[0].Name, gram.ChildNodes[0].InnerText);
-
                 foreach (XmlAttribute parameter in gram.ChildNodes[0].Attributes)
-                {
                     datagram.Parameters.Add(parameter.Name, parameter.Value);
-                }
-
                 return datagram;
             }
         }
 
         public class SelfData
         {
-            public string text = null;
-            public string nick = null;
-            public DateTime time;
-            public Network network = null;
-            public string target = null;
+            public string Text = null;
+            public string Nick = null;
+            public DateTime Time;
+            public Network Network = null;
+            public string Target = null;
             public int MQID;
 
-            public SelfData(Network _network, string _text, DateTime date, string _target, int curr)
+            public SelfData(Network network, string text, DateTime date, string target, int curr)
             {
-                nick = _network.Nickname;
-                text = _text;
-                target = _target;
-                time = date;
-                network = _network;
+                Nick = network.Nickname;
+                Text = text;
+                Target = target;
+                Time = date;
+                Network = network;
                 MQID = curr;
             }
 
@@ -113,22 +102,22 @@ namespace pidgeon_sv
             {
                 XmlDocument datagram = new XmlDocument();
                 XmlNode b1 = datagram.CreateElement("SM");
-                XmlAttribute Nick = datagram.CreateAttribute("nick");
-                Nick.Value = nick;
-                b1.Attributes.Append(Nick);
-                XmlAttribute Time = datagram.CreateAttribute("time");
-                Time.Value = time.ToBinary().ToString();
-                b1.Attributes.Append(Time);
+                XmlAttribute nick = datagram.CreateAttribute("nick");
+                nick.Value = Nick;
+                b1.Attributes.Append(nick);
+                XmlAttribute time = datagram.CreateAttribute("time");
+                time.Value = Time.ToBinary().ToString();
+                b1.Attributes.Append(time);
                 XmlAttribute nw = datagram.CreateAttribute("network");
-                nw.Value = network.ServerName;
+                nw.Value = Network.ServerName;
                 b1.Attributes.Append(nw);
-                XmlAttribute Target = datagram.CreateAttribute("tg");
-                Target.Value = target;
-                b1.Attributes.Append(Target);
+                XmlAttribute target = datagram.CreateAttribute("tg");
+                target.Value = Target;
+                b1.Attributes.Append(target);
                 XmlAttribute Mqid = datagram.CreateAttribute("mqid");
                 Mqid.Value = MQID.ToString();
                 b1.Attributes.Append(Mqid);
-                b1.InnerText = text;
+                b1.InnerText = Text;
                 datagram.AppendChild(b1);
                 return datagram.InnerXml;
             }
@@ -326,7 +315,7 @@ namespace pidgeon_sv
                     if (!TrafficChunks)
                     {
                         session._StreamWriter.WriteLine(text);
-                        if (TrafficChunk != "")
+                        if (!String.IsNullOrEmpty(TrafficChunk))
                         {
                             session._StreamWriter.WriteLine(TrafficChunk);
                             TrafficChunk = "";

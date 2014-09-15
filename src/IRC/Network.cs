@@ -30,18 +30,13 @@ namespace pidgeon_sv
         
         public Network(string Server, libirc.Protocol sv) : base(Server, sv)
         {
-            this.NetworkID = DateTime.Now.ToBinary ().ToString() + "~" + Server;
+            this.NetworkID = Core.CalculateMD5Hash(DateTime.Now.ToBinary().ToString()) + "~" + Server;
             this.Quit = "Pidgeon services - http://pidgeonclient.org";
             this.Config.AggressiveBans = false;
             this.Config.AggressiveExceptions = false;
             this.Config.AggressiveInvites = false;
             this.Config.AggressiveMode = false;
             this.Config.AggressiveUsers = false;
-        }
-
-        ~Network()
-        {
-            SystemLog.DebugLog("Destructor called for network " + ServerName);
         }
 
         public override bool __evt__IncomingData(libirc.Network.IncomingDataEventArgs args)
@@ -56,9 +51,7 @@ namespace pidgeon_sv
                     {
                         libirc.Channel channel = this.GetChannel(args.Parameters[1]);
                         if (!channel.IsParsingWhoData)
-                        {
                             return base.__evt__IncomingData(args);
-                        }
                     }
                     break;
                 case "368":
@@ -66,9 +59,7 @@ namespace pidgeon_sv
                     {
                         libirc.Channel channel = this.GetChannel(args.Parameters[1]);
                         if (!channel.IsParsingBanData)
-                        {
                             return base.__evt__IncomingData(args);
-                        }
                     }
                     break;
             }

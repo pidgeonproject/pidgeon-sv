@@ -67,7 +67,7 @@ namespace pidgeon_sv
                 List<ProtocolMain.SelfData> delete = new List<ProtocolMain.SelfData>();
                 foreach (ProtocolMain.SelfData ms in systemUser.Messages)
                 {
-                    if (ms.network == _network)
+                    if (ms.Network == _network)
                         delete.Add(ms);
                 }
                 foreach (ProtocolMain.SelfData ms in delete)

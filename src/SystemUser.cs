@@ -180,16 +180,16 @@ namespace pidgeon_sv
         {
             try
             {
-                if (text.network == null)
+                if (text.Network == null)
                 {
                     SystemLog.DebugLog("network is bad");
                     return;
                 }
-                ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.text);
-                data.Parameters.Add("nick", text.nick);
-                data.Parameters.Add("network", text.network.ServerName);
-                data.Parameters.Add("time", text.time.ToBinary().ToString());
-                data.Parameters.Add("target", text.target);
+                ProtocolMain.Datagram data = new ProtocolMain.Datagram("MESSAGE", text.Text);
+                data.Parameters.Add("nick", text.Nick);
+                data.Parameters.Add("network", text.Network.ServerName);
+                data.Parameters.Add("time", text.Time.ToBinary().ToString());
+                data.Parameters.Add("target", text.Target);
                 data.Parameters.Add("MQID", text.MQID.ToString());
                 if (connection == null)
                 {
@@ -305,7 +305,7 @@ namespace pidgeon_sv
                 {
                     if (message.MQID > mqid)
                     {
-                        if (message.network.ServerName == protocolIrc.Server)
+                        if (message.Network.ServerName == protocolIrc.Server)
                         {
                             MessageBack(message, protocol);
                         }

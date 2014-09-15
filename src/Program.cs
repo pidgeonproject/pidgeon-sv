@@ -51,9 +51,7 @@ namespace pidgeon_sv
                         listener2.Listen();
                     }
                     while (Core.IsRunning)
-                    {
                         Thread.Sleep(800);
-                    }
                 } else
                     Console.WriteLine("Nothing to do! Run pidgeon-sv --help in order to see the options.");
             }

@@ -318,7 +318,7 @@ namespace pidgeon_sv
 
         public static void GlobalNick(XmlNode node, ProtocolMain protocol)
         {
-            if (node.InnerText == "")
+            if (String.IsNullOrEmpty(node.InnerText))
             {
                 protocol.Deliver(new ProtocolMain.Datagram("GLOBALNICK", protocol.session.User.Nickname));
                 return;
@@ -335,9 +335,7 @@ namespace pidgeon_sv
             string pw = node.Attributes [1].Value;
             bool encrypted = false;
             if (!encrypted)
-            {
                 pw = Core.CalculateMD5Hash(pw);
-            }
             lock (Core.UserList)
             {
                 foreach (SystemUser curr_user in Core.UserList)
@@ -662,16 +660,13 @@ namespace pidgeon_sv
                     {
                         foreach (Session si in Session.ConnectedUsers)
                         {
-                            list += si.SessionID.ToString() + "&" + si.CreatedTime.ToBinary().ToString() +
-                                "&";
+                            list += si.SessionID.ToString() + "&" + si.CreatedTime.ToBinary().ToString() + "&";
                             if (si.User == null)
-                            {
                                 list += "unknown";
-                            } else
-                            {
+                            else
                                 list += si.User.UserName;
-                            }
                             list += "&" + si.IP;
+                            list += "&" + si.status.ToString();
                             list += "|";
                         }
                     }
