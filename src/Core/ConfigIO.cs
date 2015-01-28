@@ -110,7 +110,7 @@ namespace pidgeon_sv
                                 continue;
                             }
                             bool Nonexistent = false;
-                            SystemUser user = SystemUser.getUser(name);
+                            SystemUser user = SystemUser.GetUser(name);
                             if (user == null)
                             {
                                 Nonexistent = true;

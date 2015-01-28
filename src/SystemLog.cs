@@ -100,12 +100,15 @@ namespace pidgeon_sv
             {
                 SystemLog.DebugLog("Writer thread is down");
             }
+            ThreadPool.UnregisterThis();
         }
         
         public static void Init()
         {
             thread = new Thread(writer);
+            thread.Name = "writer";
             thread.Start();
+            ThreadPool.RegisterThread(thread);
         }
         
         /// <summary>

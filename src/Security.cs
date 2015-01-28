@@ -23,11 +23,11 @@ namespace pidgeon_sv
 {
     public class Role
     {
-        private readonly List<string> _permissions = new List<string>();
+        private readonly List<string> permissions = new List<string>();
         /// <summary>
         /// Every role may contain other roles as well
         /// </summary>
-        private readonly List<Role> _roles = new List<Role>();
+        private readonly List<Role> roles = new List<Role>();
         /// <summary>
         /// The level of role used to compare which role is higher
         /// </summary>
@@ -39,53 +39,53 @@ namespace pidgeon_sv
 
         public void Revoke(string permission)
         {
-            lock (this._permissions)
+            lock (this.permissions)
             {
-                if (this._permissions.Contains(permission))
+                if (this.permissions.Contains(permission))
                 {
-                    this._permissions.Remove(permission);
+                    this.permissions.Remove(permission);
                 }
             }
         }
 
         public void Revoke(Role role)
         {
-            lock (this._roles)
+            lock (this.roles)
             {
-                if (this._roles.Contains(role))
+                if (this.roles.Contains(role))
                 {
-                    this._roles.Remove(role);
+                    this.roles.Remove(role);
                 }
             }
         }
 
         public void Grant(Role role)
         {
-            lock (this._roles)
+            lock (this.roles)
             {
-                if (!this._roles.Contains(role))
+                if (!this.roles.Contains(role))
                 {
-                    this._roles.Add(role);
+                    this.roles.Add(role);
                 }
             }
         }
         
         public void Grant(string permission)
         {
-            lock (this._permissions)
+            lock (this.permissions)
             {
-                if (!this._permissions.Contains(permission))
-                    this._permissions.Add(permission);
+                if (!this.permissions.Contains(permission))
+                    this.permissions.Add(permission);
             }
         }
 
         public bool IsPermitted(string permission)
         {
-            if (this._permissions.Contains(permission))
+            if (this.permissions.Contains(permission))
                 return true;
-            lock (this._roles)
+            lock (this.roles)
             {
-                foreach (Role role in _roles)
+                foreach (Role role in roles)
                 {
                     if (role.IsPermitted(permission))
                     {

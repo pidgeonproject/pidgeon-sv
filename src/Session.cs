@@ -49,8 +49,8 @@ namespace pidgeon_sv
         /// <summary>
         /// The client
         /// </summary>
-        private System.IO.StreamReader _StreamReader = null;
-        public System.IO.StreamWriter _StreamWriter = null;
+        private System.IO.StreamReader streamReader = null;
+        public System.IO.StreamWriter streamWriter = null;
         /// <summary>
         /// Whether this session is secured using SSL or not
         /// </summary>
@@ -63,10 +63,10 @@ namespace pidgeon_sv
         {
             get
             {
-                return createdtime;
+                return createdTime;
             }
         }
-        private DateTime createdtime;
+        private DateTime createdTime;
         /// <summary>
         /// The IP
         /// </summary>
@@ -88,7 +88,7 @@ namespace pidgeon_sv
         /// Protocol which this session is using to communicate with client
         /// </summary>
         private ProtocolMain protocol = null;
-        private bool Connected = false;
+        private bool isConnected = false;
         public ulong SessionID
         {
             get
@@ -104,7 +104,7 @@ namespace pidgeon_sv
         {
             get
             {
-                return Connected;
+                return isConnected;
             }
         }
 
@@ -134,13 +134,12 @@ namespace pidgeon_sv
                 conn.Timeout();
             }
             catch (ThreadAbortException)
-            {
-                return;
-            }
+            {}
             catch (Exception fail)
             {
                 Core.handleException(fail);
             }
+            ThreadPool.UnregisterThis();
         }
 
         /// <summary>
@@ -150,7 +149,7 @@ namespace pidgeon_sv
         {
             this.protocol = null;
             this.IP = "unknown";
-            this.createdtime = DateTime.Now;
+            this.createdTime = DateTime.Now;
             this.SID = GetSID();
         }
 
@@ -197,9 +196,9 @@ namespace pidgeon_sv
         /// </summary>
         public void Disconnect()
         {
-            if (!Connected)
+            if (!isConnected)
                 return;
-            Connected = false;
+            isConnected = false;
             status = Status.Disconnecting;
             SystemLog.WriteLine("Disconnecting from: " + this.IP);
             lock (this)
@@ -209,15 +208,15 @@ namespace pidgeon_sv
                     protocol.Exit();
                     protocol = null;
                 }
-                if (_StreamReader != null)
+                if (streamReader != null)
                 {
-                    _StreamReader.Close();
-                    _StreamReader = null;
+                    streamReader.Close();
+                    streamReader = null;
                 }
-                if (_StreamWriter != null)
+                if (streamWriter != null)
                 {
-                    _StreamWriter.Close();
-                    _StreamWriter = null;
+                    streamWriter.Close();
+                    streamWriter = null;
                 }
                 SystemUser user = this.User;
                 if (user != null)
@@ -238,9 +237,7 @@ namespace pidgeon_sv
             {
                 string ssl = "";
                 if (SSL)
-                {
                     ssl = "SSL ";
-                }
                 System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)data;
                 session = new Session();
                 SystemLog.WriteLine("Opening a new " + ssl + "connection to " + client.Client.RemoteEndPoint.ToString());
@@ -248,41 +245,38 @@ namespace pidgeon_sv
                 //session.client = client;
                 session.IP = client.Client.RemoteEndPoint.ToString();
                 Thread checker = new Thread(ConnectionKiller);
-                checker.Name = "watcher";
+                checker.Name = "Session:" + session.IP + "/kill";
+                ThreadPool.RegisterThread(checker);
                 session.UsingSSL = SSL;
-                session.Connected = true;
+                session.isConnected = true;
                 checker.Start(session);
-
                 lock (ConnectedUsers)
                 {
                     ConnectedUsers.Add(session);
                 }
-
                 if (SSL)
                 {
                     X509Certificate cert = new X509Certificate2(Configuration._System.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);
-                    session._StreamWriter = new StreamWriter(_networkSsl);
-                    session._StreamReader = new StreamReader(_networkSsl, Encoding.UTF8);
+                    session.streamWriter = new StreamWriter(_networkSsl);
+                    session.streamReader = new StreamReader(_networkSsl, Encoding.UTF8);
                 }
                 else
                 {
                     System.Net.Sockets.NetworkStream ns = client.GetStream();
-                    session._StreamWriter = new StreamWriter(ns);
-                    session._StreamReader = new StreamReader(ns, Encoding.UTF8);
+                    session.streamWriter = new StreamWriter(ns);
+                    session.streamReader = new StreamReader(ns, Encoding.UTF8);
                 }
-
-                string text = session._StreamReader.ReadLine();
-
+                string text = session.streamReader.ReadLine();
                 session.protocol = new ProtocolMain(session);
-                while (session.IsConnected && !session._StreamReader.EndOfStream)
+                while (session.IsConnected && !session.streamReader.EndOfStream)
                 {
                     try
                     {
-                        text = session._StreamReader.ReadLine();
-                        if (text == "")
+                        text = session.streamReader.ReadLine();
+                        if (string.IsNullOrEmpty(text))
                         {
                             continue;
                         }
@@ -323,9 +317,8 @@ namespace pidgeon_sv
                 Core.handleException(fail);
             }
             if (session != null)
-            {
                 session.Clean();
-            }
+            ThreadPool.UnregisterThis();
         }
 
         public static void InitialiseClient(object data)
@@ -345,8 +338,8 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.DebugLog("Removing information about session for connection: " + IP);
-                Disconnect();
+                SystemLog.DebugLog("Removing information about session for connection: " + this.IP);
+                this.Disconnect();
 
                 lock (ConnectedUsers)
                 {

@@ -213,7 +213,7 @@ namespace pidgeon_sv
             }
         }
 
-        public Network retrieveServer(string name)
+        public Network RetrieveServer(string name)
         {
             lock (ConnectedNetworks)
             {
@@ -303,13 +303,8 @@ namespace pidgeon_sv
             {
                 foreach (ProtocolMain.SelfData message in Messages)
                 {
-                    if (message.MQID > mqid)
-                    {
-                        if (message.Network.ServerName == protocolIrc.Server)
-                        {
-                            MessageBack(message, protocol);
-                        }
-                    }
+                    if (message.MQID > mqid && message.Network.ServerName == protocolIrc.Server)
+                        MessageBack(message, protocol);
                 }
             }
         }
@@ -322,9 +317,7 @@ namespace pidgeon_sv
         {
             MessageCount++;
             lock (Messages)
-            {
                 Messages.Add(data);
-            }
         }
 
         /// <summary>
@@ -350,9 +343,7 @@ namespace pidgeon_sv
             foreach (Session s in Session.ConnectedUsers)
             {
                 if (s.User == user)
-                {
                     s.Kill();
-                }
             }
             lock (user.Messages)
             {
@@ -392,11 +383,9 @@ namespace pidgeon_sv
 
         public static bool CreateUser(string name, string password, string nick, string role, string realname, string ident)
         {
-            SystemUser user = getUser(name);
+            SystemUser user = GetUser(name);
             if (user != null)
-            {
                 return false;
-            }
             user = new SystemUser(name, Core.CalculateMD5Hash(password));
             user.Role = role;
             user.Nickname = nick;
@@ -410,7 +399,7 @@ namespace pidgeon_sv
             return true;
         }
 
-        public static SystemUser getUser(string name)
+        public static SystemUser GetUser(string name)
         {
             name = name.ToLower();
             lock (Core.UserList)
@@ -426,7 +415,7 @@ namespace pidgeon_sv
             return null;
         }
 
-        public bool containsNetwork(string network)
+        public bool ContainsNetwork(string network)
         {
             lock (ConnectedNetworks)
             {

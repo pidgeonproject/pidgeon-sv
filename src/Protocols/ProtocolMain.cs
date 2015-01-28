@@ -310,17 +310,17 @@ namespace pidgeon_sv
             }
             try
             {
-                lock (session._StreamWriter)
+                lock (session.streamWriter)
                 {
                     if (!TrafficChunks)
                     {
-                        session._StreamWriter.WriteLine(text);
+                        session.streamWriter.WriteLine(text);
                         if (!String.IsNullOrEmpty(TrafficChunk))
                         {
-                            session._StreamWriter.WriteLine(TrafficChunk);
+                            session.streamWriter.WriteLine(TrafficChunk);
                             TrafficChunk = "";
                         }
-                        session._StreamWriter.Flush();
+                        session.streamWriter.Flush();
                         return true;
                     }
                     else
@@ -330,8 +330,8 @@ namespace pidgeon_sv
                             TrafficChunk += text + "\n";
                             if (TrafficChunk.Length > 2000 || Enforced)
                             {
-                                session._StreamWriter.WriteLine(TrafficChunk);
-                                session._StreamWriter.Flush();
+                                session.streamWriter.WriteLine(TrafficChunk);
+                                session.streamWriter.Flush();
                                 TrafficChunk = "";
                             }
                         }

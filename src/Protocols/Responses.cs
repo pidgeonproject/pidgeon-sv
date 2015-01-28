@@ -54,7 +54,7 @@ namespace pidgeon_sv
         public static void NetworkInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network network = protocol.session.User.retrieveServer(node.InnerText);
+            Network network = protocol.session.User.RetrieveServer(node.InnerText);
             if (network == null)
             {
                 response = new ProtocolMain.Datagram("NETWORKINFO", "UNKNOWN");
@@ -95,9 +95,9 @@ namespace pidgeon_sv
                             break;
                     }
                 }
-                if (protocol.session.User.containsNetwork(server))
+                if (protocol.session.User.ContainsNetwork(server))
                 {
-                    Network network = protocol.session.User.retrieveServer(server);
+                    Network network = protocol.session.User.RetrieveServer(server);
                     network.Transfer(node.InnerText, Priority);
                 }
             }
@@ -108,7 +108,7 @@ namespace pidgeon_sv
             ProtocolMain.Datagram response = null;
             if (node.Attributes.Count > 0)
             {
-                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     response = new ProtocolMain.Datagram("NICK", network.Nickname);
@@ -127,7 +127,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 2)
             {
-                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     int from = int.Parse(node.Attributes[1].Value);
@@ -150,7 +150,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 1)
             {
-                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     int mqid = 0;
@@ -203,7 +203,7 @@ namespace pidgeon_sv
                 server = server.Substring(1);
                 ssl = true;
             }
-            if (protocol.session.User.containsNetwork(server))
+            if (protocol.session.User.ContainsNetwork(server))
             {
                 response = new ProtocolMain.Datagram("CONNECT", "CONNECTED");
                 response.Parameters.Add("network", server);
@@ -224,7 +224,7 @@ namespace pidgeon_sv
             }
 
             protocol.session.User.ConnectIRC(server, port, ssl);
-            Network network = protocol.session.User.retrieveServer(server);
+            Network network = protocol.session.User.RetrieveServer(server);
             SystemLog.WriteLine(protocol.session.IP + ": Connecting to " + server);
             response = new ProtocolMain.Datagram("CONNECT", "OK");
             response.Parameters.Add("network", server);
@@ -238,7 +238,7 @@ namespace pidgeon_sv
         public static void Remove(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network network = protocol.session.User.retrieveServer(node.InnerText);
+            Network network = protocol.session.User.RetrieveServer(node.InnerText);
             if (network == null)
             {
                 SystemLog.DebugLog("User " + protocol.session.User.UserName + " requested to disconnect a network, which is unknown: " + node.InnerText);
@@ -289,7 +289,7 @@ namespace pidgeon_sv
         {
             if (node.Attributes.Count > 2)
             {
-                Network network = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+                Network network = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
                 if (network != null)
                 {
                     string target = node.Attributes[2].Value;
@@ -369,7 +369,7 @@ namespace pidgeon_sv
         public static void UserList(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response;
-            Network nw = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+            Network nw = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
             if (nw == null)
             {
                 response = new ProtocolMain.Datagram("FAIL", "USERLIST");
@@ -530,7 +530,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
-                        SystemUser target = SystemUser.getUser(user);
+                        SystemUser target = SystemUser.GetUser(user);
                         if (target == protocol.session.User)
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
@@ -575,7 +575,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0)
                     {
                         string user = node.Attributes[0].Value;
-                        SystemUser target = SystemUser.getUser(user);
+                        SystemUser target = SystemUser.GetUser(user);
                         if (target != null)
                         {
                             target.Unlock();
@@ -607,7 +607,7 @@ namespace pidgeon_sv
                     if (node.Attributes.Count > 0 && node.Attributes[0].Name == "id")
                     {
                         string user = node.Attributes[0].Value;
-                        SystemUser target = SystemUser.getUser(user);
+                        SystemUser target = SystemUser.GetUser(user);
                         if (target == protocol.session.User)
                         {
                             response = new ProtocolMain.Datagram("FAIL", "SYSTEM");
@@ -686,7 +686,7 @@ namespace pidgeon_sv
         public static void ChannelInfo(XmlNode node, ProtocolMain protocol)
         {
             ProtocolMain.Datagram response = null;
-            Network nw = protocol.session.User.retrieveServer(node.Attributes[0].Value);
+            Network nw = protocol.session.User.RetrieveServer(node.Attributes[0].Value);
             switch (node.InnerText)
             {
                 case "LIST":

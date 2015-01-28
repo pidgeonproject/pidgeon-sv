@@ -72,10 +72,10 @@ namespace pidgeon_sv
                 ParentUser = _account;
             }
 
-            public void DeliverMessage(ProtocolMain.Datagram Message, libirc.Defs.Priority Pr = libirc.Defs.Priority.Normal)
+            public void DeliverMessage(ProtocolMain.Datagram Message, libirc.Defs.Priority Priority = libirc.Defs.Priority.Normal)
             {
                 Message text = new Message();
-                text.Priority = Pr;
+                text.Priority = Priority;
                 text.Data = Message;
                 lock (messages)
                 {
@@ -100,49 +100,42 @@ namespace pidgeon_sv
                             List<Message> newmessages = new List<Message>();
                             lock (messages)
                             {
-                                if (messages.Count > 0)
-                                {
-                                    newmessages.AddRange(messages);
-                                    messages.Clear();
-                                }
+                                newmessages.AddRange(messages);
+                                messages.Clear();
                             }
-
-                            if (newmessages.Count > 0)
+                            if (protocol.systemUser != null)
                             {
-                                if (protocol.systemUser != null)
+                                foreach (Message message in newmessages)
                                 {
-                                    foreach (Message message in newmessages)
-                                    {
-                                        message.Data.Parameters.Add("time", message.MessageTime.ToBinary().ToString());
-                                        protocol.systemUser.Deliver(message.Data);
-                                    }
-                                }
-
-                                lock (oldmessages)
-                                {
-                                    if (oldmessages.Count > Configuration._System.MaximumBufferSize)
-                                    {
-                                        FlushOld();
-                                    }
-
-                                    oldmessages.AddRange(newmessages);
+                                    message.Data.Parameters.Add("time", message.MessageTime.ToBinary().ToString());
+                                    protocol.systemUser.Deliver(message.Data);
                                 }
                             }
-                            newmessages.Clear();
-                            System.Threading.Thread.Sleep(200);
+                            lock (oldmessages)
+                            {
+                                if (oldmessages.Count > Configuration._System.MaximumBufferSize)
+                                {
+                                    FlushOld();
+                                }
+                                oldmessages.AddRange(newmessages);
+                            }
+                            Thread.Sleep(200);
                         }
-                        catch (System.Threading.ThreadAbortException)
+                        catch (ThreadAbortException)
                         {
-                            ThreadPool.UnregisterThis();
-                            return;
+                            goto unregister;
                         }
                     }
                 }
+                catch (ThreadAbortException)
+                { }
                 catch (Exception fail)
                 {
-                    ThreadPool.UnregisterThis();
                     Core.handleException(fail, true);
                 }
+
+            unregister:
+                ThreadPool.UnregisterThis();
             }
 
             public void FlushOld()
