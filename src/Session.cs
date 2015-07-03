@@ -256,7 +256,7 @@ namespace pidgeon_sv
                 }
                 if (SSL)
                 {
-                    X509Certificate cert = new X509Certificate2(Configuration._System.CertificatePath, "pidgeon");
+                    X509Certificate cert = new X509Certificate2(Configuration.Services.CertificatePath, "pidgeon");
                     System.Net.Security.SslStream _networkSsl = new SslStream(client.GetStream(), false,
                         new System.Net.Security.RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     _networkSsl.AuthenticateAsServer(cert);

@@ -113,7 +113,7 @@ namespace pidgeon_sv
                             }
                             lock (oldmessages)
                             {
-                                if (oldmessages.Count > Configuration._System.MaximumBufferSize)
+                                if (oldmessages.Count > Configuration.Services.MaximumBufferSize)
                                 {
                                     FlushOld();
                                 }
@@ -141,7 +141,7 @@ namespace pidgeon_sv
             public void FlushOld()
             {
                 int Count = 0;
-                while (oldmessages.Count > Configuration._System.MinimumBufferSize)
+                while (oldmessages.Count > Configuration.Services.MinimumBufferSize)
                 {
                     Count++;
                     ParentUser.DatabaseEngine.MessagePool_InsertData(oldmessages[0], Network);

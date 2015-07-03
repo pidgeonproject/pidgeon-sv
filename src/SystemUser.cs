@@ -151,6 +151,8 @@ namespace pidgeon_sv
 
         /// <summary>
         /// Lock the user
+        /// 
+        /// Locked user is not allowed to use services
         /// </summary>
         public void Lock()
         {

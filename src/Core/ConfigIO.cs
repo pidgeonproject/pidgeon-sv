@@ -49,21 +49,21 @@ namespace pidgeon_sv
                 {
                     SystemLog.WriteLine("Loading users");
                 }
-                if (File.Exists(Configuration._System.UserFile))
+                if (File.Exists(Configuration.Services.UserFile))
                 {
                     if (!QietMode)
                     {
                         fs = new FileSystemWatcher();
-                        fs.Path = Configuration._System.ConfigurationFolder;
+                        fs.Path = Configuration.Services.ConfigurationFolder;
                         fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                        fs.Filter = Configuration._System.UserFile;
+                        fs.Filter = Configuration.Services.UserFile;
                         fs.Changed += new FileSystemEventHandler(OnChanged);
                         fs.Created += new FileSystemEventHandler(OnChanged);
                         fs.Deleted += new FileSystemEventHandler(OnChanged);
                         fs.EnableRaisingEvents = true;
                     }
                     XmlDocument configuration = new XmlDocument();
-                    configuration.Load(Configuration._System.UserFile);
+                    configuration.Load(Configuration.Services.UserFile);
                     if (!(configuration.ChildNodes.Count > 0))
                     {
                         SystemLog.Warning("There is no proper information about users in config file");
@@ -148,7 +148,7 @@ namespace pidgeon_sv
                                 }
                             } else
                             {
-                                if (Configuration._System.Rooted)
+                                if (Configuration.Services.Rooted)
                                 {
                                     SystemLog.Warning("User " + user.UserName + " doesn't have any roles and because system is running in rooted mode, he was permanently granted root");
                                     user.Role = "root";
@@ -190,9 +190,9 @@ namespace pidgeon_sv
                 {
                     fs.EnableRaisingEvents = false;
                 }
-                if (File.Exists(Configuration._System.UserFile))
+                if (File.Exists(Configuration.Services.UserFile))
                 {
-                    File.Copy(Configuration._System.UserFile, Configuration._System.UserFile + "~", true);
+                    File.Copy(Configuration.Services.UserFile, Configuration.Services.UserFile + "~", true);
                 }
                 XmlDocument configuration = new XmlDocument();
 
@@ -228,8 +228,8 @@ namespace pidgeon_sv
                 }
 
                 configuration.AppendChild(xmlnode);
-                configuration.Save(Configuration._System.UserFile);
-                File.Delete(Configuration._System.UserFile + "~");
+                configuration.Save(Configuration.Services.UserFile);
+                File.Delete(Configuration.Services.UserFile + "~");
                 if (fs != null)
                 {
                     fs.EnableRaisingEvents = true;
@@ -238,18 +238,18 @@ namespace pidgeon_sv
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                File.Copy(Configuration._System.UserFile + "~", Configuration._System.UserFile, true);
+                File.Copy(Configuration.Services.UserFile + "~", Configuration.Services.UserFile, true);
             }
         }
 
         public static void LoadConf()
         {
             Security.Initialize();
-            if (!Directory.Exists(Configuration._System.ConfigurationFolder))
+            if (!Directory.Exists(Configuration.Services.ConfigurationFolder))
             {
-                Directory.CreateDirectory(Configuration._System.ConfigurationFolder);
+                Directory.CreateDirectory(Configuration.Services.ConfigurationFolder);
             }
-            if (!File.Exists(Configuration._System.ConfigurationFile))
+            if (!File.Exists(Configuration.Services.ConfigurationFile))
             {
                 SystemLog.Warning("there is no configuration file");
                 return;
@@ -257,14 +257,14 @@ namespace pidgeon_sv
             else
             {
                 XmlDocument config = new XmlDocument();
-                config.Load(Configuration._System.ConfigurationFile);
+                config.Load(Configuration.Services.ConfigurationFile);
                 foreach (XmlNode curr in config.ChildNodes[0].ChildNodes)
                 {
                     int value = 0;
                     switch (curr.Name.ToLower())
                     {
                         case "databasefolder":
-                            Configuration._System.ConfigurationFolder = curr.InnerText;
+                            Configuration.Services.ConfigurationFolder = curr.InnerText;
                             break;
                         case "server_port":
                             Configuration.Network.ServerPort = int.Parse(curr.InnerText);
@@ -274,10 +274,10 @@ namespace pidgeon_sv
                             if (value < 100)
                             {
                                 SystemLog.Warning("Invalid chunk size, using default: "
-                                           + Configuration._System.ChunkSize);
+                                           + Configuration.Services.ChunkSize);
                                 break;
                             }
-                            Configuration._System.ChunkSize = value;
+                            Configuration.Services.ChunkSize = value;
                             break;
                         case "ssl":
                             Configuration.Network.UsingSSL = bool.Parse(curr.InnerText);

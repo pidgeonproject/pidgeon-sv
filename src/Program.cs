@@ -34,7 +34,7 @@ namespace pidgeon_sv
                 // Check the parameters and if we can continue, launch the core
                 if (!Terminal.Parameters())
                     return;
-                if (Configuration._System.Daemon)
+                if (Configuration.Services.Daemon)
                 {
                     SystemLog.DebugLog("Loading core");
                     if (!Core.Init())
@@ -47,8 +47,8 @@ namespace pidgeon_sv
                     if (Configuration.Network.UsingSSL)
                     {
                         // create a new ssl listener
-                        SecuredListener listener2 = new SecuredListener(Configuration.Network.ServerSSL);
-                        listener2.Listen();
+                        SecuredListener listener_ssl = new SecuredListener(Configuration.Network.ServerSSL);
+                        listener_ssl.Listen();
                     }
                     while (Core.IsRunning)
                         Thread.Sleep(800);

@@ -29,15 +29,15 @@ namespace pidgeon_sv
             {
                 if (curr.InnerText == "THREAD")
                 {
-                    Console.WriteLine("+----------------------------------------------------------------------------+");
-                    Console.WriteLine("|ID:   |name:                    |priority: |status:                         |");
-                    Console.WriteLine("+----------------------------------------------------------------------------+");
+                    Console.WriteLine("+----------------------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |name:                                |priority: |status:                         |");
+                    Console.WriteLine("+----------------------------------------------------------------------------------------+");
                     foreach (XmlAttribute thread in curr.Attributes)
                     {
                         List<string> info = new List<string>(thread.Value.Split(';'));
                         if (info.Count < 3)
                             continue;
-                        Console.WriteLine("|" + Terminal.FormatToSpecSize(thread.Name, 6) + "|" + Terminal.FormatToSpecSize(info[0], 25)
+                        Console.WriteLine("|" + Terminal.FormatToSpecSize(thread.Name, 6) + "|" + Terminal.FormatToSpecSize(info[0], 37)
                                           + "|" + Terminal.FormatToSpecSize(info[1], 10)  + "|" + Terminal.FormatToSpecSize(info[2], 32) + "|");
                     }
                     Console.WriteLine("+----------------------------------------------------------------------------+");
@@ -108,9 +108,9 @@ namespace pidgeon_sv
                         Console.WriteLine("There are no sessions on this instance of services (weird heh)");
                         return;
                     }
-                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
-                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:             |Status:            |");
-                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
+                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:                 |Status:                      |");
+                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
                     foreach (string session in Sessions)
                     {
                         if (String.IsNullOrEmpty(session))
@@ -121,9 +121,9 @@ namespace pidgeon_sv
                             status = info[4];
                         Console.WriteLine("|" + Terminal.FormatToSpecSize(info[0] ,6) + "|" + Terminal.FormatToSpecSize(info[2], 14)
                                           + "|" + Terminal.FormatToSpecSize(DateTime.FromBinary(long.Parse(info[1])).ToString(), 26)
-                                          + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|" + Terminal.FormatToSpecSize(status, 10) + "|");
+                                          + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|" + Terminal.FormatToSpecSize(status, 29) + "|");
                     }
-                    Console.WriteLine("+-------------------------------------------------------------------------------------+");
+                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
                     }
             }
 

@@ -96,15 +96,15 @@ namespace pidgeon_sv
         {
             try
             {
-                SystemLog.WriteLine("Pidgeon services " + Configuration._System.PidgeonSvVersion + " loading");
+                SystemLog.WriteLine("Pidgeon services " + Configuration.Services.PidgeonSvVersion + " loading");
                 SystemLog.WriteLine("OS: " + Environment.OSVersion.ToString());
                 LoadConf();
-                if (!File.Exists(Configuration._System.CertificatePath) && Configuration.Network.UsingSSL)
+                if (!File.Exists(Configuration.Services.CertificatePath) && Configuration.Network.UsingSSL)
                 {
                     try
                     {
                         SystemLog.WriteLine("There is no certificate file, creating one now");
-                        GenerateCertificate(Configuration._System.CertificatePath, "pidgeonclient.org");
+                        GenerateCertificate(Configuration.Services.CertificatePath, "pidgeonclient.org");
                     }
                     catch (Exception fail)
                     {
@@ -117,16 +117,16 @@ namespace pidgeon_sv
                 SystemLog.WriteLine("-----------------------------------------------------------");
                 SystemLog.WriteLine("Port: " + Configuration.Network.ServerPort.ToString());
                 SystemLog.WriteLine("WD: " + Directory.GetCurrentDirectory());
-                if (Configuration._System.MaxFileChunkSize == 0)
+                if (Configuration.Services.MaxFileChunkSize == 0)
                 {
                     SystemLog.WriteLine("Maximum file chunk size: unlimited");
                 }
                 else
                 {
-                    SystemLog.WriteLine("Maximum file chunk size: " + Configuration._System.MaxFileChunkSize.ToString());
+                    SystemLog.WriteLine("Maximum file chunk size: " + Configuration.Services.MaxFileChunkSize.ToString());
                 }
-                SystemLog.WriteLine("Minimum buffer size: " + Configuration._System.MinimumBufferSize.ToString());
-                SystemLog.WriteLine("Minimum chunk size: " + Configuration._System.ChunkSize.ToString());
+                SystemLog.WriteLine("Minimum buffer size: " + Configuration.Services.MinimumBufferSize.ToString());
+                SystemLog.WriteLine("Minimum chunk size: " + Configuration.Services.ChunkSize.ToString());
                 SystemLog.WriteLine("SSL is enabled: " + Configuration.Network.UsingSSL.ToString());
                 if (Configuration.Network.UsingSSL)
                 {

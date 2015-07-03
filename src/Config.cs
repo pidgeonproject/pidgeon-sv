@@ -71,10 +71,7 @@ namespace pidgeon_sv
             public static bool Terminal = false;
         }
 
-        /// <summary>
-        /// _System
-        /// </summary>
-        public class _System
+        public class Services
         {
             /// <summary>
             /// Name of file where user information is stored
@@ -156,13 +153,13 @@ namespace pidgeon_sv
 
         public static void Init()
         {
-            Configuration._System.UserFile = Configuration._System.ConfigurationFolder +
+            Configuration.Services.UserFile = Configuration.Services.ConfigurationFolder +
                                                  Path.DirectorySeparatorChar +
-                                                 Configuration._System.UserFile;
+                                                 Configuration.Services.UserFile;
 
-            Configuration._System.PasswordFile = Configuration._System.ConfigurationFolder +
+            Configuration.Services.PasswordFile = Configuration.Services.ConfigurationFolder +
                                                  Path.DirectorySeparatorChar +
-                                                 Configuration._System.PasswordFile;
+                                                 Configuration.Services.PasswordFile;
         }
     }
 }

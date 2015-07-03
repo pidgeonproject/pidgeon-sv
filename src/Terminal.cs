@@ -115,12 +115,12 @@ namespace pidgeon_sv
         private static void Management()
         {
             Configuration.Logging.Terminal = true;
-            if (!File.Exists(Configuration._System.PasswordFile))
+            if (!File.Exists(Configuration.Services.PasswordFile))
             {
                 SystemLog.Error("There is no password file, can't continue (did you install services using --install option?)");
                 return;
             }
-            string username = File.ReadAllText(Configuration._System.PasswordFile);
+            string username = File.ReadAllText(Configuration.Services.PasswordFile);
             username = username.Replace("\n", "");
             string password;
             if (!username.Contains(":"))
@@ -380,13 +380,13 @@ namespace pidgeon_sv
         private static void Install()
         {
             Configuration.Logging.Terminal = true;
-            if (File.Exists(Configuration._System.UserFile))
+            if (File.Exists(Configuration.Services.UserFile))
             {
                 SystemLog.Error("Not creating a user file because it already exist");
                 return;
             }
 
-            if (File.Exists(Configuration._System.PasswordFile))
+            if (File.Exists(Configuration.Services.PasswordFile))
             {
                 SystemLog.Error("Not creating a user file because password file already exist");
                 return;
@@ -409,7 +409,7 @@ namespace pidgeon_sv
             user.RealName = "Pidgeon system";
             Core.UserList.Add(user);
             Core.SaveUser();
-            File.WriteAllText(Configuration._System.PasswordFile, "system:" + password.ToString());
+            File.WriteAllText(Configuration.Services.PasswordFile, "system:" + password.ToString());
             SystemLog.DebugLog("Finished installing of new user list");
         }
 
@@ -458,7 +458,7 @@ namespace pidgeon_sv
                         Configuration.Debugging.Verbosity++;
                         break;
                     case "daemon":
-                        Configuration._System.Daemon = true;
+                        Configuration.Services.Daemon = true;
                         break;
                     case "terminal":
                         Configuration.Logging.Terminal = true;
