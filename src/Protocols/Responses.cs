@@ -351,7 +351,6 @@ namespace pidgeon_sv
                         if (curr_user.Password == pw)
                         {
                             protocol.session.User = curr_user;
-                            protocol.session.User.UpdateCB();
                             SystemLog.WriteLine(protocol.session.IP + ": Logged in as " + protocol.session.User.UserName);
                             response = new ProtocolMain.Datagram("AUTH", "OK");
                             response.Parameters.Add("ls", "There is " + protocol.session.User.Clients.Count.ToString() + " connections logged in to this account");

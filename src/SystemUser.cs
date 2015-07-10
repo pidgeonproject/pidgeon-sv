@@ -64,10 +64,6 @@ namespace pidgeon_sv
         }
 
         /// <summary>
-        /// The buffered list of protocols, so that we don't need to call Clients::get so often
-        /// </summary>
-        public List<ProtocolMain> ClientsBuffer = new List<ProtocolMain>();
-        /// <summary>
         /// The username
         /// </summary>
         public string UserName = null;
@@ -136,14 +132,6 @@ namespace pidgeon_sv
             }
         }
 
-        /// <summary>
-        /// Updates the client buffer
-        /// </summary>
-        public void UpdateCB()
-        {
-            this.ClientsBuffer = this.Clients;
-        }
-
         public bool IsApproved(string permission)
         {
              return Security.HasPermission(this.Role, permission);
@@ -195,7 +183,7 @@ namespace pidgeon_sv
                 data.Parameters.Add("MQID", text.MQID.ToString());
                 if (connection == null)
                 {
-                    foreach (ProtocolMain pidgeon in ClientsBuffer)
+                    foreach (ProtocolMain pidgeon in this.Clients)
                     {
                         if (pidgeon != null)
                         {
@@ -244,7 +232,7 @@ namespace pidgeon_sv
 
         public bool Deliver(ProtocolMain.Datagram text)
         {
-            foreach (ProtocolMain client in ClientsBuffer)
+            foreach (ProtocolMain client in this.Clients)
             {
                 client.Deliver(text);
             }
@@ -322,12 +310,6 @@ namespace pidgeon_sv
                 Messages.Add(data);
         }
 
-        /// <summary>
-        /// Kicks the user
-        /// </summary>
-        /// <param name='user'>
-        /// User
-        /// </param>
         public static void KickUser(SystemUser user)
         {
             foreach (ProtocolMain clients in user.Clients)
@@ -373,7 +355,6 @@ namespace pidgeon_sv
                     KickUser(user);
                     user.DatabaseEngine.Clear();
                     user.ConnectedNetworks.Clear();
-                    user.ClientsBuffer.Clear();
                     user.Messages.Clear();
                     Core.UserList.Remove(user);
                     Core.SaveUser();

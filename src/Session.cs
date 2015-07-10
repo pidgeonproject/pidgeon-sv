@@ -223,8 +223,6 @@ namespace pidgeon_sv
                 {
                     // remove the reference to user who owned this session so that it can be cleaned up
                     this.User = null;
-                    // remove the reference to this session from the user
-                    user.UpdateCB();
                 }
             }
             status = Status.Disconnected;
