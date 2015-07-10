@@ -90,41 +90,34 @@ namespace pidgeon_sv
                 {
                     while (Core.IsRunning)
                     {
-                        try
+                        if (messages.Count == 0)
                         {
-                            if (messages.Count == 0)
-                            {
-                                Thread.Sleep(100);
-                                continue;
-                            }
-                            List<Message> newmessages = new List<Message>();
-                            lock (messages)
-                            {
-                                newmessages.AddRange(messages);
-                                messages.Clear();
-                            }
-                            if (protocol.systemUser != null)
-                            {
-                                foreach (Message message in newmessages)
-                                {
-                                    message.Data.Parameters.Add("time", message.MessageTime.ToBinary().ToString());
-                                    protocol.systemUser.Deliver(message.Data);
-                                }
-                            }
-                            lock (oldmessages)
-                            {
-                                if (oldmessages.Count > Configuration.Services.MaximumBufferSize)
-                                {
-                                    FlushOld();
-                                }
-                                oldmessages.AddRange(newmessages);
-                            }
-                            Thread.Sleep(200);
+                            Thread.Sleep(100);
+                            continue;
                         }
-                        catch (ThreadAbortException)
+                        List<Message> newmessages = new List<Message>();
+                        lock (messages)
                         {
-                            goto unregister;
+                            newmessages.AddRange(messages);
+                            messages.Clear();
                         }
+                        if (protocol.systemUser != null)
+                        {
+                            foreach (Message message in newmessages)
+                            {
+                                message.Data.Parameters.Add("time", message.MessageTime.ToBinary().ToString());
+                                protocol.systemUser.Deliver(message.Data);
+                            }
+                        }
+                        lock (oldmessages)
+                        {
+                            if (oldmessages.Count > Configuration.Services.MaximumBufferSize)
+                            {
+                                FlushOld();
+                            }
+                            oldmessages.AddRange(newmessages);
+                        }
+                        Thread.Sleep(200);
                     }
                 }
                 catch (ThreadAbortException)
@@ -133,8 +126,6 @@ namespace pidgeon_sv
                 {
                     Core.handleException(fail, true);
                 }
-
-            unregister:
                 ThreadPool.UnregisterThis();
             }
 

@@ -169,8 +169,8 @@ namespace pidgeon_sv
                     {
                         skip = MessageSize[network] - number;
                     }
-                    int current_line = 0;
 
+                    int current_line = 0;
                     System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
                     string line = null;
                     Dictionary<int, Index> index = Indexes[network];
