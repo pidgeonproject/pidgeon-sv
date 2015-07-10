@@ -40,12 +40,11 @@ namespace pidgeon_sv
         /// Path to a folder where data are located
         /// </summary>
         private string db = "data";
-        private Dictionary <string, bool> locked = new Dictionary<string,bool>();
-        private Dictionary <string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
+        private Dictionary<string, Dictionary<int, Index>> Indexes = new Dictionary<string, Dictionary<int, Index>>();
 
         public string MessagePool(string network)
         {
-                return db + System.IO.Path.DirectorySeparatorChar + network + "_messages.fs";
+            return db + System.IO.Path.DirectorySeparatorChar + network + "_messages.fs";
         }
 
         public DatabaseFile(SystemUser _client)
@@ -67,37 +66,13 @@ namespace pidgeon_sv
                 {
                     Running = true;
                 }
-            } catch (Exception fail)
+            }
+            catch (Exception fail)
             {
                 Running = false;
                 Core.handleException(fail);
             }
             base.Clear();
-        }
-
-        public void Unlock(string network)
-        {
-            lock (locked)
-            {
-                if (!locked.ContainsKey(network))
-                    locked.Add(network, false);
-                if (!locked[network])
-                    throw new Exception("Tried to free a lock on item which wasn't locked - fix me!!");
-
-                locked[network] = false;
-            }
-        }
-
-        public void Lock(string network)
-        {
-            lock (locked)
-            {
-                if (!locked.ContainsKey(network))
-                    locked.Add(network, false);
-            }
-            while (locked[network])
-                System.Threading.Thread.Sleep(100);
-            locked[network] = true;
         }
 
         private void SendRange(ProtocolIrc.Buffer.Message message, ref int index, ProtocolMain protocol)
@@ -116,26 +91,20 @@ namespace pidgeon_sv
         {
             try
             {
-                Lock(network);
-                if (MessageSize.ContainsKey(network))
-                    MessageSize.Remove(network);
-                if (!System.IO.File.Exists(MessagePool(network)))
-                    return;
-                System.IO.File.Delete(MessagePool(network));
-                if (Indexes.ContainsKey(network))
-                    Indexes.Remove(network);
-                Unlock(network);
-                lock (locked)
+                lock (mutex1)
                 {
-                    if (locked.ContainsKey(network))
-                        locked.Remove(network);
-
+                    if (MessageSize.ContainsKey(network))
+                        MessageSize.Remove(network);
+                    if (!System.IO.File.Exists(MessagePool(network)))
+                        return;
+                    System.IO.File.Delete(MessagePool(network));
+                    if (Indexes.ContainsKey(network))
+                        Indexes.Remove(network);
                 }
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                Unlock(network);
             }
         }
 
@@ -153,7 +122,7 @@ namespace pidgeon_sv
 
         public override void Store_SM(ProtocolMain.SelfData message)
         {
-            
+
         }
 
         private ProtocolIrc.Buffer.Message str2M(string data)
@@ -180,45 +149,55 @@ namespace pidgeon_sv
         public override void MessagePool_DeliverData(int number, ref int no, ProtocolMain protocol, string network, int MQID)
         {
             if (!Running || !System.IO.File.Exists(MessagePool(network)))
-                    return;
+                return;
             int sent = 0;
             try
             {
-                Lock(network);
-                int skip = 0;
-                lock (MessageSize)
-                { 
+                lock (mutex1)
+                {
+                    int skip = 0;
                     if (!MessageSize.ContainsKey(network))
                         MessageSize.Add(network, 0);
                     if (!Indexes.ContainsKey(network))
                         Indexes.Add(network, new Dictionary<int, Index>());
-                }
-                if (MessageSize[network] < number)
-                {
-                    number = MessageSize[network];
-                    skip = 0;
-                } else
-                {
-                    skip = MessageSize[network] - number;
-                }
-                int current_line = 0;
-                
-                System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
-                string line = null;
-                Dictionary<int, Index> index = Indexes[network];
-                while (((line = file.ReadLine()) != null) && current_line < number)
-                {
-                    if (skip > 0)
+                    if (MessageSize[network] < number)
                     {
-                        skip--;
-                        continue;
+                        number = MessageSize[network];
+                        skip = 0;
                     }
-                    if (String.IsNullOrEmpty(line))
-                        continue;
-                    if ((current_line + 1) < Indexes[network].Count)
+                    else
                     {
-                        if (MQID < index[current_line].mqid)
+                        skip = MessageSize[network] - number;
+                    }
+                    int current_line = 0;
+
+                    System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                    string line = null;
+                    Dictionary<int, Index> index = Indexes[network];
+                    while (((line = file.ReadLine()) != null) && current_line < number)
+                    {
+                        if (skip > 0)
                         {
+                            skip--;
+                            continue;
+                        }
+                        if (String.IsNullOrEmpty(line))
+                            continue;
+                        if ((current_line + 1) < Indexes[network].Count)
+                        {
+                            if (MQID < index[current_line].mqid)
+                            {
+                                ProtocolIrc.Buffer.Message message = str2M(line);
+                                if (MQID < int.Parse(message.Data.Parameters["MQID"]))
+                                {
+                                    SendData(message, ref no, protocol);
+                                    sent++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            SystemLog.DebugLog("Invalid index (browsing slowly) for " + network);
                             ProtocolIrc.Buffer.Message message = str2M(line);
                             if (MQID < int.Parse(message.Data.Parameters["MQID"]))
                             {
@@ -226,25 +205,13 @@ namespace pidgeon_sv
                                 sent++;
                             }
                         }
+                        current_line++;
                     }
-                    else
-                    {
-                        SystemLog.DebugLog("Invalid index (browsing slowly) for " + network);
-                        ProtocolIrc.Buffer.Message message = str2M(line);
-                        if (MQID < int.Parse(message.Data.Parameters["MQID"]))
-                        {
-                            SendData(message, ref no, protocol);
-                            sent++;
-                        }
-                    }
-                    current_line++;
                 }
                 SystemLog.DebugLog("Sent messages: " + sent.ToString());
-                Unlock(network);
             }
             catch (Exception fail)
             {
-                Unlock(network);
                 Core.handleException(fail);
             }
         }
@@ -259,43 +226,39 @@ namespace pidgeon_sv
             {
                 SystemLog.DebugLog("Getting range from disk");
                 int messages = 0;
-                Lock(network);
-                lock (MessageSize)
+                lock (mutex1)
                 {
                     if (!MessageSize.ContainsKey(network))
                         MessageSize.Add(network, 0);
                     if (!Indexes.ContainsKey(network))
                         Indexes.Add(network, new Dictionary<int, Index>());
-                }
-                int current_line = 0;
-                if (!File.Exists(MessagePool(network)))
-                {
-                    Unlock(network);
-                    SystemLog.DebugLog("There is no datafile for " + network);
-                    return 0;
-                }
-                //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
-                string line = null;
-                Dictionary<int, Index> index = Indexes[network];
-                while ((current_line + 1) < Indexes[network].Count)
-                {
-                    if (line.Length == 0)
-                        continue;
-                    if (from <= index[current_line].mqid && to >= index[current_line].mqid)
+                    int current_line = 0;
+                    if (!File.Exists(MessagePool(network)))
                     {
-                        ProtocolIrc.Buffer.Message message = str2M(line);
-                        SendRange(message, ref id, protocol);
-                        messages++;
+                        SystemLog.DebugLog("There is no datafile for " + network);
+                        return 0;
                     }
-                    current_line++;
+                    //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                    string line = null;
+                    Dictionary<int, Index> index = Indexes[network];
+                    while ((current_line + 1) < Indexes[network].Count)
+                    {
+                        if (line.Length == 0)
+                            continue;
+                        if (from <= index[current_line].mqid && to >= index[current_line].mqid)
+                        {
+                            ProtocolIrc.Buffer.Message message = str2M(line);
+                            SendRange(message, ref id, protocol);
+                            messages++;
+                        }
+                        current_line++;
+                    }
                 }
-                Unlock(network);
                 return messages;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                Unlock(network);
             }
             return 0;
         }
@@ -310,51 +273,47 @@ namespace pidgeon_sv
             {
                 SystemLog.DebugLog("Getting size from disk");
                 int messages = 0;
-                Lock(network);
-                int skip = 0;
-                lock (MessageSize)
+                lock (mutex1)
                 {
+                    int skip = 0;
                     if (!MessageSize.ContainsKey(network))
                         MessageSize.Add(network, 0);
                     if (!Indexes.ContainsKey(network))
                         Indexes.Add(network, new Dictionary<int, Index>());
-                }
-                if (MessageSize[network] < size)
-                {
-                    size = MessageSize[network];
-                    skip = 0;
-                }
-                else
-                {
-                    skip = MessageSize[network] - size;
-                }
-                int current_line = 0;
-                if (!File.Exists(MessagePool(network)))
-                {
-                    Unlock(network);
-                    return 0;
-                }
-                //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
-                Dictionary<int, Index> index = Indexes[network];
-                while (current_line < size && (current_line + 1) < Indexes[network].Count)
-                {
-                    if (skip > 0)
+                    if (MessageSize[network] < size)
                     {
-                        skip--;
-                        continue;
+                        size = MessageSize[network];
+                        skip = 0;
                     }
-                    if (mqid < index[current_line].mqid)
-                        messages++;
-                    current_line++;
+                    else
+                    {
+                        skip = MessageSize[network] - size;
+                    }
+                    int current_line = 0;
+                    if (!File.Exists(MessagePool(network)))
+                    {
+                        return 0;
+                    }
+                    //System.IO.StreamReader file = new System.IO.StreamReader(MessagePool(network));
+                    Dictionary<int, Index> index = Indexes[network];
+                    while (current_line < size && (current_line + 1) < Indexes[network].Count)
+                    {
+                        if (skip > 0)
+                        {
+                            skip--;
+                            continue;
+                        }
+                        if (mqid < index[current_line].mqid)
+                            messages++;
+                        current_line++;
+                    }
                 }
-                Unlock(network);
                 SystemLog.DebugLog("size retrieved for " + network);
                 return messages;
             }
             catch (Exception fail)
             {
                 Core.handleException(fail);
-                Unlock(network);
             }
             return 0;
         }
@@ -365,8 +324,7 @@ namespace pidgeon_sv
                 return;
             try
             {
-                Lock(network);
-                lock (MessageSize)
+                lock (mutex1)
                 {
                     if (!MessageSize.ContainsKey(network))
                     {
@@ -376,15 +334,13 @@ namespace pidgeon_sv
                     {
                         Indexes.Add(network, new Dictionary<int, Index>());
                     }
+                    System.IO.File.AppendAllText(MessagePool(network), message.ToDocumentXmlText() + "\n");
+                    Indexes[network].Add(MessageSize[network], new Index(int.Parse(message.Data.Parameters["MQID"])));
+                    MessageSize[network] = (MessageSize[network] + 1);
                 }
-                System.IO.File.AppendAllText(MessagePool(network), message.ToDocumentXmlText() + "\n");
-                Indexes[network].Add(MessageSize[network], new Index(int.Parse(message.Data.Parameters["MQID"])));
-                MessageSize[network]= (MessageSize[network] + 1);
-                Unlock(network);
             }
             catch (Exception fail)
             {
-                Unlock(network);
                 Core.handleException(fail);
             }
         }

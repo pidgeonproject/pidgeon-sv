@@ -30,6 +30,7 @@ namespace pidgeon_sv
         /// Owner of this database session
         /// </summary>
         public SystemUser systemUser = null;
+        protected object mutex1 = new object();
         /// <summary>
         /// Cache of message size
         /// </summary>
@@ -70,12 +71,10 @@ namespace pidgeon_sv
 
         public int GetMessageSize(string network)
         {
-            lock (MessageSize)
+            lock (mutex1)
             {
                 if (!MessageSize.ContainsKey(network))
                     MessageSize.Add(network, 0);
-
-
             }
             return MessageSize[network];
         }

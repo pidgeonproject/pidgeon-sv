@@ -108,9 +108,9 @@ namespace pidgeon_sv
                         Console.WriteLine("There are no sessions on this instance of services (weird heh)");
                         return;
                     }
-                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
-                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:                 |Status:                      |");
-                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
+                    Console.WriteLine("+---------------------------------------------------------------------------------------------------------+");
+                    Console.WriteLine("|ID:   |Username:     |Logged since:             |IP:                        |Status:                      |");
+                    Console.WriteLine("+----------------------------------------------------------------------------------------------------------+");
                     foreach (string session in Sessions)
                     {
                         if (String.IsNullOrEmpty(session))
@@ -123,7 +123,7 @@ namespace pidgeon_sv
                                           + "|" + Terminal.FormatToSpecSize(DateTime.FromBinary(long.Parse(info[1])).ToString(), 26)
                                           + "|" + Terminal.FormatToSpecSize(info[3], 26) + "|" + Terminal.FormatToSpecSize(status, 29) + "|");
                     }
-                    Console.WriteLine("+---------------------------------------------------------------------------------------------------+");
+                    Console.WriteLine("+----------------------------------------------------------------------------------------------------------+");
                     }
             }
 
