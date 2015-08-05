@@ -699,7 +699,7 @@ namespace pidgeon_sv
                     {
                         foreach (libirc.Channel curr in nw.Channels.Values)
                         {
-                            if (curr.ChannelWork)
+                            if (curr.ChannelWork && curr.IsAlive)
                             {
                                 list += curr.Name + "!";
                             }
